@@ -1,0 +1,44 @@
+{
+  "cli": {
+    "version": ">= 5.9.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": false,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "GOOGLE_SIGNIN_ENABLED": "true",
+        "NODE_ENV": "development"
+      },
+      "cache": {
+        "disabled": false
+      },
+      "channel": "development"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "GOOGLE_SIGNIN_ENABLED": "true",
+        "NODE_ENV": "preview"
+      },
+      "channel": "preview"
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "GOOGLE_SIGNIN_ENABLED": "true",
+        "NODE_ENV": "production"
+      },
+      "channel": "production"
+    }
+  }
+}

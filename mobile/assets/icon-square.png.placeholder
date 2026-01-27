@@ -1,0 +1,11 @@
+# PNG Icon Placeholder
+# This is a placeholder for icon-square.png
+# Dimensions: 1024x1024
+# 
+# To replace with actual icon:
+# 1. Create a 1024x1024 PNG image
+# 2. Save it as icon-square.png in the assets directory
+# 3. Remove this placeholder file
+
+# Base64 transparent pixel for reference:
+# iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==

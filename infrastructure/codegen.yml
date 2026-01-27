@@ -1,0 +1,46 @@
+# GraphQL Code Generator Configuration para Trinity MVP
+overwrite: true
+schema:
+  - schema.graphql
+documents:
+  - "../backend/src/**/*.graphql"
+  - "../mobile/src/**/*.graphql"
+generates:
+  # Tipos TypeScript para el backend
+  ../backend/src/generated/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-resolvers"
+    config:
+      useIndexSignature: true
+      contextType: "../types/context#GraphQLContext"
+      mappers:
+        User: "../domain/entities/user.entity#User"
+        Room: "../domain/entities/room.entity#Room"
+        Movie: "../domain/entities/media.entity#MediaItem"
+        Vote: "../domain/entities/vote.entity#Vote"
+
+  # Tipos TypeScript para el frontend móvil
+  ../mobile/src/generated/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
+    config:
+      withHooks: true
+      withComponent: false
+      withHOC: false
+
+  # Documentación del esquema
+  ../docs/schema.md:
+    plugins:
+      - "schema-ast"
+
+  # Introspección para herramientas de desarrollo
+  ../backend/src/generated/introspection.json:
+    plugins:
+      - "introspection"
+
+hooks:
+  afterOneFileWrite:
+    - prettier --write

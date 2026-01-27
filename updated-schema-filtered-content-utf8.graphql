@@ -1,0 +1,625 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+#  Real-time Event Types
+
+# Filtered content type that matches Lambda response format
+type FilteredContent {
+  id: String!
+  tmdbId: Int
+  title: String!
+  originalTitle: String
+  overview: String
+  posterPath: String
+  backdropPath: String
+  releaseDate: String
+  year: String
+  rating: Float
+  voteCount: Int
+  genres: [String!]
+  mediaType: String
+  runtime: Int
+  tagline: String
+  budget: Int
+  revenue: Int
+  trailerKey: String
+  watchProviders: [WatchProvider]
+  cast: [CastMember]
+  director: String
+  creator: String
+}
+
+# Supporting types for FilteredContent
+type WatchProvider {
+  id: Int!
+  name: String!
+  logoPath: String
+  type: String
+}
+
+type CastMember {
+  id: Int!
+  name: String!
+  character: String
+  profilePath: String
+}
+
+interface BaseEvent {
+  eventType: String
+  id: ID
+  roomId: ID
+  timestamp: AWSDateTime
+}
+
+type ChatEvent implements BaseEvent {
+  action: ChatAction!
+  content: String
+  eventType: String!
+  id: ID!
+  messageId: ID!
+  messageType: ChatMessageType!
+  metadata: AWSJSON
+  roomId: ID!
+  timestamp: AWSDateTime!
+  userId: ID!
+  username: String!
+}
+
+type ConnectionStatusEvent implements BaseEvent {
+  connectionStatus: ConnectionStatus!
+  eventType: String!
+  id: ID!
+  lastSeenAt: AWSDateTime
+  reconnectionAttempts: Int
+  roomId: ID!
+  timestamp: AWSDateTime!
+  userAgent: String
+  userId: ID!
+}
+
+type ContentPoolEntry {
+  #  1 = ALL_GENRES, 2 = ANY_GENRE, 3 = POPULAR
+  addedAt: AWSDateTime!
+  genreIds: [Int!]!
+  mediaType: MediaType!
+  overview: String!
+  posterPath: String
+  priority: Int!
+  releaseDate: String!
+  title: String!
+  tmdbId: String!
+  voteAverage: Float!
+}
+
+type EnhancedMovieInfo {
+  genres: [String!]!
+  id: ID!
+  overview: String
+  poster: String
+  #  New: Release year
+  rating: Float
+  #  New: TMDB rating
+  runtime: Int
+  title: String!
+  #  New: Genre names for current movie
+  year: Int
+}
+
+type FilterCriteria {
+  genreIds: [Int!]!
+  mediaType: MediaType!
+  roomId: String!
+}
+
+type Genre {
+  id: Int!
+  name: String!
+}
+
+type MatchEvent implements BaseEvent {
+  consensusType: ConsensusType
+  eventType: String
+  id: ID
+  matchId: ID
+  mediaId: ID
+  mediaTitle: String
+  participants: [ID!]
+  roomId: ID
+  timestamp: AWSDateTime
+}
+
+type MatchFoundEvent implements BaseEvent {
+  #  Total voting duration from start to match
+  consensusType: ConsensusType!
+  eventType: String!
+  id: ID!
+  matchId: ID!
+  movieInfo: EnhancedMovieInfo!
+  participants: [ParticipantInfo!]!
+  roomId: ID!
+  timestamp: AWSDateTime!
+  votingDuration: Int
+}
+
+type MemberData {
+  lastActivity: AWSDateTime
+  permissions: [String!]
+  role: String
+  status: String
+}
+
+type MemberEvent implements BaseEvent {
+  action: MemberAction!
+  eventType: String!
+  id: ID!
+  memberCount: Int!
+  memberData: MemberData
+  roomId: ID!
+  timestamp: AWSDateTime!
+  userId: ID!
+}
+
+type ModerationEvent implements BaseEvent {
+  actionType: String!
+  duration: Int
+  eventType: String!
+  expiresAt: AWSDateTime
+  id: ID!
+  moderatorId: ID!
+  reason: String!
+  roomId: ID!
+  targetUserId: ID!
+  timestamp: AWSDateTime!
+}
+
+type Movie {
+  genres: [Genre]
+  id: ID!
+  overview: String
+  poster: String
+  release_date: String
+  runtime: Int
+  title: String!
+  vote_average: Float
+}
+
+type Mutation {
+  #  DataSource: VoteHandler
+  # Connection management
+  connect(roomId: ID!): Boolean
+  #  DataSource: AuthHandler
+  createRoom(input: CreateRoomInput!): Room
+  #  DataSource: RoomHandler
+  createRoomDebug(input: CreateRoomInputDebug!): Room
+  #  DataSource: RoomHandler
+  createRoomSimple(name: String!): Room
+  createUser(email: String!, username: String): User
+  #  DataSource: RealtimeHandler
+  disconnect(roomId: ID!): Boolean
+  #  DataSource: RoomHandler
+  joinRoomByInvite(inviteCode: String!): Room
+  #  DataSource: RoomHandler
+  leaveRoom(roomId: ID!): Room
+  publishChatEvent(chatData: AWSJSON!, roomId: ID!): ChatEvent
+  publishConnectionStatusEvent(connectionData: AWSJSON!, roomId: ID!): ConnectionStatusEvent
+  publishMatchEvent(matchData: AWSJSON!, roomId: ID!): MatchEvent
+  publishMatchFoundEvent(matchFoundData: AWSJSON!, roomId: ID!): MatchFoundEvent
+  publishMemberEvent(memberData: AWSJSON!, roomId: ID!): MemberEvent
+  publishModerationEvent(moderationData: AWSJSON!, roomId: ID!): ModerationEvent
+  publishRoleEvent(roleData: AWSJSON!, roomId: ID!): RoleEvent
+  #  DataSource: RealtimeHandler
+  # Real-time event publishing mutations
+  publishRoomEvent(data: AWSJSON!, eventType: String!, roomId: ID!): RoomEvent
+  publishRoomStateEvent(roomId: ID!, roomStateData: AWSJSON!): RoomStateEvent
+  publishScheduleEvent(roomId: ID!, scheduleData: AWSJSON!): ScheduleEvent
+  publishSettingsEvent(roomId: ID!, settingsData: AWSJSON!): SettingsEvent
+  publishSuggestionEvent(roomId: ID!, suggestionData: AWSJSON!): SuggestionEvent
+  publishThemeEvent(roomId: ID!, themeData: AWSJSON!): ThemeEvent
+  publishVoteEvent(roomId: ID!, voteData: AWSJSON!): VoteEvent
+  #  Enhanced real-time event mutations
+  publishVoteUpdateEvent(roomId: ID!, voteUpdateData: AWSJSON!): VoteUpdateEvent
+  #  DataSource: RoomHandler
+  startVoting(roomId: ID!): Room
+  #  DataSource: RoomHandler
+  updateRoomFilters(input: UpdateRoomFiltersInput!, roomId: ID!): Room
+  #  DataSource: AuthHandler
+  updateUser(name: String, picture: String): User
+  #  DataSource: RoomHandler
+  vote(input: VoteInput!): Room
+}
+
+#  Supporting Types for Enhanced Events
+type ParticipantInfo {
+  connectionStatus: ConnectionStatus!
+  displayName: String!
+  isHost: Boolean!
+  lastActivity: AWSDateTime
+  userId: ID!
+  votingStatus: VotingStatus!
+}
+
+type Query {
+  #  DataSource: MovieHandler
+  getAvailableGenres(mediaType: MediaType!): [Genre!]!
+  #  DataSource: MovieHandler - Get available genres for media type
+  getChatRecommendations(text: String!): TriniResponse
+  #  DataSource: MovieHandler
+    getFilteredContent(excludeIds: [String!], genreIds: [Int!]!, limit: Int, mediaType: MediaType!): [FilteredContent]
+  #  DataSource: RoomHandler
+  getMovieDetails(movieId: String!): Movie
+  getMovies(genre: String, limit: Int, page: Int): [Movie]
+  #  DataSource: AIHandler (Trini)
+  getMyHistory: [Room]
+  #  DataSource: RoomHandler (alias for getMyHistory)
+  getRoom(roomId: ID!): Room
+  #  DataSource: AuthHandler
+  getRoomMembers(roomId: ID!): [ParticipantInfo]
+  #  DataSource: RoomHandler
+  getRoomVotes(roomId: ID!): AWSJSON
+  #  DataSource: MovieHandler
+  getUser(id: ID): User
+  #  DataSource: RoomHandler
+  getUserRooms: [Room]
+}
+
+type RoleEvent implements BaseEvent {
+  action: RoleAction!
+  assignedBy: ID!
+  eventType: String!
+  id: ID!
+  roleId: ID!
+  roleName: String!
+  roomId: ID!
+  targetUserId: ID!
+  timestamp: AWSDateTime!
+}
+
+#  Main Types
+type Room {
+  #  Nombres de géneros (nullable)
+  contentIds: [String!]
+  #  Criterios de filtrado aplicados (nullable por compatibilidad)
+  contentPool: [ContentPoolEntry!]
+  createdAt: AWSDateTime!
+  #  IDs de los 30 títulos pre-cargados (nullable)
+  currentContentIndex: Int
+  description: String
+  #  Pool de contenido pre-cargado (nullable)
+  excludedContentIds: [String!]
+  #  Índice actual en contentIds
+  filterCriteria: FilterCriteria
+  #  Tipo de contenido seleccionado (nullable por compatibilidad)
+  genreIds: [Int!]
+  #  IDs de géneros TMDB seleccionados (nullable)
+  genreNames: [String!]
+  genrePreferences: [String!]
+  hostId: String!
+  id: ID!
+  inviteCode: String
+  inviteUrl: String
+  #  Última actualización del pool de contenido
+  isActive: Boolean!
+  isPrivate: Boolean!
+  #  IDs de contenido ya mostrado (nullable)
+  lastContentRefresh: AWSDateTime
+  matchCount: Int
+  maxMembers: Int
+  #  DEPRECATED: Mantener por compatibilidad
+  mediaType: MediaType
+  memberCount: Int!
+  name: String!
+  resultMovieId: String
+  status: String!
+  updatedAt: AWSDateTime
+}
+
+type RoomEvent implements BaseEvent {
+  data: AWSJSON!
+  eventType: String!
+  id: ID!
+  roomId: ID!
+  timestamp: AWSDateTime!
+}
+
+type RoomState {
+  currentMovieId: String
+  currentMovieInfo: EnhancedMovieInfo
+  matchFound: Boolean!
+  participants: [ParticipantInfo!]!
+  progress: VoteProgress!
+  roomStatus: String!
+}
+
+type RoomStateEvent implements BaseEvent {
+  eventType: String!
+  id: ID!
+  roomId: ID!
+  roomState: RoomState!
+  syncReason: String!
+  timestamp: AWSDateTime!
+}
+
+type ScheduleEvent implements BaseEvent {
+  action: ScheduleAction!
+  endTime: AWSDateTime!
+  eventType: String!
+  id: ID!
+  message: String
+  roomId: ID!
+  scheduleId: ID!
+  startTime: AWSDateTime!
+  timestamp: AWSDateTime!
+  title: String!
+}
+
+type SettingsEvent implements BaseEvent {
+  category: SettingsCategory!
+  changedBy: ID!
+  eventType: String!
+  id: ID!
+  newValue: AWSJSON!
+  oldValue: AWSJSON
+  roomId: ID!
+  settingKey: String!
+  timestamp: AWSDateTime!
+}
+
+type Subscription {
+  #  Collaboration subscriptions
+  onChatMessage(roomId: ID!): ChatEvent @aws_subscribe(mutations : ["publishChatEvent"])
+  onConnectionStatusChange(roomId: ID!): ConnectionStatusEvent @aws_subscribe(mutations : ["publishConnectionStatusEvent"])
+  onContentSuggestion(roomId: ID!): SuggestionEvent @aws_subscribe(mutations : ["publishSuggestionEvent"])
+  onMatchFound(roomId: ID!): MatchEvent @aws_subscribe(mutations : ["publishMatchEvent"])
+  onMatchFoundEnhanced(roomId: ID!): MatchFoundEvent @aws_subscribe(mutations : ["publishMatchFoundEvent"])
+  onMemberUpdate(roomId: ID!): MemberEvent @aws_subscribe(mutations : ["publishMemberEvent"])
+  onModerationAction(roomId: ID!): ModerationEvent @aws_subscribe(mutations : ["publishModerationEvent"])
+  #  Advanced features subscriptions
+  onRoleAssignment(roomId: ID!): RoleEvent @aws_subscribe(mutations : ["publishRoleEvent"])
+  #  Room-level subscriptions
+  onRoomEvent(roomId: ID!): RoomEvent @aws_subscribe(mutations : ["publishRoomEvent"])
+  onRoomStateSync(roomId: ID!): RoomStateEvent @aws_subscribe(mutations : ["publishRoomStateEvent"])
+  #  Legacy subscription for backward compatibility
+  onRoomUpdated(roomId: ID!): Room @aws_subscribe(mutations : ["vote", "joinRoomByInvite"])
+  onScheduleEvent(roomId: ID!): ScheduleEvent @aws_subscribe(mutations : ["publishScheduleEvent"])
+  onSettingsChange(roomId: ID!): SettingsEvent @aws_subscribe(mutations : ["publishSettingsEvent"])
+  onThemeChange(roomId: ID!): ThemeEvent @aws_subscribe(mutations : ["publishThemeEvent"])
+  onVoteUpdate(roomId: ID!): VoteEvent @aws_subscribe(mutations : ["publishVoteEvent"])
+  #  Enhanced real-time subscriptions
+  onVoteUpdateEnhanced(roomId: ID!): VoteUpdateEvent @aws_subscribe(mutations : ["publishVoteUpdateEvent"])
+}
+
+type SuggestionEvent implements BaseEvent {
+  action: SuggestionAction!
+  comment: AWSJSON
+  eventType: String!
+  id: ID!
+  roomId: ID!
+  suggestion: AWSJSON
+  suggestionId: ID!
+  timestamp: AWSDateTime!
+  userId: ID!
+  username: String!
+  vote: AWSJSON
+}
+
+type ThemeEvent implements BaseEvent {
+  action: ThemeAction!
+  appliedBy: ID!
+  customizations: AWSJSON
+  eventType: String!
+  id: ID!
+  roomId: ID!
+  themeId: ID
+  themeName: String
+  timestamp: AWSDateTime!
+}
+
+#  Trini AI Response Type
+type TriniResponse {
+  chatResponse: String!
+  confidence: Float
+  #  New: How well response aligns with room genres
+  fallbackUsed: Boolean!
+  #  New: Explanation of the recommendation
+  genreAlignment: Float
+  #  New: Confidence score (0.0 to 1.0)
+  reasoning: String
+  recommendedGenres: [String!]!
+}
+
+type User {
+  createdAt: AWSDateTime!
+  email: String!
+  id: ID!
+  name: String
+  picture: String
+}
+
+type UserNotification {
+  data: AWSJSON
+  id: ID!
+  message: String!
+  read: Boolean!
+  timestamp: AWSDateTime!
+  title: String!
+  type: NotificationType!
+  userId: ID!
+}
+
+type VoteEvent implements BaseEvent {
+  eventType: String
+  id: ID
+  mediaId: ID
+  progress: VoteProgress
+  roomId: ID
+  timestamp: AWSDateTime
+  userId: ID
+  voteType: VoteType
+}
+
+#  Supporting Types
+type VoteProgress {
+  #  New: Estimated seconds to completion
+  currentMovieInfo: EnhancedMovieInfo
+  dislikesCount: Int!
+  #  New: List of users who haven't voted yet
+  estimatedTimeToCompletion: Int
+  likesCount: Int!
+  #  New: List of users who have voted
+  pendingUsers: [String!]!
+  percentage: Float!
+  remainingUsers: Int!
+  skipsCount: Int!
+  totalVotes: Int!
+  votingUsers: [String!]!
+}
+
+#  Enhanced Real-time Event Types
+type VoteUpdateEvent implements BaseEvent {
+  eventType: String!
+  id: ID!
+  movieInfo: EnhancedMovieInfo!
+  progress: VoteProgress!
+  roomId: ID!
+  timestamp: AWSDateTime!
+  votingDuration: Int
+}
+
+enum ChatAction {
+  CREATED
+  DELETED
+  EDITED
+  REACTION_ADDED
+  REACTION_REMOVED
+}
+
+enum ChatMessageType {
+  REACTION
+  SYSTEM
+  TEXT
+}
+
+#  Enhanced Enums
+enum ConnectionStatus {
+  CONNECTED
+  DISCONNECTED
+  RECONNECTED
+  RECONNECTING
+}
+
+enum ConsensusType {
+  MAJORITY
+  UNANIMOUS
+}
+
+#  Trinity MVP - GraphQL Schema with AppSync Real-time Subscriptions
+# Enums
+enum MediaType {
+  MOVIE
+  TV
+}
+
+enum MemberAction {
+  JOINED
+  LEFT
+  ROLE_CHANGED
+  STATUS_CHANGED
+}
+
+enum NotificationType {
+  MATCH_FOUND
+  MODERATION_ACTION
+  ROLE_ASSIGNED
+  ROOM_INVITE
+  SCHEDULE_REMINDER
+  SYSTEM_MESSAGE
+}
+
+enum RoleAction {
+  ASSIGNED
+  REMOVED
+}
+
+enum ScheduleAction {
+  CANCELLED
+  CREATED
+  REMINDER
+  UPDATED
+}
+
+enum SettingsCategory {
+  CAPACITY
+  CONSENSUS
+  OTHER
+  PRIVACY
+  TIMEOUT
+}
+
+enum SuggestionAction {
+  APPROVED
+  COMMENTED
+  CREATED
+  IMPLEMENTED
+  REJECTED
+  VOTED
+}
+
+enum ThemeAction {
+  APPLIED
+  REMOVED
+  UPDATED
+}
+
+#  Vote and Consensus Enums
+enum VoteType {
+  DISLIKE
+  LIKE
+  SKIP
+}
+
+enum VotingStatus {
+  PENDING
+  VOTED_DISLIKE
+  VOTED_LIKE
+  VOTED_SKIP
+}
+
+input CreateRoomInput {
+  description: String
+  #  Tipo de contenido: Película o Serie
+  genreIds: [Int!]!
+  #  IDs de géneros TMDB (máximo 3)
+  genrePreferences: [String!]
+  isPrivate: Boolean
+  maxMembers: Int
+  mediaType: MediaType!
+  name: String!
+}
+
+input CreateRoomInputDebug {
+  name: String!
+}
+
+#  Input Types
+input FilterCriteriaInput {
+  genreIds: [Int!]!
+  mediaType: MediaType!
+}
+
+input JoinRoomInput {
+  inviteCode: String!
+}
+
+input UpdateRoomFiltersInput {
+  genreIds: [Int!]
+  mediaType: MediaType
+}
+
+input VoteInput {
+  movieId: ID!
+  roomId: ID!
+  voteType: VoteType!
+}

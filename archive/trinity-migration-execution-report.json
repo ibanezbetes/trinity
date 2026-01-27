@@ -1,0 +1,120 @@
+{
+  "timestamp": "2026-01-25T13:05:04.215Z",
+  "totalPhases": 2,
+  "phasesCompleted": 2,
+  "phasesSuccessful": 1,
+  "phasesFailed": 1,
+  "totalDuration": 37815,
+  "overallStatus": "partial",
+  "phases": [
+    {
+      "phaseId": "phase-1",
+      "phaseName": "Preparación y Setup",
+      "status": "success",
+      "startTime": "2026-01-25T13:04:31.705Z",
+      "tasksExecuted": 4,
+      "tasksSuccessful": 3,
+      "tasksFailed": 1,
+      "validationResults": [
+        {
+          "validationId": "backup-integrity",
+          "name": "backup-integrity",
+          "status": "passed",
+          "message": "backup-integrity validado correctamente",
+          "details": {
+            "timestamp": "2026-01-25T13:04:40.207Z"
+          }
+        },
+        {
+          "validationId": "environment-readiness",
+          "name": "environment-readiness",
+          "status": "passed",
+          "message": "environment-readiness validado correctamente",
+          "details": {
+            "timestamp": "2026-01-25T13:04:40.708Z"
+          }
+        },
+        {
+          "validationId": "monitoring-active",
+          "name": "monitoring-active",
+          "status": "passed",
+          "message": "monitoring-active validado correctamente",
+          "details": {
+            "timestamp": "2026-01-25T13:04:41.208Z"
+          }
+        }
+      ],
+      "errors": [
+        "Task setup-monitoring: Simulated failure in task setup-monitoring"
+      ],
+      "rollbackRequired": false,
+      "endTime": "2026-01-25T13:04:41.208Z",
+      "duration": 9503
+    },
+    {
+      "phaseId": "phase-2",
+      "phaseName": "Migración de Servicios Core",
+      "status": "failed",
+      "startTime": "2026-01-25T13:04:43.209Z",
+      "tasksExecuted": 4,
+      "tasksSuccessful": 4,
+      "tasksFailed": 0,
+      "validationResults": [
+        {
+          "validationId": "auth-functionality",
+          "name": "auth-functionality",
+          "status": "passed",
+          "message": "auth-functionality validado correctamente",
+          "details": {
+            "timestamp": "2026-01-25T13:04:59.713Z"
+          }
+        },
+        {
+          "validationId": "room-operations",
+          "name": "room-operations",
+          "status": "failed",
+          "message": "room-operations falló la validación",
+          "details": {
+            "timestamp": "2026-01-25T13:05:00.214Z"
+          }
+        },
+        {
+          "validationId": "voting-accuracy",
+          "name": "voting-accuracy",
+          "status": "passed",
+          "message": "voting-accuracy validado correctamente",
+          "details": {
+            "timestamp": "2026-01-25T13:05:00.714Z"
+          }
+        },
+        {
+          "validationId": "realtime-sync",
+          "name": "realtime-sync",
+          "status": "passed",
+          "message": "realtime-sync validado correctamente",
+          "details": {
+            "timestamp": "2026-01-25T13:05:01.214Z"
+          }
+        }
+      ],
+      "errors": [],
+      "rollbackRequired": true,
+      "endTime": "2026-01-25T13:05:01.214Z",
+      "duration": 18005
+    }
+  ],
+  "recommendations": [
+    "⚠️ Migración parcial - Completar fases fallidas antes de producción",
+    "🔍 Validar integridad de datos en fases completadas",
+    "📊 Revisar métricas de rendimiento",
+    "🔍 Revisar validaciones fallidas en fase Migración de Servicios Core"
+  ],
+  "migrationSummary": {
+    "dataIntegrityValidated": true,
+    "performanceMetricsCollected": true,
+    "securityValidationPassed": true,
+    "mobileCompatibilityConfirmed": false,
+    "legacyComponentsRemoved": false,
+    "costOptimizationAchieved": false
+  }
+}

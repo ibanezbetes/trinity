@@ -1,0 +1,22 @@
+
+# AppSync Schema Deployment Script
+# 
+# To deploy this schema to AppSync, you can use:
+# 1. AWS CLI:
+#    aws appsync update-type --api-id qdvhkkwneza2pkpaofehnvmubq --type-name Query --definition file://updated-schema-filtered-content.graphql
+#
+# 2. AWS Console:
+#    - Go to AppSync console
+#    - Select your API (qdvhkkwneza2pkpaofehnvmubq)
+#    - Go to Schema section
+#    - Replace the schema with the content from updated-schema-filtered-content.graphql
+#    - Save and deploy
+#
+# 3. CDK (if available):
+#    - Update the schema file in your CDK stack
+#    - Run cdk deploy
+
+echo "Schema deployment options:"
+echo "1. AWS Console (recommended for quick fix)"
+echo "2. AWS CLI (if you have permissions)"
+echo "3. CDK (if stack is available)"

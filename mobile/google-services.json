@@ -1,0 +1,16 @@
+{
+  "project_info": {
+    "project_number": "230498169556",
+    "project_id": "trinity-mobile-app-bcb60"
+  },
+  "client": [{
+    "oauth_client": [{
+      "client_id": "230498169556-ipt2iafpd75h17kjcsgmb89oc9u1ciii.apps.googleusercontent.com"
+    }, {
+      "client_id": "230498169556-cqb6dv3o58oeblrfrk49o0a6l7ecjtrn.apps.googleusercontent.com"
+    }],
+    "api_key": [{
+      "current_key": "AIzaSyChZn8PF9UmEcLNg0kMvF1uQ_s96i9crd8"
+    }]
+  }]
+}

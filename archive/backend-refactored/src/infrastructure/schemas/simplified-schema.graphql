@@ -1,0 +1,428 @@
+# Simplified Trinity GraphQL Schema
+# Optimized for performance and compatibility with existing mobile app
+
+# ========================================
+# SCALAR TYPES
+# ========================================
+
+scalar AWSDateTime
+scalar AWSTimestamp
+scalar AWSJSON
+
+# ========================================
+# CORE TYPES
+# ========================================
+
+type User {
+  id: ID!
+  email: String!
+  displayName: String
+  profilePicture: String
+  isActive: Boolean!
+  preferences: UserPreferences
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type UserPreferences {
+  favoriteGenres: [String!]
+  language: String
+  notifications: NotificationSettings
+}
+
+type NotificationSettings {
+  email: Boolean!
+  push: Boolean!
+  inApp: Boolean!
+}
+
+type Room {
+  id: ID!
+  name: String!
+  description: String
+  status: RoomStatus!
+  resultMovieId: String
+  hostId: ID!
+  inviteCode: String!
+  isActive: Boolean!
+  isPrivate: Boolean!
+  memberCount: Int!
+  maxMembers: Int!
+  matchCount: Int!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type RoomMember {
+  userId: ID!
+  roomId: ID!
+  displayName: String!
+  isHost: Boolean!
+  joinedAt: AWSDateTime!
+  lastActivity: AWSDateTime!
+  status: MemberStatus!
+  permissions: [Permission!]!
+}
+
+type Movie {
+  id: ID!
+  title: String!
+  overview: String
+  poster: String
+  vote_average: Float
+  release_date: String
+  genres: [Genre!]
+  runtime: Int
+  year: Int
+  rating: Float
+}
+
+type Genre {
+  id: Int!
+  name: String!
+}
+
+type Vote {
+  id: ID!
+  roomId: ID!
+  userId: ID!
+  movieId: ID!
+  voteType: VoteType!
+  timestamp: AWSDateTime!
+}
+
+type VoteProgress {
+  totalVotes: Int!
+  likesCount: Int!
+  dislikesCount: Int!
+  skipsCount: Int!
+  remainingUsers: Int!
+  percentage: Float!
+  votingUsers: [ID!]!
+  pendingUsers: [ID!]!
+  estimatedTimeToCompletion: Int
+  currentMovieInfo: Movie
+}
+
+type Match {
+  id: ID!
+  roomId: ID!
+  movieId: ID!
+  movieInfo: Movie!
+  participants: [ID!]!
+  consensusType: ConsensusType!
+  createdAt: AWSDateTime!
+}
+
+type AIRecommendation {
+  chatResponse: String!
+  recommendedGenres: [String!]!
+  confidence: Float!
+  reasoning: String!
+  genreAlignment: Float!
+  fallbackUsed: Boolean!
+}
+
+# ========================================
+# REAL-TIME EVENT TYPES
+# ========================================
+
+type VoteUpdateEvent {
+  id: ID!
+  timestamp: AWSDateTime!
+  roomId: ID!
+  eventType: String!
+  userId: ID
+  mediaId: ID
+  voteType: VoteType
+  progress: VoteProgress!
+  movieInfo: Movie
+  votingDuration: Int
+}
+
+type MatchFoundEvent {
+  id: ID!
+  timestamp: AWSDateTime!
+  roomId: ID!
+  eventType: String!
+  matchId: ID!
+  movieInfo: Movie!
+  participants: [ParticipantInfo!]!
+  votingDuration: Int!
+  consensusType: ConsensusType!
+}
+
+type MemberUpdateEvent {
+  id: ID!
+  timestamp: AWSDateTime!
+  roomId: ID!
+  eventType: String!
+  userId: ID!
+  action: MemberAction!
+  memberCount: Int!
+  memberData: MemberData!
+}
+
+type ConnectionStatusEvent {
+  id: ID!
+  timestamp: AWSDateTime!
+  roomId: ID!
+  eventType: String!
+  userId: ID!
+  connectionStatus: ConnectionStatus!
+  reconnectionAttempts: Int!
+  lastSeenAt: AWSDateTime!
+  userAgent: String
+}
+
+type RoomStateSyncEvent {
+  id: ID!
+  timestamp: AWSDateTime!
+  roomId: ID!
+  eventType: String!
+  roomState: RoomState!
+  syncReason: String!
+}
+
+type ParticipantInfo {
+  userId: ID!
+  displayName: String!
+  isHost: Boolean!
+  connectionStatus: ConnectionStatus!
+  votingStatus: VotingStatus!
+  lastActivity: AWSDateTime!
+}
+
+type MemberData {
+  role: String!
+  status: String!
+  permissions: [String!]!
+  lastActivity: AWSDateTime!
+}
+
+type RoomState {
+  currentMovieId: ID
+  currentMovieInfo: Movie
+  progress: VoteProgress
+  participants: [ParticipantInfo!]!
+  roomStatus: RoomStatus!
+  matchFound: Boolean!
+}
+
+# ========================================
+# ENUMS
+# ========================================
+
+enum RoomStatus {
+  WAITING
+  VOTING
+  MATCHED
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  DISCONNECTED
+  BANNED
+}
+
+enum Permission {
+  VOTE
+  INVITE
+  KICK
+  MODERATE
+  ADMIN
+}
+
+enum VoteType {
+  LIKE
+  DISLIKE
+  SKIP
+}
+
+enum ConsensusType {
+  MAJORITY
+  UNANIMOUS
+  FIRST_MATCH
+  WEIGHTED
+}
+
+enum MemberAction {
+  JOINED
+  LEFT
+  KICKED
+  PROMOTED
+  DEMOTED
+  RECONNECTED
+  DISCONNECTED
+}
+
+enum ConnectionStatus {
+  CONNECTED
+  DISCONNECTED
+  RECONNECTING
+  UNSTABLE
+}
+
+enum VotingStatus {
+  PENDING
+  VOTED
+  SKIPPED
+  TIMEOUT
+}
+
+# ========================================
+# INPUT TYPES
+# ========================================
+
+input CreateUserInput {
+  email: String!
+  displayName: String
+  profilePicture: String
+  preferences: UserPreferencesInput
+}
+
+input UpdateUserInput {
+  displayName: String
+  profilePicture: String
+  preferences: UserPreferencesInput
+}
+
+input UserPreferencesInput {
+  favoriteGenres: [String!]
+  language: String
+  notifications: NotificationSettingsInput
+}
+
+input NotificationSettingsInput {
+  email: Boolean
+  push: Boolean
+  inApp: Boolean
+}
+
+input CreateRoomInput {
+  name: String!
+  description: String
+  isPrivate: Boolean
+  maxMembers: Int
+  # genrePreferences removed for compatibility
+}
+
+# Deprecated input types for compatibility
+input CreateRoomInputDebug {
+  name: String!
+}
+
+input VoteInput {
+  roomId: ID!
+  movieId: ID!
+  voteType: VoteType = LIKE
+}
+
+# ========================================
+# QUERIES
+# ========================================
+
+type Query {
+  # User queries
+  getUser(userId: ID): User
+  
+  # Room queries
+  getUserRooms: [Room!]!
+  getRoom(roomId: ID!): Room
+  getRoomMembers(roomId: ID!): [RoomMember!]!
+  getRoomVotes(roomId: ID!): [Vote!]!
+  
+  # Movie queries
+  getMovies(genre: String, page: Int, limit: Int): [Movie!]!
+  getMovieDetails(movieId: String!): Movie
+  
+  # AI queries
+  getChatRecommendations(text: String!): AIRecommendation!
+}
+
+# ========================================
+# MUTATIONS
+# ========================================
+
+type Mutation {
+  # User mutations
+  createUser(input: CreateUserInput!): User!
+  updateUser(input: UpdateUserInput!): User!
+  
+  # Room mutations
+  createRoom(input: CreateRoomInput!): Room!
+  createRoomDebug(input: CreateRoomInputDebug!): Room! # Deprecated
+  createRoomSimple(name: String!): Room! # Deprecated
+  joinRoomByInvite(inviteCode: String!): Room!
+  leaveRoom(roomId: ID!): Room!
+  startVoting(roomId: ID!): Room!
+  
+  # Voting mutations
+  vote(input: VoteInput!): Room!
+  
+  # Connection mutations
+  connect(roomId: ID!): String!
+  disconnect(roomId: ID!): String!
+  
+  # Publishing mutations for subscriptions
+  publishVoteUpdate(roomId: ID!, voteData: AWSJSON!): VoteUpdateEvent!
+  publishMatchFound(roomId: ID!, matchData: AWSJSON!): MatchFoundEvent!
+  publishMemberUpdate(roomId: ID!, memberData: AWSJSON!): MemberUpdateEvent!
+  publishVoteUpdateEnhanced(roomId: ID!, voteData: AWSJSON!): VoteUpdateEvent!
+  publishMatchFoundEnhanced(roomId: ID!, matchData: AWSJSON!): MatchFoundEvent!
+  publishConnectionStatusChange(roomId: ID!, statusData: AWSJSON!): ConnectionStatusEvent!
+  publishRoomStateSync(roomId: ID!, stateData: AWSJSON!): RoomStateSyncEvent!
+}
+
+# ========================================
+# SUBSCRIPTIONS
+# ========================================
+
+type Subscription {
+  # Basic subscriptions (for compatibility)
+  onVoteUpdate(roomId: ID!): VoteUpdateEvent!
+    @aws_subscribe(mutations: ["publishVoteUpdate"])
+  
+  onMatchFound(roomId: ID!): MatchFoundEvent!
+    @aws_subscribe(mutations: ["publishMatchFound"])
+  
+  onMemberUpdate(roomId: ID!): MemberUpdateEvent!
+    @aws_subscribe(mutations: ["publishMemberUpdate"])
+  
+  # Enhanced subscriptions (new features)
+  onVoteUpdateEnhanced(roomId: ID!): VoteUpdateEvent!
+    @aws_subscribe(mutations: ["publishVoteUpdateEnhanced"])
+  
+  onMatchFoundEnhanced(roomId: ID!): MatchFoundEvent!
+    @aws_subscribe(mutations: ["publishMatchFoundEnhanced"])
+  
+  onConnectionStatusChange(roomId: ID!): ConnectionStatusEvent!
+    @aws_subscribe(mutations: ["publishConnectionStatusChange"])
+  
+  onRoomStateSync(roomId: ID!): RoomStateSyncEvent!
+    @aws_subscribe(mutations: ["publishRoomStateSync"])
+}
+
+# ========================================
+# DIRECTIVES
+# ========================================
+
+# AWS AppSync directives
+directive @aws_subscribe(mutations: [String!]!) on FIELD_DEFINITION
+directive @aws_auth(cognito_groups: [String!]!) on FIELD_DEFINITION
+directive @aws_api_key on FIELD_DEFINITION
+directive @aws_cognito_user_pools on FIELD_DEFINITION
+
+# ========================================
+# SCHEMA DEFINITION
+# ========================================
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}

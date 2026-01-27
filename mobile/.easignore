@@ -1,0 +1,28 @@
+# EAS Build ignore file - MINIMAL approach
+# Only ignore what's absolutely necessary
+
+# Build artifacts
+node_modules/
+.expo/
+dist/
+build/
+*.log
+
+# Version control
+.git/
+
+# Test files only (not source files)
+__tests__/
+**/__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+jest.config.js
+
+# Native folders (using managed workflow)
+/android
+/ios
+
+# CRITICAL: Ensure NO source files are ignored
+# All .ts/.tsx files in src/ must be included

@@ -1,0 +1,11 @@
+# PNG Icon Placeholder
+# This is a placeholder for favicon.png
+# Dimensions: 48x48
+# 
+# To replace with actual icon:
+# 1. Create a 48x48 PNG image
+# 2. Save it as favicon.png in the assets directory
+# 3. Remove this placeholder file
+
+# Base64 transparent pixel for reference:
+# iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==

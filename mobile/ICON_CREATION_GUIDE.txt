@@ -1,0 +1,10 @@
+
+# To create proper square icons:
+# 1. Open logo-trinity-v1.png in an image editor
+# 2. Resize canvas to 1024x1024 (square)
+# 3. Center the logo or add padding as needed
+# 4. Export as PNG with these names:
+#    - icon-square.png (1024x1024)
+#    - adaptive-icon.png (1024x1024, foreground only)
+#    - splash.png (1024x1024 or larger)
+#    - favicon.png (48x48 or 32x32)
