@@ -122,8 +122,8 @@ export default function RoomScreen() {
   const matchScale = useRef(new Animated.Value(0.8)).current;
 
   // Connection status
-  const { connectionInfo, isHealthy, forceReconnect } = useConnectionStatus();
-  const { subscribeToRoom, unsubscribeFromRoom } = useRoomSubscriptions();
+  const { connectionStatus, subscribeToRoom, unsubscribeFromRoom, reconnect } = useConnectionStatus();
+  const roomSubscriptions = useRoomSubscriptions(roomId);
 
   // Progress tracking
   const [progress, setProgress] = useState({
@@ -452,12 +452,12 @@ export default function RoomScreen() {
           <TouchableOpacity
             style={styles.connectionStatus}
             onPress={() => {
-              if (!isHealthy) {
+              if (!connectionStatus.isConnected) {
                 Alert.alert(
                   'Estado de conexión',
-                  `Estado: ${connectionInfo.status}\nEn línea: ${connectionInfo.isOnline ? 'Sí' : 'No'}\nIntentos de reconexión: ${connectionInfo.reconnectionAttempts}`,
+                  `Estado: ${connectionStatus.isConnected ? 'Conectado' : 'Desconectado'}\nEn línea: ${connectionStatus.isOnline ? 'Sí' : 'No'}\nReconectando: ${connectionStatus.isReconnecting ? 'Sí' : 'No'}`,
                   [
-                    { text: 'Reconectar', onPress: forceReconnect },
+                    { text: 'Reconectar', onPress: () => reconnect() },
                     { text: 'Cerrar', style: 'cancel' }
                   ]
                 );
@@ -468,13 +468,13 @@ export default function RoomScreen() {
               styles.connectionDot,
               {
                 backgroundColor:
-                  connectionInfo.status === 'connected' && connectionInfo.isOnline ? '#4ECDC4' :
-                    connectionInfo.status === 'connecting' ? '#FFD93D' : '#FF6B6B'
+                  connectionStatus.isConnected && connectionStatus.isOnline ? '#4ECDC4' :
+                    connectionStatus.isReconnecting ? '#FFD93D' : '#FF6B6B'
               }
             ]} />
-            {connectionInfo.reconnectionAttempts > 0 && (
+            {connectionStatus.isReconnecting && (
               <Text style={styles.reconnectionText}>
-                {connectionInfo.reconnectionAttempts}
+                Reconectando...
               </Text>
             )}
           </TouchableOpacity>

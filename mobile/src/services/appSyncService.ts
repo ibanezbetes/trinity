@@ -1672,50 +1672,47 @@ class AppSyncService {
    */
   async subscribeToRoomStateSync(roomId: string, callback: (stateData: any) => void): Promise<(() => void) | null> {
     try {
-      console.log('📡 Setting up basic room event subscription for room (sync fallback):', roomId);
+      console.log('📡 Setting up legacy room subscription for room:', roomId);
 
-      // Fallback to onRoomEvent as onRoomStateSync is failing validation
+      // Use the legacy subscription that actually works
       const subscription = `
-        subscription OnRoomEvent($roomId: ID!) {
-          onRoomEvent(roomId: $roomId) {
+        subscription OnRoomUpdated($roomId: ID!) {
+          onRoomUpdated(roomId: $roomId) {
             id
-            timestamp
-            roomId
-            eventType
-            data
+            name
+            status
+            memberCount
+            maxMembers
+            matchCount
+            isActive
+            updatedAt
           }
         }
       `;
 
       return this.createWebSocketConnection(subscription, { roomId }, (data) => {
         // Unwrap and transform data for UI
-        const event = data?.onRoomEvent;
-        if (event) {
-          // If it's a generic room update, try to parse data
-          try {
-            let parsedData = event.data;
-            if (typeof event.data === 'string') {
-              parsedData = JSON.parse(event.data);
-            }
-
-            // If it mimics a room update (member count etc)
-            // The UI expects RoomUpdate interface: { id, status, memberCount, currentMovieIndex, totalMovies }
-            // We do our best to map from whatever generic event we got
-            if (event.eventType === 'ROOM_UPDATE' || event.eventType === 'MEMBER_UPDATE') {
-              const transformed = {
-                ...parsedData,
-                id: event.roomId, // Ensure room ID is present
-                // Other fields should be in parsedData if backend follows basic payload structure
-              };
-              callback(transformed);
-            }
-          } catch (e) {
-            console.warn('⚠️ Failed to parse room event data:', e);
-          }
+        const room = data?.onRoomUpdated;
+        if (room) {
+          console.log('📡 Room update received:', room);
+          
+          // Transform to match UI expectations
+          const transformed = {
+            id: room.id,
+            status: room.status,
+            memberCount: room.memberCount,
+            maxMembers: room.maxMembers,
+            matchCount: room.matchCount,
+            isActive: room.isActive,
+            // Add event metadata
+            eventType: 'ROOM_UPDATE',
+            timestamp: room.updatedAt
+          };
+          callback(transformed);
         }
-      }, 'room-event');
+      }, 'room-updated');
     } catch (error) {
-      console.error('❌ Failed to setup room event subscription:', error);
+      console.error('❌ Failed to setup room update subscription:', error);
       return null;
     }
   }
