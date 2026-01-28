@@ -1,0 +1,34 @@
+{
+  "UserPoolId": "eu-west-1_EtOx2swvP",
+  "ClientName": "trinity-client-dev",
+  "ClientId": "l08ofv6tef7dp8eorn022fqpj",
+  "LastModifiedDate": "2026-01-25T21:39:06.237000+01:00",
+  "CreationDate": "2026-01-25T21:39:06.237000+01:00",
+  "RefreshTokenValidity": 30,
+  "TokenValidityUnits": {},
+  "ExplicitAuthFlows": [
+    "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+    "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_USER_PASSWORD_AUTH",
+    "ALLOW_USER_SRP_AUTH"
+  ],
+  "SupportedIdentityProviders": [
+    "COGNITO"
+  ],
+  "CallbackURLs": [
+    "https://example.com"
+  ],
+  "AllowedOAuthFlows": [
+    "code",
+    "implicit"
+  ],
+  "AllowedOAuthScopes": [
+    "email",
+    "openid",
+    "profile"
+  ],
+  "AllowedOAuthFlowsUserPoolClient": true,
+  "EnableTokenRevocation": true,
+  "EnablePropagateAdditionalUserContextData": false,
+  "AuthSessionValidity": 3
+}

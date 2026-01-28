@@ -1,0 +1,43 @@
+{
+  "name": "trinity-infrastructure",
+  "version": "1.0.0",
+  "description": "Trinity MVP Infrastructure with AWS CDK - Serverless Microservices",
+  "main": "lib/trinity-stack.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk",
+    "deploy": "cdk deploy --all --require-approval never",
+    "deploy:database": "cdk deploy TrinityDatabaseStack",
+    "deploy:lambda": "cdk deploy TrinityLambdaStack",
+    "deploy:api": "cdk deploy TrinityApiStack",
+    "deploy:main": "cdk deploy TrinityMainStack",
+    "destroy": "cdk destroy --all",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "bootstrap": "cdk bootstrap aws://unknown-account/eu-west-1",
+    "list": "cdk list",
+    "hotswap": "cdk deploy --hotswap --all"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.160",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.10",
+    "@types/uuid": "^10.0.0",
+    "esbuild": "^0.27.2",
+    "fast-check": "^4.5.3",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.282.0",
+    "@aws-sdk/lib-dynamodb": "^3.975.0",
+    "adm-zip": "^0.5.16",
+    "aws-cdk-lib": "2.100.0",
+    "constructs": "^10.0.0",
+    "node-fetch": "^3.3.2",
+    "uuid": "^9.0.0"
+  }
+}

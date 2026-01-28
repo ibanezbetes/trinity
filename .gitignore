@@ -1,0 +1,161 @@
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+.env.staging
+
+# Build outputs
+dist/
+build/
+*.zip
+*.tgz
+*.tar.gz
+
+# AWS
+.aws/
+cdk.out/
+cdk-outputs.json
+deployment-info.json
+stack-output.json
+
+# CDK specific
+infrastructure/*/cdk.out/
+infrastructure/*/node_modules/
+infrastructure/clean/lib/
+infrastructure/clean/*.js
+infrastructure/clean/*.d.ts
+infrastructure/clean/bin/*.js
+infrastructure/clean/bin/*.d.ts
+
+# Lambda packages and builds
+lambdas/*/function.zip
+lambdas/*/node_modules/
+lambdas/*/*.zip
+lambdas/*/dist/
+lambdas/*/build/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Mobile specific (React Native + Expo)
+mobile/android/app/build/
+mobile/ios/build/
+mobile/.expo/
+mobile/android/.gradle/
+mobile/ios/Pods/
+mobile/ios/*.xcworkspace/xcuserdata/
+mobile/ios/*.xcodeproj/xcuserdata/
+mobile/android/app/src/main/assets/
+mobile/android/app/src/main/res/drawable-*/
+mobile/web-build/
+mobile/dist/
+
+# Expo
+.expo/
+.expo-shared/
+expo-env.d.ts
+
+# React Native
+metro.config.js.bak
+
+# Temporary files
+temp-*
+*.tmp
+.temp/
+tmp/
+
+# Test files
+coverage/
+*.test.js.snap
+.nyc_output/
+junit.xml
+
+# Database backups and exports
+database/backups/
+database/exports/
+*.sql
+*.db
+*.sqlite
+
+# Documentation builds
+docs/build/
+*.md.bak
+
+# Secrets and credentials
+secrets/
+credentials/
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+
+# Cache directories
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Archive and legacy files
+archive/
+lambda-package-final/
+old/
+backup/
+legacy/
+
+# Generated files
+REORGANIZATION_COMPLETE.md
+*-COMPLETE.md
+*-SUMMARY.md
+*-STATUS.md
+
+# Script temporary files
+scripts/*/temp-*
+scripts/*/*.tmp
+scripts/*/debug-*
+scripts/*/test-output-*

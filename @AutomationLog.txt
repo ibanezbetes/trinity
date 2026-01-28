@@ -1,2 +1,0 @@
-2026-01-26 00:16:14.157 verify_gui.py[52] run_test -> Can not move cursor. TextControl's BoundingRectangle is (0,0,0,0)[0x0]. SearchProperties: {SubName: 'Crear', ControlType: TextControl}
-2026-01-26 00:17:59.433 verify_gui.py[52] run_test -> Can not move cursor. TextControl's BoundingRectangle is (0,0,0,0)[0x0]. SearchProperties: {SubName: 'Crear', ControlType: TextControl}

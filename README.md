@@ -1,691 +1,664 @@
-# 🎬 Trinity MVP - Aplicación de Votación de Películas
+# Trinity - Aplicación de Votación de Películas 🎬
 
-[![React Native](https://img.shields.io/badge/React%20Native-0.76-blue.svg)](https://reactnative.dev/)
-[![Expo](https://img.shields.io/badge/Expo-52.0-black.svg)](https://expo.dev/)
-[![AWS](https://img.shields.io/badge/AWS-Serverless-orange.svg)](https://aws.amazon.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-## 📖 Descripción
-
-**Trinity** es una aplicación móvil multiplataforma que permite a los usuarios crear salas de votación colaborativas para elegir películas. Desarrollada con **React Native/Expo** y una arquitectura **serverless en AWS**, ofrece votación en tiempo real, recomendaciones con IA y sincronización cross-platform.
-
-### 🎯 Características Principales
-
-- 🎬 **Búsqueda de películas** con TMDB API
-- 🗳️ **Votación en tiempo real** con WebSockets
-- 👥 **Salas colaborativas** con códigos de invitación
-- 🔐 **Autenticación segura** con AWS Cognito
-- 📱 **Multiplataforma**: iOS, Android y Web
-- 🤖 **Recomendaciones IA** con Hugging Face
-- ☁️ **Arquitectura serverless** 100% AWS
-- 🚀 **Escalabilidad automática**
-
----
-
-## 🚀 CONFIGURACIÓN RÁPIDA PARA DESARROLLADORES
-
-### 📋 Requisitos Previos
-- Node.js 18+
-- Git configurado
-- **Credenciales AWS** (solicitar al administrador)
-
-### ⚡ Setup en 3 pasos:
-
-1. **Clonar y configurar:**
-```bash
-git clone https://github.com/danilazar06/trinity_tfg.git
-cd trinity_tfg
-npm install
-```
-
-2. **Configurar credenciales AWS:**
-```bash
-# Crear archivo .env con tus credenciales
-cp .env.example .env
-# Editar .env con las credenciales reales
-
-# O usar AWS CLI
-aws configure
-```
-
-3. **Verificar configuración:**
-```bash
-node verify-aws-config.js
-```
-
-**📖 Guía completa:** Ver `SETUP_PARA_DESARROLLADORES.md`
-
----
+Una aplicación móvil React Native para crear salas de votación de películas en tiempo real, con backend completamente serverless en AWS.
 
 ## 🏗️ Arquitectura del Sistema
 
-### 🌐 Arquitectura Serverless (Producción)
+### Servicios AWS Desplegados
+- **6 Funciones Lambda** para lógica de negocio
+- **8 Tablas DynamoDB** para almacenamiento
+- **2 APIs GraphQL AppSync** para comunicación
+- **Cognito** para autenticación
+- **S3** para assets estáticos
 
-```mermaid
-graph TB
-    A[📱 Mobile App<br/>React Native] --> B[🌐 AppSync GraphQL]
-    C[💻 Web App<br/>Expo Web] --> B
-    B --> D[⚡ Lambda Functions]
-    D --> E[💾 DynamoDB]
-    D --> F[🔐 Cognito]
-    D --> G[🎬 TMDB API]
-    D --> H[🤖 Hugging Face AI]
-    I[📊 CloudWatch] --> D
-```
-
-### 📊 Servicios AWS Utilizados
-
-| Servicio | Función | Estado |
-|----------|---------|--------|
-| **AppSync** | GraphQL API + WebSockets | ✅ Activo |
-| **Lambda** | Funciones serverless | ✅ 6 funciones |
-| **DynamoDB** | Base de datos NoSQL | ✅ 5 tablas |
-| **Cognito** | Autenticación y autorización | ✅ Configurado |
-| **CloudWatch** | Logs y monitoreo | ✅ Activo |
-
----
-
-## 🛠️ Stack Tecnológico
-
-### 📱 Frontend
-- **React Native** 0.76 con Expo 52
-- **TypeScript** para type safety
-- **Expo Router** para navegación
-- **React Context** para estado global
-- **AsyncStorage** + **SecureStore** para persistencia
-- **AWS Amplify** para integración con AWS
-
-### ☁️ Backend (AWS Serverless)
-- **AWS Lambda** (Node.js 18) para lógica de negocio
-- **AWS AppSync** para GraphQL API
-- **AWS DynamoDB** para base de datos
-- **AWS Cognito** para autenticación
-- **AWS CloudWatch** para logs y métricas
-
-### 🔌 APIs Externas
-- **TMDB API** - Información de películas
-- **Hugging Face** - Recomendaciones con IA
-- **Google Services** - Autenticación social
-
-### 🛠️ Herramientas de Desarrollo
-- **AWS CDK** para Infrastructure as Code
-- **EAS Build** para builds nativos
-- **Jest** + **Fast-Check** para testing
-- **ESLint + Prettier** para code quality
-
----
+### Stack Tecnológico
+- **Frontend**: React Native + Expo
+- **Backend**: AWS Lambda (Node.js)
+- **Base de Datos**: DynamoDB
+- **API**: GraphQL (AppSync)
+- **Autenticación**: AWS Cognito
+- **Tiempo Real**: AppSync Subscriptions
 
 ## 📁 Estructura del Proyecto
 
 ```
-trinity_tfg/
-├── 📱 mobile/                    # Aplicación React Native
-│   ├── src/
-│   │   ├── components/           # Componentes reutilizables
-│   │   ├── screens/              # Pantallas principales
-│   │   ├── services/             # Servicios y APIs
-│   │   ├── context/              # Context providers
-│   │   ├── config/               # Configuración AWS
-│   │   └── utils/                # Utilidades
-│   ├── app.json                  # Configuración Expo
-│   ├── eas.json                  # Configuración EAS Build
-│   └── package.json
-├── ☁️ infrastructure/            # Infraestructura AWS (CDK)
-│   ├── src/
-│   │   ├── handlers/             # Lambda functions
-│   │   ├── services/             # Servicios compartidos
-│   │   └── utils/                # Utilidades AWS
-│   ├── lib/                      # Código compilado
-│   ├── cdk-outputs.json          # Outputs del despliegue
-│   └── package.json
-├── 🖥️ backend/                   # Backend local (desarrollo)
-│   ├── src/modules/              # Módulos NestJS
-│   └── package.json
-├── 📚 docs/                      # Documentación
-│   ├── GUIA_TRABAJAR_SOLO_AWS.md
-│   ├── GUIA_BUILD_APK.md
-│   └── diagnose-join-room.md
-└── 📋 README.md
+trinity/
+├── 📱 mobile/                    # Aplicación móvil React Native
+│   ├── app/                      # Pantallas y navegación
+│   ├── src/                      # Componentes y servicios
+│   ├── assets/                   # Imágenes y recursos
+│   └── package.json              # Dependencias móviles
+│
+├── ⚡ lambdas/                   # Funciones Lambda (código actual de AWS)
+│   ├── trinity-ai-dev/           # IA para recomendaciones de películas
+│   ├── trinity-auth-dev/         # Autenticación y autorización
+│   ├── trinity-movie-dev/        # Gestión de películas y TMDB
+│   ├── trinity-realtime-dev/     # Comunicación en tiempo real
+│   ├── trinity-room-dev/         # Gestión de salas de votación
+│   └── trinity-vote-dev/         # Sistema de votación
+│
+├── 🗄️ database/                  # Base de datos
+│   ├── schemas/                  # Esquemas de DynamoDB exportados
+│   └── scripts/                  # Scripts de creación y migración
+│       ├── create-all-tables.js  # Crear todas las tablas
+│       ├── migrate-data.js       # Backup y migración
+│       └── create-*.json         # Definiciones de tablas
+│
+├── 🔗 api/                       # APIs y configuración
+│   ├── schemas/                  # Esquemas GraphQL y Cognito
+│   │   ├── trinity-main-schema.graphql  # Esquema principal
+│   │   ├── trinity-api-dev.graphql      # API de desarrollo
+│   │   └── cognito-*.json               # Configuración Cognito
+│   └── resolvers/                # Resolvers de AppSync
+│
+├── 🏗️ infrastructure/            # Infraestructura como código
+│   ├── clean/                    # CDK y CloudFormation organizados
+│   ├── package.json              # Dependencias CDK
+│   └── cdk.json                  # Configuración CDK
+│
+└── 🛠️ scripts/                   # Scripts de utilidad y deployment
+    ├── deploy-all-lambdas/         # Deployment masivo de lambdas
+    │   ├── deploy-all-lambdas.js   # Script principal
+    │   └── README.md               # Documentación individual
+    ├── deploy-with-cdk/            # Deployment completo CDK
+    ├── update-lambda-and-deploy/   # Deployment rápido lambdas + CDK
+    ├── e2e-backend-test/           # Tests end-to-end
+    ├── test-create-room/           # Test creación de salas
+    ├── test-vote-backend/          # Test sistema de votación
+    └── utils/                      # Utilidades AWS
+        ├── verify-aws-config/      # Verificar configuración
+        ├── analyze-dynamodb-usage/ # Análisis de DynamoDB
+        └── check-lambda-code/      # Verificar código lambdas
+        ├── analyze-dynamodb-usage.js  # Análisis DynamoDB
+        └── check-lambda-code.js  # Verificar lambdas
 ```
-
----
 
 ## 🚀 Inicio Rápido
 
-### 📋 Prerrequisitos
-
-- **Node.js** 18+ ([Descargar](https://nodejs.org/))
-- **npm** o **yarn**
-- **Expo CLI**: `npm install -g @expo/cli`
-- **EAS CLI**: `npm install -g eas-cli` (para builds)
-- **AWS CLI** ([Instalar](https://aws.amazon.com/cli/))
-- Cuenta de **AWS** con credenciales configuradas
-- API Key de **TMDB** ([Obtener](https://www.themoviedb.org/settings/api))
-
-### ⚡ Instalación Rápida
-
+### Prerrequisitos
 ```bash
-# 1. Clonar repositorio
-git clone [URL_DEL_REPOSITORIO]
-cd trinity_tfg
+# Herramientas necesarias
+- Node.js 18+
+- AWS CLI configurado
+- React Native development environment
+- Expo CLI
+```
 
-# 2. Instalar dependencias de la app móvil
-cd mobile
+### Configuración Inicial
+```bash
+# 1. Clonar y configurar
+git clone <tu-repo>
+cd trinity
 npm install
 
-# 3. Iniciar la aplicación
-npx expo start
+# 2. Configurar AWS CLI
+aws configure
+# Region: eu-west-1
 
-# 4. Abrir en dispositivo
-# - Presiona 'w' para web
-# - Escanea QR con Expo Go (móvil)
-# - Presiona 'a' para Android emulator
+# 3. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus valores
 ```
 
-### 🔐 Usuarios de Prueba
-
-```
-📧 Email: test@trinity.com
-🔑 Password: Trinity2024!
-
-📧 Email: test@trinity.app  
-🔑 Password: Trinity2024!
-```
-
----
-
-## 🔧 Configuración Detallada
-
-### 1️⃣ Variables de Entorno
-
-#### AWS Credentials (`backend/.env`)
+### Variables de Entorno Requeridas
 ```env
+# TMDB API
+TMDB_API_KEY=tu_api_key_de_tmdb
+
+# AWS
 AWS_REGION=eu-west-1
-AWS_ACCESS_KEY_ID=tu_access_key_id
-AWS_SECRET_ACCESS_KEY=tu_secret_access_key
+COGNITO_USER_POOL_ID=eu-west-1_xxxxxxxxx
+COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# APIs Externas
-TMDB_API_KEY=tu_tmdb_api_key
-HF_API_TOKEN=tu_hugging_face_token
-
-# Google Services
-GOOGLE_WEB_CLIENT_ID=tu_google_client_id
+# AppSync
+APPSYNC_API_URL=https://xxxxxxxxxx.appsync-api.eu-west-1.amazonaws.com/graphql
+APPSYNC_REALTIME_URL=wss://xxxxxxxxxx.appsync-realtime-api.eu-west-1.amazonaws.com/graphql
 ```
 
-#### Configuración AWS (Ya configurada en `mobile/app.json`)
-```json
-{
-  "extra": {
-    "cognitoUserPoolId": "eu-west-1_6UxioIj4z",
-    "cognitoClientId": "59dpqsm580j14ulkcha19shl64",
-    "graphqlEndpoint": "https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql",
-    "realtimeEndpoint": "wss://imx6fos5lnd3xkdchl4rqtv4pi.appsync-realtime-api.eu-west-1.amazonaws.com/graphql"
+## 📱 Desarrollo Móvil
+
+### Ejecutar la App
+```bash
+cd mobile
+npm install
+npm start
+
+# Para dispositivos específicos
+npm run android
+npm run ios
+```
+
+### Build para Producción
+```bash
+cd mobile
+npx expo build:android
+npx expo build:ios
+```
+
+## ⚡ Funciones Lambda
+
+### Funciones Desplegadas
+| Función | Propósito | Runtime | Handler |
+|---------|-----------|---------|---------|
+| `trinity-ai-dev` | Recomendaciones IA | Node.js 18.x | index.handler |
+| `trinity-auth-dev` | Autenticación | Node.js 18.x | index.handler |
+| `trinity-movie-dev` | Gestión películas | Node.js 18.x | movie.handler |
+| `trinity-realtime-dev` | Tiempo real | Node.js 18.x | index.handler |
+| `trinity-room-dev` | Gestión salas | Node.js 18.x | index.handler |
+| `trinity-vote-dev` | Sistema votación | Node.js 18.x | index.handler |
+
+### Deployment de Lambdas
+```bash
+# Desplegar todas las funciones
+node scripts/deploy-all-lambdas/deploy-all-lambdas.js
+
+# Desplegar función específica
+cd lambdas/trinity-movie-dev
+zip -r function.zip . -x "*.git*" "README.md" "lambda-config.json"
+aws lambda update-function-code --function-name trinity-movie-dev --zip-file fileb://function.zip --region eu-west-1
+```
+
+## 🗄️ Base de Datos (DynamoDB)
+
+### Tablas Principales
+| Tabla | Propósito | Clave Primaria | GSI |
+|-------|-----------|----------------|-----|
+| `trinity-users-dev` | Usuarios | userId | email-index |
+| `trinity-rooms-dev-v2` | Salas de votación | roomId | hostId-index |
+| `trinity-room-members-dev` | Miembros de salas | roomId, userId | userId-index |
+| `trinity-votes-dev` | Votos de usuarios | voteId | roomId-movieId-index |
+| `trinity-movies-cache-dev` | Cache de películas | movieId | - |
+| `trinity-room-matches-dev` | Matches de películas | roomId, movieId | - |
+| `trinity-room-invites-dev-v2` | Invitaciones | inviteId | roomId-index |
+| `trinity-connections-dev` | Conexiones WebSocket | connectionId | roomId-index |
+
+### Gestión de Tablas
+```bash
+# Crear todas las tablas desde esquemas
+node database/scripts/create-all-tables.js
+
+# Crear backup de datos existentes
+node database/scripts/migrate-data.js
+
+# Crear tabla específica
+aws dynamodb create-table --cli-input-json file://database/scripts/create-trinity-rooms-dev-v2.json --region eu-west-1
+```
+
+## 🔗 APIs GraphQL
+
+### APIs Desplegadas
+- **trinity-api-dev**: API principal para operaciones CRUD
+- **trinity-realtime-api**: API para subscripciones en tiempo real
+
+### Operaciones Principales
+```graphql
+# Crear sala
+mutation CreateRoom($input: CreateRoomInput!) {
+  createRoom(input: $input) {
+    roomId
+    name
+    hostId
+    status
+    inviteCode
+  }
+}
+
+# Unirse a sala
+mutation JoinRoom($roomId: String!) {
+  joinRoom(roomId: $roomId) {
+    success
+    message
+    room {
+      roomId
+      name
+      status
+    }
+  }
+}
+
+# Votar película
+mutation VoteMovie($roomId: String!, $movieId: String!) {
+  voteMovie(roomId: $roomId, movieId: $movieId) {
+    success
+    voteCount
+    totalVotes
+  }
+}
+
+# Subscription para tiempo real
+subscription OnRoomUpdate($roomId: String!) {
+  onRoomUpdate(roomId: $roomId) {
+    roomId
+    status
+    currentMovie
+    votes
+    members
   }
 }
 ```
 
-### 2️⃣ Configurar AWS CLI
+## 🔐 Autenticación (Cognito)
 
+### User Pools Configurados
+- **trinity-users-dev**: Pool principal
+- **trinity-users-dev-v2**: Pool actualizado con configuración mejorada
+
+### Flujo de Autenticación
+1. **Registro/Login** via Cognito
+2. **JWT token** para autorización
+3. **Validación** en resolvers GraphQL
+4. **Acceso a recursos** según permisos
+
+### Configuración de Seguridad
+- MFA opcional habilitado
+- Políticas de contraseña robustas
+- Verificación por email
+- Tokens con expiración configurada
+
+## 🛠️ Scripts Disponibles
+
+Todos los scripts están organizados en carpetas individuales con documentación completa.
+
+### Deployment y Gestión
 ```bash
-# Opción 1: Credenciales directas
-aws configure set aws_access_key_id TU_ACCESS_KEY
-aws configure set aws_secret_access_key TU_SECRET_KEY
-aws configure set default.region eu-west-1
+# Deployment completo con CDK (infraestructura + lambdas)
+node scripts/deploy-with-cdk/deploy-with-cdk.js
 
-# Opción 2: SSO (si está configurado)
-aws sso login
+# Solo lambdas (rápido para desarrollo diario)
+node scripts/update-lambda-and-deploy/update-lambda-and-deploy.js
 
-# Verificar configuración
-aws sts get-caller-identity
+# Deployment legacy individual de lambdas
+node scripts/deploy-all-lambdas/deploy-all-lambdas.js
+
+# Crear todas las tablas DynamoDB
+node database/scripts/create-all-tables.js
+
+# Crear backup de datos
+node database/scripts/migrate-data.js
+
+# CDK por stacks individuales
+cd infrastructure/clean
+npm run deploy:database    # Solo DynamoDB
+npm run deploy:lambda      # Solo Lambdas
+npm run deploy:api         # Solo APIs GraphQL
+npm run hotswap            # Cambios urgentes (15-30s)
 ```
 
----
-
-## 🎮 Modos de Ejecución
-
-### 🔄 Modo Desarrollo (Solo AWS - Recomendado)
-
+### Utilidades AWS
 ```bash
-# 1. Iniciar aplicación móvil
-cd mobile
-npx expo start
+# Verificar configuración AWS
+node scripts/utils/verify-aws-config/verify-aws-config.js
 
-# 2. Abrir en navegador
-# Presiona 'w' en la terminal
+# Analizar uso de DynamoDB
+node scripts/utils/analyze-dynamodb-usage/analyze-dynamodb-usage.js
 
-# 3. Ver logs de AWS en tiempo real (opcional)
-aws logs tail /aws/lambda/trinity-room-dev --follow --region eu-west-1
+# Verificar código de lambdas
+node scripts/utils/check-lambda-code/check-lambda-code.js
 ```
 
-**✅ Ventajas:**
-- Entorno real de producción
-- Escalabilidad automática
-- Tiempo real con WebSockets
-- Sin recursos locales
-
-### 🏠 Modo Local (Solo para desarrollo backend)
-
+### Testing y Desarrollo
 ```bash
-# 1. Iniciar backend local
-cd backend
-npm run start:dev
+# Test end-to-end del backend
+node scripts/e2e-backend-test/e2e-backend-test.js
 
-# 2. Iniciar aplicación móvil
-cd mobile
-npx expo start
+# Test de creación de salas
+node scripts/test-create-room/test-create-room.js
 
-# 3. Configurar app para usar localhost
-# (Modificar endpoints en el código)
+# Test de votación
+node scripts/test-vote-backend/test-vote-backend.js
+
+# Test de unirse a sala
+node scripts/test-join-room-aws/test-join-room-aws.js
 ```
 
-**⚠️ Limitaciones:**
-- No tiempo real
-- Recursos de tu PC
-- Solo para desarrollo
-
----
-
-## 📱 Build y Distribución
-
-### 🤖 Build APK para Android
-
+### Gestión de Usuarios
 ```bash
-# 1. Login en EAS
-cd mobile
-eas login
+# Confirmar usuario por email
+node scripts/confirm-user-by-email/confirm-user-by-email.js
 
-# 2. Construir APK
-eas build --platform android --profile preview
+# Verificar sala específica
+node scripts/check-room/check-room.js
 
-# 3. Esperar 15-30 minutos
-# 4. Descargar APK del link proporcionado
+# Crear sala de prueba
+node scripts/create-room-only/create-room-only.js
+
+# Simular unirse y votar
+node scripts/join-and-vote/join-and-vote.js
 ```
 
-### 🍎 Build para iOS
+### 📚 Documentación de Scripts
+Cada script tiene su propia carpeta con:
+- **Script principal**: `[nombre]/[nombre].js`
+- **Documentación**: `[nombre]/README.md`
+- **Descripción detallada** de funcionalidad
+- **Ejemplos de uso** y configuración
+- **Archivos relacionados** y dependencias
 
+## 🔄 Flujo de Desarrollo Diario
+
+### 📝 **Editando Código Lambda**
 ```bash
-# Requiere cuenta de Apple Developer
-eas build --platform ios --profile preview
+# 1. Editas archivo (ej: lambdas/trinity-movie-dev/services/deepLinkService.js)
+# 2. Despliegas cambios
+node scripts/update-lambda-and-deploy/update-lambda-and-deploy.js
+# 3. Verificas logs
+aws logs tail /aws/lambda/trinity-movie-dev --follow --region eu-west-1
 ```
 
-### 🌐 Deploy Web
-
+### 🏗️ **Modificando Infraestructura**
 ```bash
-# Build para web
-npx expo export --platform web
-
-# Servir estáticamente
-npx serve dist
+# 1. Editas CDK (ej: infrastructure/clean/lib/trinity-lambda-stack.ts)
+# 2. Verificas cambios
+cd infrastructure/clean && cdk diff
+# 3. Despliegas
+node scripts/deploy-with-cdk/deploy-with-cdk.js
 ```
 
----
-
-## 🔍 Funcionalidades Principales
-
-### 🔐 Sistema de Autenticación
-- **Registro/Login** con email y contraseña
-- **Autenticación social** con Google
-- **JWT tokens** con refresh automático
-- **Gestión de sesiones** cross-platform
-- **Almacenamiento seguro** de credenciales
-
-### 🎬 Gestión de Películas
-- **Búsqueda avanzada** en TMDB
-- **Información detallada** (sinopsis, cast, ratings)
-- **Imágenes HD** (posters, backdrops)
-- **Filtros** por género, año, popularidad
-- **Recomendaciones IA** personalizadas
-
-### 👥 Salas Colaborativas
-- **Crear salas** públicas o privadas
-- **Códigos de invitación** únicos (6 caracteres)
-- **Unirse por código** desde cualquier plataforma
-- **Gestión de miembros** (host/member roles)
-- **Límites de capacidad** configurables
-
-### 🗳️ Sistema de Votación
-- **Votación en tiempo real** con WebSockets
-- **Múltiples opciones** (👍 Me gusta, 👎 No me gusta, ❤️ Favorita)
-- **Resultados instantáneos** con gráficos
-- **Historial de votaciones** por usuario
-- **Algoritmo de ranking** inteligente
-
-### 📊 Dashboard y Analytics
-- **Estadísticas de usuario** (salas creadas, votos)
-- **Historial de salas** participadas
-- **Películas favoritas** del usuario
-- **Métricas de engagement** por sala
-
----
-
-## 🛠️ Desarrollo y Debugging
-
-### 📊 Monitoreo AWS
-
+### 🗄️ **Actualizando Base de Datos**
 ```bash
-# Ver logs de Lambda específica
-aws logs tail /aws/lambda/trinity-room-dev --follow --region eu-west-1
-aws logs tail /aws/lambda/trinity-vote-dev --follow --region eu-west-1
+# 1. Modificas esquema (ej: database/schemas/trinity-rooms-dev-v2.json)
+# 2. Regeneras scripts
+node database/scripts/create-tables-from-schemas.js
+# 3. Aplicas cambios (con backup automático)
+node database/scripts/create-all-tables.js
+```
 
-# Ver todas las funciones Lambda
+### ⚡ **Cambios Urgentes**
+```bash
+# Para fixes críticos en lambdas (súper rápido)
+cd infrastructure/clean
+npm run hotswap
+```
+
+## 🔄 Flujo de la Aplicación
+
+### 1. Autenticación
+- Usuario se registra/loguea via Cognito
+- Recibe JWT token con claims personalizados
+- Token se usa para autorizar requests GraphQL
+
+### 2. Crear Sala
+- Host crea sala via `trinity-room-dev` lambda
+- Se almacena en `trinity-rooms-dev-v2` con configuración
+- Se genera código de invitación único
+- Se notifica via AppSync subscription
+
+### 3. Unirse a Sala
+- Usuario ingresa código de sala o link de invitación
+- Se valida disponibilidad y permisos
+- Se agrega a `trinity-room-members-dev`
+- Recibe notificación en tiempo real de estado
+
+### 4. Votación
+- Sistema obtiene películas via `trinity-movie-dev` (TMDB API)
+- Aplica filtros de contenido y preferencias
+- Usuarios votan via `trinity-vote-dev` lambda
+- Votos se almacenan en `trinity-votes-dev`
+- Updates en tiempo real via AppSync subscriptions
+
+### 5. Resultado
+- Se calculan matches basados en algoritmo de votación
+- Se almacenan en `trinity-room-matches-dev`
+- Se notifica resultado final a todos los miembros
+- Se actualiza estado de sala a "completed"
+
+## 🚀 Deployment en Producción
+
+### 🔄 **Flujo de CDK Automático**
+
+CDK está configurado para leer automáticamente desde tu estructura organizada:
+- **Lambdas**: Lee desde `lambdas/[function-name]/` y empaqueta todo el contenido
+- **DynamoDB**: Usa esquemas de `database/schemas/`
+- **GraphQL**: Usa esquemas de `api/schemas/`
+- **Región**: Siempre despliega en `eu-west-1`
+
+#### **Detección de Cambios**
+CDK usa **hashing de contenido** para detectar cambios:
+1. Calcula hash de carpetas completas
+2. Compara con deployment anterior
+3. Solo actualiza recursos que cambiaron
+4. Skip automático si no hay cambios
+
+### 📋 **Comandos de Deployment por Tipo de Cambio**
+
+#### **Solo Código de Lambdas** ⚡ (30-60s)
+```bash
+# Para cambios en lambdas/[function-name]/ 
+node scripts/update-lambda-and-deploy/update-lambda-and-deploy.js
+```
+- Despliega lambdas individualmente primero
+- Sincroniza con CDK usando hotswap
+- **Recomendado para desarrollo diario**
+
+#### **Infraestructura Completa** 🏗️ (3-5min)
+```bash
+# Para cambios en infrastructure/clean/lib/
+node scripts/deploy-with-cdk/deploy-with-cdk.js
+```
+- Despliega todos los stacks en orden
+- Verifica dependencias entre recursos
+- **Recomendado para cambios de infraestructura**
+
+#### **Stacks Individuales** 🎯 (1-2min)
+```bash
+cd infrastructure/clean
+npm run deploy:database    # Solo DynamoDB
+npm run deploy:lambda      # Solo Lambdas  
+npm run deploy:api         # Solo APIs GraphQL
+npm run deploy:main        # Solo recursos compartidos
+```
+
+#### **Hotswap (Súper Rápido)** ⚡ (15-30s)
+```bash
+cd infrastructure/clean
+npm run hotswap
+```
+- Solo para cambios en código Lambda
+- No actualiza infraestructura
+- **Para cambios urgentes**
+
+### 🎯 **Guía de Comandos por Escenario**
+
+| Cambio Realizado | Comando Recomendado | Tiempo |
+|------------------|-------------------|---------|
+| Editar código Lambda | `node scripts/update-lambda-and-deploy/update-lambda-and-deploy.js` | 30-60s |
+| Añadir nueva tabla DynamoDB | `node scripts/deploy-with-cdk/deploy-with-cdk.js` | 3-5min |
+| Modificar esquema GraphQL | `cd infrastructure/clean && npm run deploy:api` | 2-3min |
+| Cambiar configuración CDK | `node scripts/deploy-with-cdk/deploy-with-cdk.js` | 3-5min |
+| Fix urgente en Lambda | `cd infrastructure/clean && npm run hotswap` | 15-30s |
+| Crear nuevos recursos | `node scripts/deploy-with-cdk/deploy-with-cdk.js` | 3-5min |
+
+### 📁 **Lo que CDK Empaqueta Automáticamente**
+
+Para cada Lambda en `lambdas/[function-name]/`:
+```
+✅ Todos los archivos .js
+✅ Carpetas services/, types/, utils/
+✅ package.json y dependencias
+✅ Variables de entorno desde lambda-config.json
+❌ README.md (excluido)
+❌ lambda-config.json (excluido del ZIP)
+❌ *.zip (excluido)
+```
+
+### 🔍 **Verificación Post-Deployment**
+
+#### **Ver Logs de Lambda**
+```bash
+aws logs tail /aws/lambda/trinity-movie-dev --follow --region eu-west-1
+```
+
+#### **Verificar Estado de Stacks**
+```bash
+cd infrastructure/clean
+cdk list                    # Ver todos los stacks
+cdk diff                    # Ver diferencias pendientes
+```
+
+#### **Verificar Recursos Desplegados**
+```bash
+# Ver funciones Lambda
 aws lambda list-functions --region eu-west-1
 
-# Ver tablas DynamoDB
+# Ver tablas DynamoDB  
 aws dynamodb list-tables --region eu-west-1
+
+# Ver APIs GraphQL
+aws appsync list-graphql-apis --region eu-west-1
 ```
 
-### 🔍 Debugging Frontend
+## 🐛 Troubleshooting
 
+### Problemas Comunes
+
+#### Lambda Timeout
 ```bash
-# Modo debug con DevTools
-npx expo start --dev-client
-
-# Logs detallados
-npx expo start --verbose
-
-# Limpiar cache
-npx expo start --clear
+# Aumentar timeout en lambda-config.json
+# Verificar logs en CloudWatch
+aws logs tail /aws/lambda/trinity-movie-dev --follow
 ```
 
-### 🧪 Testing
-
+#### DynamoDB Throttling
 ```bash
-# Tests unitarios
-cd mobile
-npm test
-
-# Tests de integración AWS
-cd infrastructure
-npm test
-
-# Property-based testing
-npm run test:pbt
+# Cambiar a billing mode ON_DEMAND
+# Verificar métricas de consumo
+node scripts/utils/analyze-dynamodb-usage/analyze-dynamodb-usage.js
 ```
 
----
-
-## 🚀 Despliegue a Producción
-
-### ☁️ Infraestructura AWS
-
+#### AppSync Authorization
 ```bash
-# 1. Compilar código TypeScript
-cd infrastructure
-npm run build
-
-# 2. Desplegar stack completo
-cdk deploy --all
-
-# 3. Verificar despliegue
-aws cloudformation describe-stacks --stack-name TrinityMvpStack --region eu-west-1
+# Verificar JWT token y User Pool config
+# Revisar resolvers de autorización
+# Comprobar claims del token
 ```
 
-### 📱 Aplicación Móvil
-
+#### TMDB API Limits
 ```bash
-# 1. Build de producción
-cd mobile
-eas build --platform all --profile production
-
-# 2. Submit a stores (opcional)
-eas submit --platform android
-eas submit --platform ios
+# Implementar rate limiting
+# Usar cache de películas
+# Verificar quotas de API
 ```
 
-### 🌐 Web App
-
+### Logs y Monitoreo
 ```bash
-# 1. Build optimizado
-npx expo export --platform web
+# Ver logs de Lambda específica
+aws logs tail /aws/lambda/trinity-movie-dev --follow
 
-# 2. Deploy a Vercel/Netlify
-vercel deploy dist
-# o
-netlify deploy --prod --dir dist
+# Métricas de DynamoDB
+aws cloudwatch get-metric-statistics --namespace AWS/DynamoDB --metric-name ConsumedReadCapacityUnits
+
+# Estado de AppSync
+aws appsync get-graphql-api --api-id YOUR_API_ID
+
+# Verificar configuración completa
+node scripts/utils/verify-aws-config/verify-aws-config.js
 ```
-
----
-
-## 📊 Métricas y Costos
-
-### 💰 Estimación de Costos AWS
-
-| Servicio | Free Tier | Costo Post-Free Tier |
-|----------|-----------|----------------------|
-| **Lambda** | 1M requests/mes | $0.20 por 1M requests |
-| **DynamoDB** | 25GB + 25 RCU/WCU | $1.25 por GB/mes |
-| **AppSync** | 250K requests/mes | $4.00 por 1M requests |
-| **Cognito** | 50K MAU | $0.0055 por MAU |
-| **CloudWatch** | 5GB logs/mes | $0.50 por GB/mes |
-
-**💡 Estimación para 1000 usuarios activos/mes: ~$5-10 USD**
-
-### 📈 Métricas de Performance
-
-- **Latencia API**: < 200ms (promedio)
-- **Tiempo de carga**: < 3s (primera carga)
-- **Disponibilidad**: 99.9% (SLA AWS)
-- **Escalabilidad**: Automática hasta 1000 concurrent users
-
----
-
-## 🔧 Scripts Útiles
-
-### 📱 Desarrollo Móvil
-
-```bash
-# Desarrollo
-npm run start                    # Iniciar Expo
-npm run android                  # Abrir en Android
-npm run ios                      # Abrir en iOS
-npm run web                      # Abrir en web
-
-# Build
-npm run build:preview           # Build APK preview
-npm run build:production        # Build producción
-npm run build:dev:android       # Build desarrollo Android
-```
-
-### ☁️ AWS Infrastructure
-
-```bash
-# CDK
-npm run build                   # Compilar TypeScript
-npm run deploy                  # Desplegar a AWS
-npm run destroy                 # Eliminar stack
-npm run synth                   # Generar CloudFormation
-
-# Monitoreo
-npm run logs:room              # Ver logs de room Lambda
-npm run logs:vote              # Ver logs de vote Lambda
-```
-
-### 🧪 Testing
-
-```bash
-# Tests
-npm test                       # Tests unitarios
-npm run test:watch            # Tests en modo watch
-npm run test:coverage         # Coverage report
-npm run test:pbt              # Property-based tests
-```
-
----
-
-## 🐛 Solución de Problemas Comunes
-
-### ❌ Error: "Cannot find module 'room'"
-**Solución**: Lambda function actualizada, reinicia la app
-
-### ❌ Error: "No room data in response"
-**Solución**: Verifica que la sala existe y está activa
-
-### ❌ Error de autenticación AWS
-**Solución**: 
-```bash
-aws sts get-caller-identity  # Verificar credenciales
-aws sso login               # Re-autenticar si es necesario
-```
-
-### ❌ Build APK falla
-**Solución**:
-```bash
-eas login                   # Re-autenticar en EAS
-npx expo install --fix      # Arreglar dependencias
-```
-
-### ❌ App no conecta con AWS
-**Solución**:
-- Verifica conexión a internet
-- Revisa configuración en `app.json`
-- Verifica que los servicios AWS estén activos
-
----
-
-## 📚 Documentación Adicional
-
-### 📖 Guías Específicas
-- [`GUIA_TRABAJAR_SOLO_AWS.md`](GUIA_TRABAJAR_SOLO_AWS.md) - Guía completa de AWS
-- [`GUIA_BUILD_APK.md`](GUIA_BUILD_APK.md) - Guía de construcción APK
-- [`diagnose-join-room.md`](diagnose-join-room.md) - Diagnóstico de problemas
-- [`USUARIOS_COGNITO.md`](USUARIOS_COGNITO.md) - Gestión de usuarios
-
-### 🔗 Enlaces Útiles
-- [Expo Documentation](https://docs.expo.dev/)
-- [AWS AppSync Documentation](https://docs.aws.amazon.com/appsync/)
-- [React Native Documentation](https://reactnative.dev/docs/getting-started)
-- [AWS CDK Documentation](https://docs.aws.amazon.com/cdk/)
-
----
 
 ## 🤝 Contribución
 
-### 🔄 Workflow de Desarrollo
+### Workflow de Desarrollo
+1. **Fork** del repositorio
+2. **Crear rama** feature: `git checkout -b feature/nueva-funcionalidad`
+3. **Desarrollar** y testear localmente
+4. **Commit** con conventional commits: `git commit -m "feat: nueva funcionalidad"`
+5. **Push**: `git push origin feature/nueva-funcionalidad`
+6. **Crear Pull Request** con descripción detallada
 
-1. **Fork** el proyecto
-2. **Crea una rama** para tu feature (`git checkout -b feature/AmazingFeature`)
-3. **Commit** tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** a la rama (`git push origin feature/AmazingFeature`)
-5. **Abre un Pull Request**
-
-### 📝 Estándares de Código
-
-- **TypeScript** para type safety
-- **ESLint + Prettier** para formatting
+### Estándares de Código
+- **ESLint** para JavaScript/TypeScript
+- **Prettier** para formateo automático
 - **Conventional Commits** para mensajes
-- **Tests** requeridos para nuevas features
+- **Tests unitarios** requeridos para nuevas features
+- **Documentación** actualizada en README
 
-### 🧪 Testing Guidelines
+### Testing
+```bash
+# Tests de lambdas
+cd lambdas/trinity-movie-dev
+npm test
 
-- **Unit tests** para lógica de negocio
-- **Property-based tests** para validación
-- **Integration tests** para APIs
-- **E2E tests** para flujos críticos
+# Tests de app móvil
+cd mobile
+npm test
 
----
+# Tests end-to-end
+node scripts/e2e-backend-test/e2e-backend-test.js
+```
+
+## 📊 Métricas y Monitoreo
+
+### KPIs Principales
+- **Usuarios activos** diarios/mensuales
+- **Salas creadas** por día
+- **Tiempo promedio** de votación
+- **Tasa de matches** exitosos
+- **Latencia de APIs** GraphQL
+- **Errores de Lambda** por función
+
+### Herramientas de Monitoreo
+- **CloudWatch** para logs y métricas
+- **X-Ray** para tracing distribuido (opcional)
+- **AppSync metrics** para GraphQL performance
+- **Cognito analytics** para usuarios
+- **DynamoDB metrics** para performance de base de datos
+
+### Dashboards Recomendados
+- Lambda execution duration y errors
+- DynamoDB read/write capacity utilization
+- AppSync request count y latency
+- Cognito sign-up y sign-in metrics
+
+## 🔒 Seguridad
+
+### Medidas Implementadas
+- **Autenticación JWT** via Cognito con rotación automática
+- **Autorización granular** a nivel de resolver GraphQL
+- **Validación de entrada** en todas las lambdas
+- **Encriptación en tránsito** (HTTPS/WSS) y reposo
+- **Rate limiting** en APIs públicas
+- **Sanitización** de inputs de usuario
+
+### Best Practices de Seguridad
+- **Rotación regular** de secrets y API keys
+- **Principio de menor privilegio** en IAM roles
+- **Logs de auditoría** para acciones críticas
+- **Monitoreo de anomalías** en patrones de uso
+- **Backup automático** de datos críticos
+- **Disaster recovery** plan documentado
+
+### Configuración de Seguridad
+```bash
+# Verificar configuración de seguridad
+node scripts/utils/verify-aws-config/verify-aws-config.js
+
+# Revisar permisos IAM
+aws iam get-role --role-name trinity-lambda-execution-role
+
+# Verificar encriptación DynamoDB
+aws dynamodb describe-table --table-name trinity-users-dev
+```
 
 ## 📄 Licencia
 
-Este proyecto está bajo la **Licencia MIT** - ver el archivo [LICENSE](LICENSE) para detalles.
+Este proyecto está bajo la licencia MIT. Ver `LICENSE` para más detalles.
 
-```
-MIT License
+## 📞 Soporte
 
-Copyright (c) 2026 Diego Martín
+Para soporte técnico o preguntas:
+- **Issues**: Crear issue en GitHub con template apropiado
+- **Documentación**: Revisar este README completo
+- **Logs**: Consultar CloudWatch para debugging
+- **Configuración**: Usar scripts de verificación en `scripts/utils/`
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-```
-
----
-
-## 👨‍💻 Contacto y Soporte
-
-### 📧 Desarrollador Principal
-- **Nombre**: Diego Martín
-- **Email**: diegomartin2005@gmail.com
-- **Proyecto**: Trabajo de Fin de Grado (TFG)
-- **Universidad**: [Tu Universidad]
-- **Año**: 2026
-
-### 🆘 Soporte
-- **Issues**: [GitHub Issues](https://github.com/[tu-usuario]/trinity-tfg/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/[tu-usuario]/trinity-tfg/discussions)
-- **Email**: diegomartin2005@gmail.com
-
-### 🌟 Agradecimientos
-
-- **TMDB** por su excelente API de películas
-- **AWS** por los servicios cloud robustos
-- **Expo** por el framework de desarrollo
-- **Hugging Face** por los modelos de IA
-- **React Native Community** por el ecosistema
-- **Open Source Community** por las librerías utilizadas
+### Recursos Adicionales
+- [AWS Lambda Documentation](https://docs.aws.amazon.com/lambda/)
+- [DynamoDB Best Practices](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html)
+- [AppSync GraphQL](https://docs.aws.amazon.com/appsync/)
+- [React Native Documentation](https://reactnative.dev/docs/getting-started)
+- [Expo Documentation](https://docs.expo.dev/)
 
 ---
 
-## 🎯 Roadmap Futuro
+**¡Trinity está listo para crear experiencias de votación de películas increíbles!** 🎬✨
 
-### 🚀 Próximas Características (v2.0)
-
-- [ ] **Notificaciones Push** en tiempo real
-- [ ] **Chat integrado** en las salas
-- [ ] **Streaming integration** con Netflix/Prime
-- [ ] **Recomendaciones ML** más avanzadas
-- [ ] **Modo offline** con sincronización
-- [ ] **Temas personalizables**
-- [ ] **Estadísticas avanzadas**
-- [ ] **API pública** para terceros
-
-### 🔧 Mejoras Técnicas
-
-- [ ] **Migración a Expo SDK 53**
-- [ ] **Implementar GraphQL Subscriptions**
-- [ ] **Optimización de imágenes**
-- [ ] **Caching inteligente**
-- [ ] **Monitoreo avanzado**
-- [ ] **CI/CD pipeline**
-- [ ] **Automated testing**
-- [ ] **Performance monitoring**
-
----
-
-## 📊 Estado del Proyecto
-
-### ✅ Completado (v1.0)
-- [x] Autenticación con AWS Cognito
-- [x] Búsqueda de películas con TMDB
-- [x] Salas colaborativas
-- [x] Votación en tiempo real
-- [x] Build APK nativo
-- [x] Arquitectura serverless AWS
-- [x] Documentación completa
-
-### 🔄 En Desarrollo
-- [ ] Optimizaciones de performance
-- [ ] Tests automatizados
-- [ ] Mejoras de UX/UI
-
-### 📈 Métricas Actuales
-- **Líneas de código**: ~15,000
-- **Componentes React**: 25+
-- **Lambda functions**: 6
-- **Tablas DynamoDB**: 5
-- **Cobertura de tests**: 70%+
-
----
-
-**🎬 ¡Disfruta creando salas de votación de películas con Trinity!** 🍿
-
----
-
-*Última actualización: Enero 2026*
-*Versión del README: 2.0*
+*Repositorio completamente organizado, documentado y listo para producción.*

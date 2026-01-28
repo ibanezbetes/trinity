@@ -1,0 +1,25 @@
+{
+  "functionName": "trinity-auth-dev",
+  "runtime": "nodejs18.x",
+  "handler": "auth.handler",
+  "timeout": 30,
+  "memorySize": 512,
+  "environment": {
+    "Variables": {
+      "ROOM_MATCHES_TABLE": "trinity-room-matches-dev",
+      "ROOMS_TABLE": "trinity-rooms-dev-v2",
+      "MOVIES_CACHE_TABLE": "trinity-movies-cache-dev",
+      "TMDB_API_KEY": "",
+      "USERS_TABLE": "trinity-users-dev",
+      "ROOM_INVITES_TABLE": "trinity-room-invites-dev-v2",
+      "VOTES_TABLE": "trinity-votes-dev",
+      "HUGGINGFACE_API_KEY": "",
+      "USER_POOL_CLIENT_ID": "l08ofv6tef7dp8eorn022fqpj",
+      "USER_POOL_ID": "eu-west-1_EtOx2swvP",
+      "CONNECTIONS_TABLE": "trinity-connections-dev",
+      "ROOM_MEMBERS_TABLE": "trinity-room-members-dev"
+    }
+  },
+  "description": "",
+  "lastModified": "2026-01-26T22:58:52.000+0000"
+}

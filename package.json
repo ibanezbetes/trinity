@@ -32,5 +32,8 @@
   "bugs": {
     "url": "https://github.com/danilazar06/trinity_tfg/issues"
   },
-  "homepage": "https://github.com/danilazar06/trinity_tfg#readme"
+  "homepage": "https://github.com/danilazar06/trinity_tfg#readme",
+  "devDependencies": {
+    "adm-zip": "^0.5.16"
+  }
 }

@@ -1,0 +1,54 @@
+{
+  "userPoolId": "eu-west-1_EMnWISSRn",
+  "name": "trinity-users-dev",
+  "policies": {
+    "PasswordPolicy": {
+      "MinimumLength": 8,
+      "RequireUppercase": true,
+      "RequireLowercase": true,
+      "RequireNumbers": true,
+      "RequireSymbols": false,
+      "TemporaryPasswordValidityDays": 7
+    },
+    "SignInPolicy": {
+      "AllowedFirstAuthFactors": [
+        "PASSWORD"
+      ]
+    }
+  },
+  "lambdaConfig": {},
+  "autoVerifiedAttributes": [
+    "email"
+  ],
+  "aliasAttributes": [
+    "email"
+  ],
+  "smsVerificationMessage": "The verification code to your new account is {####}",
+  "emailVerificationMessage": "The verification code to your new account is {####}",
+  "emailVerificationSubject": "Verify your new account",
+  "verificationMessageTemplate": {
+    "SmsMessage": "The verification code to your new account is {####}",
+    "EmailMessage": "The verification code to your new account is {####}",
+    "EmailSubject": "Verify your new account",
+    "DefaultEmailOption": "CONFIRM_WITH_CODE"
+  },
+  "mfaConfiguration": "OFF",
+  "estimatedNumberOfUsers": 5,
+  "emailConfiguration": {
+    "EmailSendingAccount": "COGNITO_DEFAULT"
+  },
+  "userPoolTags": {},
+  "adminCreateUserConfig": {
+    "AllowAdminCreateUserOnly": false,
+    "UnusedAccountValidityDays": 7
+  },
+  "arn": "arn:aws:cognito-idp:eu-west-1:847850007406:userpool/eu-west-1_EMnWISSRn",
+  "accountRecoverySetting": {
+    "RecoveryMechanisms": [
+      {
+        "Priority": 1,
+        "Name": "verified_email"
+      }
+    ]
+  }
+}
