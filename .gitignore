@@ -68,6 +68,9 @@ mobile/android/app/build/
 mobile/ios/build/
 mobile/.expo/
 mobile/android/.gradle/
+mobile/android/build/
+mobile/android/gradle/
+mobile/android/local.properties
 mobile/ios/Pods/
 mobile/ios/*.xcworkspace/xcuserdata/
 mobile/ios/*.xcodeproj/xcuserdata/
@@ -75,6 +78,21 @@ mobile/android/app/src/main/assets/
 mobile/android/app/src/main/res/drawable-*/
 mobile/web-build/
 mobile/dist/
+
+# Gradle files (anywhere in the project)
+**/.gradle/
+**/build/
+gradle-wrapper.jar
+gradle-wrapper.properties
+gradlew
+gradlew.bat
+local.properties
+
+# React Native Gradle Plugin builds
+**/node_modules/@react-native/gradle-plugin/.gradle/
+**/node_modules/@react-native/gradle-plugin/settings-plugin/build/
+**/node_modules/@react-native/gradle-plugin/shared/build/
+**/node_modules/@react-native/gradle-plugin/**/build/
 
 # Expo
 .expo/
