@@ -1,0 +1,104 @@
+# Trinity Vote Consensus Matchmaking Schema Extensions
+# Matchmaking basado en consenso unánime de votos
+
+# Enhanced Room Types for Vote-Based Matchmaking
+type VoteConsensusRoom {
+  id: ID!
+  name: String!
+  status: RoomStatus!
+  hostId: ID!
+  memberCount: Int!
+  maxPlayers: Int!
+  currentMovieId: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  inviteCode: String
+  # Single Table Design fields
+  entityType: String!
+  ttl: Int
+}
+
+type MovieVote {
+  roomId: ID!
+  movieId: ID!
+  userId: ID!
+  voteType: VoteType!
+  votedAt: AWSDateTime!
+  # Consensus tracking
+  yesVoteCount: Int!
+  totalMemberCount: Int!
+  # Single Table Design fields
+  entityType: String!
+  ttl: Int
+}
+
+type VoteConsensusEvent {
+  roomId: ID!
+  movieId: ID!
+  movieTitle: String!
+  participants: [MovieVote!]!
+  consensusReachedAt: AWSDateTime!
+  eventType: String!
+}
+
+# Enhanced Error Types
+type VoteError {
+  message: String!
+  errorCode: String!
+  roomId: ID!
+  movieId: ID!
+}
+
+# Input Types
+input VoteMovieInput {
+  roomId: ID!
+  movieId: ID!
+  voteType: VoteType!
+}
+
+input CreateVoteRoomInput {
+  name: String!
+  maxPlayers: Int! = 4
+  isPrivate: Boolean = false
+}
+
+# Enums
+enum RoomStatus {
+  WAITING_FOR_MEMBERS
+  VOTING_IN_PROGRESS
+  CONSENSUS_REACHED
+  COMPLETED
+}
+
+enum VoteType {
+  YES
+  NO
+  SKIP
+}
+
+# Union Types for Error Handling
+union VoteResult = VoteConsensusRoom | VoteError
+
+# Extended Mutations
+extend type Mutation {
+  # Client-facing mutations
+  createVoteRoom(input: CreateVoteRoomInput!): VoteConsensusRoom!
+  joinVoteRoom(roomId: ID!): VoteConsensusRoom!
+  voteForMovie(input: VoteMovieInput!): VoteResult!
+  
+  # Backend-only mutations (IAM protected)
+  publishConsensusReached(roomId: ID!, consensusData: AWSJSON!): VoteConsensusEvent! @aws_iam
+}
+
+# Enhanced Subscriptions with Filtering
+extend type Subscription {
+  # Room-specific subscriptions with enhanced filtering
+  onVoteUpdate(roomId: ID!): VoteConsensusRoom 
+    @aws_subscribe(mutations: ["voteForMovie"])
+  
+  onConsensusReached(roomId: ID!): VoteConsensusEvent 
+    @aws_subscribe(mutations: ["publishConsensusReached"])
+  
+  onNewVote(roomId: ID!): MovieVote 
+    @aws_subscribe(mutations: ["voteForMovie"])
+}

@@ -5,6 +5,7 @@ import { TrinityMainStack } from '../lib/trinity-main-stack';
 import { TrinityLambdaStack } from '../lib/trinity-lambda-stack';
 import { TrinityDatabaseStack } from '../lib/trinity-database-stack';
 import { TrinityApiStack } from '../lib/trinity-api-stack';
+import { TrinityMatchmakingStack } from '../lib/trinity-matchmaking-stack';
 
 const app = new cdk.App();
 
@@ -34,6 +35,12 @@ const apiStack = new TrinityApiStack(app, 'TrinityApiStack', {
   description: 'Trinity - GraphQL APIs and Cognito',
   // Pasar referencias de lambdas
   lambdaFunctions: lambdaStack.functions,
+});
+
+// Stack de Matchmaking (Vote Consensus - Independent)
+const matchmakingStack = new TrinityMatchmakingStack(app, 'TrinityMatchmakingStack', {
+  env: defaultEnv,
+  description: 'Trinity - Vote Consensus Matchmaking (Independent)',
 });
 
 // Stack principal (recursos compartidos)

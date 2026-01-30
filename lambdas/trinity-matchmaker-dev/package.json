@@ -1,0 +1,33 @@
+{
+  "name": "trinity-vote-consensus-dev",
+  "version": "1.0.0",
+  "description": "Trinity Vote Consensus Matchmaker - Detects unanimous YES votes and triggers match events",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.490.0",
+    "@aws-sdk/lib-dynamodb": "^3.490.0",
+    "@aws-sdk/client-appsync": "^3.490.0",
+    "@aws-sdk/credential-providers": "^3.490.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8",
+    "@types/node": "^20.9.0"
+  },
+  "keywords": [
+    "trinity",
+    "vote-consensus",
+    "matchmaking",
+    "dynamodb-streams",
+    "real-time",
+    "serverless"
+  ],
+  "author": "Trinity Team",
+  "license": "MIT"
+}
