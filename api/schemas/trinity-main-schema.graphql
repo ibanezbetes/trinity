@@ -187,6 +187,10 @@ type Mutation {
   updateUser(name: String, picture: String): User
   #  DataSource: RoomHandler
   vote(input: VoteInput!): Room
+  #  DataSource: TriniHandler
+  # Trini AI mutations
+  askTrini(input: TriniQuery!): TriniResponse!
+  addTriniRecommendationToRoom(roomId: ID!, movieId: ID!): AddToRoomResponse!
 }
 
 #  Supporting Types for Enhanced Events
@@ -202,14 +206,12 @@ type ParticipantInfo {
 type Query {
   #  DataSource: MovieHandler
   getAvailableGenres(mediaType: MediaType!): [Genre!]!
-  #  DataSource: MovieHandler - Get available genres for media type
-  getChatRecommendations(text: String!): TriniResponse
   #  DataSource: MovieHandler
   getFilteredContent(excludeIds: [String!], genreIds: [Int!]!, limit: Int, mediaType: MediaType!): [Movie]
   #  DataSource: RoomHandler
   getMovieDetails(movieId: String!): Movie
   getMovies(genre: String, limit: Int, page: Int): [Movie]
-  #  DataSource: AIHandler (Trini)
+  #  DataSource: RoomHandler
   getMyHistory: [Room]
   #  DataSource: RoomHandler (alias for getMyHistory)
   getRoom(roomId: ID!): Room
@@ -221,6 +223,10 @@ type Query {
   getUser(id: ID): User
   #  DataSource: RoomHandler
   getUserRooms: [Room]
+  #  DataSource: TriniHandler
+  # Trini AI queries
+  getChatHistory(userId: ID!, limit: Int = 10): [ChatSession!]!
+  getTriniRecommendations(sessionId: ID!): [MovieRecommendation!]!
 }
 
 type RoleEvent implements BaseEvent {
@@ -375,17 +381,66 @@ type ThemeEvent implements BaseEvent {
   timestamp: AWSDateTime!
 }
 
-#  Trini AI Response Type
+#  Trini AI Types
+input TriniQuery {
+  query: String!
+  userId: ID!
+  sessionId: ID
+}
+
 type TriniResponse {
-  chatResponse: String!
-  confidence: Float
-  #  New: How well response aligns with room genres
-  fallbackUsed: Boolean!
-  #  New: Explanation of the recommendation
-  genreAlignment: Float
-  #  New: Confidence score (0.0 to 1.0)
+  sessionId: ID!
+  message: String!
+  recommendations: [MovieRecommendation!]!
+  extractedFilters: ExtractedFilters
+  confidence: Float!
+}
+
+type MovieRecommendation {
+  movie: Movie!
+  relevanceScore: Float!
   reasoning: String
-  recommendedGenres: [String!]!
+}
+
+type ExtractedFilters {
+  genres: [String!]
+  yearRange: YearRange
+  rating: RatingRange
+  keywords: [String!]
+}
+
+type YearRange {
+  min: Int
+  max: Int
+}
+
+type RatingRange {
+  min: Float
+  max: Float
+}
+
+type ChatSession {
+  sessionId: ID!
+  userId: ID!
+  messages: [ChatMessage!]!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type ChatMessage {
+  messageId: ID!
+  type: ChatMessageType!
+  content: String!
+  extractedFilters: ExtractedFilters
+  recommendations: [String!]
+  timestamp: AWSDateTime!
+}
+
+type AddToRoomResponse {
+  success: Boolean!
+  message: String
+  roomId: ID
+  movieId: ID
 }
 
 type User {
@@ -458,6 +513,8 @@ enum ChatMessageType {
   REACTION
   SYSTEM
   TEXT
+  USER_QUERY
+  TRINI_RESPONSE
 }
 
 #  Enhanced Enums

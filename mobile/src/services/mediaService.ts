@@ -12,17 +12,15 @@ export interface StreamingProvider {
 
 export interface MediaItem {
   id: string;
-  tmdbId: number;
   title: string;
-  originalTitle: string;
   overview: string;
-  posterPath: string | null;
-  backdropPath: string | null;
-  releaseDate: string;
-  year: string;
+  poster: string | null;
+  release_date: string;
+  runtime: number;
+  vote_average: number;
+  genres: Array<{ id: number; name: string }>;
   rating: number;
   voteCount: number;
-  genres: string[];
   mediaType: 'movie' | 'tv';
   platform?: string;
   streamingProviders?: StreamingProvider[];
@@ -44,17 +42,6 @@ export interface WatchProvider {
 }
 
 export interface MediaItemDetails extends MediaItem {
-  runtime?: number | null;
-  tagline?: string;
-  budget?: number;
-  revenue?: number;
-  numberOfSeasons?: number;
-  numberOfEpisodes?: number;
-  trailerKey: string | null;
-  watchProviders: WatchProvider[];
-  cast: CastMember[];
-  director?: string | null;
-  creator?: string | null;
   // Properties expected by room screen
   mediaPosterPath?: string | null;
   mediaTitle?: string;
@@ -110,29 +97,21 @@ const getRandomPlatform = () => platforms[Math.floor(Math.random() * platforms.l
 
 const transformTMDBItem = (item: any, mediaType: 'movie' | 'tv'): MediaItem => {
   const releaseDate = item.release_date || item.first_air_date || '';
-  const year = releaseDate ? releaseDate.split('-')[0] : '';
-  const isRecent = year && parseInt(year) >= new Date().getFullYear() - 1;
 
   return {
     id: `${mediaType}-${item.id}`,
-    tmdbId: item.id,
     title: item.title || item.name,
-    originalTitle: item.original_title || item.original_name,
     overview: item.overview,
-    posterPath: item.poster_path
+    poster: item.poster_path
       ? `${TMDB_IMAGE_BASE}/w500${item.poster_path}`
       : null,
-    backdropPath: item.backdrop_path
-      ? `${TMDB_IMAGE_BASE}/w780${item.backdrop_path}`
-      : null,
-    releaseDate,
-    year,
-    rating: Math.round(item.vote_average * 10) / 10,
-    voteCount: item.vote_count,
-    genres: (item.genre_ids || []).map((id: number) => genreMap[id] || 'Otro'),
-    mediaType,
-    platform: getRandomPlatform(),
-    isNew: isRecent,
+    release_date: releaseDate,
+    runtime: item.runtime || 0,
+    vote_average: Math.round(item.vote_average * 10) / 10,
+    genres: (item.genre_ids || []).map((id: number) => ({ 
+      id, 
+      name: genreMap[id] || 'Otro' 
+    })),
   };
 };
 
@@ -159,38 +138,30 @@ class MediaService {
       const movieDetails: MediaItemDetails = {
         id: `movie-${details.id}`,
         remoteId: details.id,
-        tmdbId: parseInt(details.id) || 0, // Fallback to 0 if ID is not a number
         title: details.title,
-        originalTitle: details.title, // GraphQL no devuelve original_title por ahora
         overview: details.overview || '',
-        posterPath: details.poster
-          ? `${TMDB_IMAGE_BASE}/w500${details.poster}`
-          : null,
-        backdropPath: null, // No disponible en GraphQL actual
-        releaseDate: details.release_date || '',
-        year: details.release_date ? details.release_date.split('-')[0] : '',
-        rating: Math.round((details.vote_average || 0) * 10) / 10,
-        voteCount: 0, // No disponible en GraphQL actual
-        genres: details.genres?.map((g: any) => g.name) || [],
-        mediaType: 'movie' as const,
-        runtime: details.runtime || null,
-        tagline: '', // No disponible en GraphQL actual
-        budget: 0, // No disponible en GraphQL actual
-        revenue: 0, // No disponible en GraphQL actual
-        trailerKey: null, // No disponible en GraphQL actual
-        watchProviders: [], // No disponible en GraphQL actual
-        cast: [], // No disponible en GraphQL actual
-        director: null, // No disponible en GraphQL actual
+        poster: details.poster || null,
+        release_date: details.release_date || '',
+        runtime: details.runtime || 0,
+        vote_average: Math.round((details.vote_average || 0) * 10) / 10,
+        genres: details.genres || [],
+        // Properties expected by room screen
+        mediaTitle: details.title,
+        mediaYear: details.release_date ? details.release_date.split('-')[0] : '',
+        mediaOverview: details.overview || '',
+        mediaRating: details.vote_average || null,
+        mediaPosterPath: details.poster || null,
       };
 
       // Get cached poster image if available
-      if (movieDetails.posterPath) {
+      if (movieDetails.poster) {
         try {
-          const cachedPosterPath = await imageCacheService.getCachedImage(movieDetails.posterPath);
-          movieDetails.posterPath = cachedPosterPath;
+          const cachedPosterPath = await imageCacheService.getCachedImage(movieDetails.poster);
+          movieDetails.poster = cachedPosterPath;
+          movieDetails.mediaPosterPath = cachedPosterPath;
         } catch (error) {
           console.warn(`⚠️ Failed to get cached poster for ${movieDetails.title}:`, error);
-          // Keep original posterPath as fallback
+          // Keep original poster as fallback
         }
       }
 
@@ -239,38 +210,30 @@ class MediaService {
       const tvDetails: MediaItemDetails = {
         id: `tv-${details.id}`,
         remoteId: details.id,
-        tmdbId: parseInt(details.id) || 0,
         title: details.title,
-        originalTitle: details.title,
         overview: details.overview || '',
-        posterPath: details.poster
-          ? `${TMDB_IMAGE_BASE}/w500${details.poster}`
-          : null,
-        backdropPath: null, // No disponible en GraphQL actual
-        releaseDate: details.release_date || '',
-        year: details.release_date ? details.release_date.split('-')[0] : '',
-        rating: Math.round((details.vote_average || 0) * 10) / 10,
-        voteCount: 0,
-        genres: details.genres?.map((g: any) => g.name) || [],
-        mediaType: 'tv' as const,
-        runtime: details.runtime || null,
-        tagline: '',
-        numberOfSeasons: 1, // Valor por defecto
-        numberOfEpisodes: 10, // Valor por defecto
-        trailerKey: null,
-        watchProviders: [],
-        cast: [],
-        creator: null,
+        poster: details.poster || null,
+        release_date: details.release_date || '',
+        runtime: details.runtime || 0,
+        vote_average: Math.round((details.vote_average || 0) * 10) / 10,
+        genres: details.genres || [],
+        // Properties expected by room screen
+        mediaTitle: details.title,
+        mediaYear: details.release_date ? details.release_date.split('-')[0] : '',
+        mediaOverview: details.overview || '',
+        mediaRating: details.vote_average || null,
+        mediaPosterPath: details.poster || null,
       };
 
       // Get cached poster image if available
-      if (tvDetails.posterPath) {
+      if (tvDetails.poster) {
         try {
-          const cachedPosterPath = await imageCacheService.getCachedImage(tvDetails.posterPath);
-          tvDetails.posterPath = cachedPosterPath;
+          const cachedPosterPath = await imageCacheService.getCachedImage(tvDetails.poster);
+          tvDetails.poster = cachedPosterPath;
+          tvDetails.mediaPosterPath = cachedPosterPath;
         } catch (error) {
           console.warn(`⚠️ Failed to get cached poster for ${tvDetails.title}:`, error);
-          // Keep original posterPath as fallback
+          // Keep original poster as fallback
         }
       }
 
@@ -299,26 +262,19 @@ class MediaService {
     return {
       id: `movie-${tmdbId}`,
       remoteId: tmdbId.toString(),
-      tmdbId,
       title: 'Película no disponible',
-      originalTitle: 'Movie Unavailable',
       overview: 'Los detalles de esta película no están disponibles temporalmente debido a problemas de conectividad. Por favor, inténtalo más tarde.',
-      posterPath: null,
-      backdropPath: null,
-      releaseDate: '',
-      year: '',
-      rating: 0,
-      voteCount: 0,
-      genres: ['No disponible'],
-      mediaType: 'movie' as const,
-      runtime: null,
-      tagline: 'Servicio temporalmente no disponible',
-      budget: 0,
-      revenue: 0,
-      trailerKey: null,
-      watchProviders: [],
-      cast: [],
-      director: null,
+      poster: null,
+      release_date: '',
+      runtime: 0,
+      vote_average: 0,
+      genres: [{ id: 0, name: 'No disponible' }],
+      // Properties expected by room screen
+      mediaTitle: 'Película no disponible',
+      mediaYear: '',
+      mediaOverview: 'Los detalles de esta película no están disponibles temporalmente.',
+      mediaRating: null,
+      mediaPosterPath: null,
     };
   }
 
@@ -331,26 +287,19 @@ class MediaService {
     return {
       id: `tv-${tmdbId}`,
       remoteId: tmdbId.toString(),
-      tmdbId,
       title: 'Serie no disponible',
-      originalTitle: 'TV Show Unavailable',
       overview: 'Los detalles de esta serie no están disponibles temporalmente debido a problemas de conectividad. Por favor, inténtalo más tarde.',
-      posterPath: null,
-      backdropPath: null,
-      releaseDate: '',
-      year: '',
-      rating: 0,
-      voteCount: 0,
-      genres: ['No disponible'],
-      mediaType: 'tv' as const,
-      runtime: null,
-      tagline: 'Servicio temporalmente no disponible',
-      numberOfSeasons: 0,
-      numberOfEpisodes: 0,
-      trailerKey: null,
-      watchProviders: [],
-      cast: [],
-      creator: null,
+      poster: null,
+      release_date: '',
+      runtime: 0,
+      vote_average: 0,
+      genres: [{ id: 0, name: 'No disponible' }],
+      // Properties expected by room screen
+      mediaTitle: 'Serie no disponible',
+      mediaYear: '',
+      mediaOverview: 'Los detalles de esta serie no están disponibles temporalmente.',
+      mediaRating: null,
+      mediaPosterPath: null,
     };
   }
 
@@ -519,34 +468,21 @@ class MediaService {
             const movie = filteredResult.getFilteredContent[randomIndex];
 
             const currentMedia: MediaItemDetails = {
-              id: movie.id || `movie-${movie.tmdbId}`,
-              remoteId: movie.remoteId || movie.id || movie.tmdbId?.toString(),
-              tmdbId: movie.tmdbId || parseInt(movie.id || '0'),
-              title: movie.title || movie.mediaTitle || 'Título no disponible',
-              originalTitle: movie.originalTitle || movie.title || 'Título no disponible',
-              overview: movie.overview || movie.mediaOverview || '',
-              posterPath: movie.posterPath || movie.mediaPosterPath || movie.poster || null,
-              backdropPath: movie.backdropPath || null,
-              releaseDate: movie.releaseDate || '',
-              year: movie.year || movie.mediaYear || (movie.releaseDate ? movie.releaseDate.split('-')[0] : ''),
-              rating: movie.rating || movie.mediaRating || movie.vote_average || 0,
-              voteCount: movie.voteCount || 0,
+              id: movie.id || `movie-unknown`,
+              remoteId: movie.id || 'unknown',
+              title: movie.title || 'Título no disponible',
+              overview: movie.overview || '',
+              poster: movie.poster || null,
+              release_date: movie.release_date || '',
+              runtime: movie.runtime || 0,
+              vote_average: movie.vote_average || 0,
               genres: movie.genres || [],
-              mediaType: movie.mediaType || 'movie' as const,
-              runtime: movie.runtime || null,
-              tagline: movie.tagline || '',
-              budget: movie.budget || 0,
-              revenue: movie.revenue || 0,
-              trailerKey: movie.trailerKey || null,
-              watchProviders: movie.watchProviders || [],
-              cast: movie.cast || [],
-              director: movie.director || null,
               // Add properties expected by room screen
-              mediaPosterPath: movie.posterPath || movie.mediaPosterPath || movie.poster || null,
-              mediaTitle: movie.title || movie.mediaTitle || 'Título no disponible',
-              mediaYear: movie.year || movie.mediaYear || (movie.releaseDate ? movie.releaseDate.split('-')[0] : ''),
-              mediaOverview: movie.overview || movie.mediaOverview || '',
-              mediaRating: movie.rating || movie.mediaRating || movie.vote_average || null,
+              mediaPosterPath: movie.poster || null,
+              mediaTitle: movie.title || 'Título no disponible',
+              mediaYear: movie.release_date ? movie.release_date.split('-')[0] : '',
+              mediaOverview: movie.overview || '',
+              mediaRating: movie.vote_average || null,
             };
 
             console.log(`✅ Current media loaded via filtering: ${currentMedia.title}`);
@@ -588,28 +524,18 @@ class MediaService {
       const currentMedia: MediaItemDetails = {
         id: `movie-${movie.id}`,
         remoteId: movie.id, // Ensure remoteId is preserved
-        tmdbId: parseInt(movie.id),
         title: movie.title,
-        originalTitle: movie.title,
         overview: movie.overview || '',
-        posterPath: movie.poster
+        poster: movie.poster
           ? `${TMDB_IMAGE_BASE}/w500${movie.poster}`
           : null,
-        backdropPath: null,
-        releaseDate: movie.release_date || '',
-        year: movie.release_date ? movie.release_date.split('-')[0] : '',
+        release_date: movie.release_date || '',
+        runtime: movie.runtime || 0,
+        vote_average: Math.round((movie.vote_average || 0) * 10) / 10,
+        genres: movie.genres || [],
         rating: Math.round((movie.vote_average || 0) * 10) / 10,
         voteCount: 0,
-        genres: [],
         mediaType: 'movie' as const,
-        runtime: null,
-        tagline: '',
-        budget: 0,
-        revenue: 0,
-        trailerKey: null,
-        watchProviders: [],
-        cast: [],
-        director: null,
         // Add properties expected by room screen
         mediaPosterPath: movie.poster,
         mediaTitle: movie.title,
@@ -698,34 +624,21 @@ class MediaService {
             const movie = filteredResult.getFilteredContent[randomIndex];
 
             const nextMedia: MediaItemDetails = {
-              id: movie.id || `movie-${movie.tmdbId}`,
-              remoteId: movie.remoteId || movie.id || movie.tmdbId?.toString(),
-              tmdbId: movie.tmdbId || parseInt(movie.id || '0'),
-              title: movie.title || movie.mediaTitle || 'Título no disponible',
-              originalTitle: movie.originalTitle || movie.title || 'Título no disponible',
-              overview: movie.overview || movie.mediaOverview || '',
-              posterPath: movie.posterPath || movie.mediaPosterPath || movie.poster || null,
-              backdropPath: movie.backdropPath || null,
-              releaseDate: movie.releaseDate || '',
-              year: movie.year || movie.mediaYear || (movie.releaseDate ? movie.releaseDate.split('-')[0] : ''),
-              rating: movie.rating || movie.mediaRating || movie.vote_average || 0,
-              voteCount: movie.voteCount || 0,
+              id: movie.id || `movie-unknown`,
+              remoteId: movie.id || 'unknown',
+              title: movie.title || 'Título no disponible',
+              overview: movie.overview || '',
+              poster: movie.poster || null,
+              release_date: movie.release_date || '',
+              runtime: movie.runtime || 0,
+              vote_average: movie.vote_average || 0,
               genres: movie.genres || [],
-              mediaType: movie.mediaType || 'movie' as const,
-              runtime: movie.runtime || null,
-              tagline: movie.tagline || '',
-              budget: movie.budget || 0,
-              revenue: movie.revenue || 0,
-              trailerKey: movie.trailerKey || null,
-              watchProviders: movie.watchProviders || [],
-              cast: movie.cast || [],
-              director: movie.director || null,
               // Add properties expected by room screen
-              mediaPosterPath: movie.posterPath || movie.mediaPosterPath || movie.poster || null,
-              mediaTitle: movie.title || movie.mediaTitle || 'Título no disponible',
-              mediaYear: movie.year || movie.mediaYear || (movie.releaseDate ? movie.releaseDate.split('-')[0] : ''),
-              mediaOverview: movie.overview || movie.mediaOverview || '',
-              mediaRating: movie.rating || movie.mediaRating || movie.vote_average || null,
+              mediaPosterPath: movie.poster || null,
+              mediaTitle: movie.title || 'Título no disponible',
+              mediaYear: movie.release_date ? movie.release_date.split('-')[0] : '',
+              mediaOverview: movie.overview || '',
+              mediaRating: movie.vote_average || null,
             };
 
             console.log(`✅ Next media loaded via filtering: ${nextMedia.title}`);
@@ -767,28 +680,18 @@ class MediaService {
       const nextMedia: MediaItemDetails = {
         id: `movie-${movie.id}`,
         remoteId: movie.id, // Ensure remoteId is preserved
-        tmdbId: parseInt(movie.id),
         title: movie.title,
-        originalTitle: movie.title,
         overview: movie.overview || '',
-        posterPath: movie.poster
+        poster: movie.poster
           ? `${TMDB_IMAGE_BASE}/w500${movie.poster}`
           : null,
-        backdropPath: null,
-        releaseDate: movie.release_date || '',
-        year: movie.release_date ? movie.release_date.split('-')[0] : '',
+        release_date: movie.release_date || '',
+        runtime: movie.runtime || 0,
+        vote_average: Math.round((movie.vote_average || 0) * 10) / 10,
+        genres: movie.genres || [],
         rating: Math.round((movie.vote_average || 0) * 10) / 10,
         voteCount: 0,
-        genres: [],
         mediaType: 'movie' as const,
-        runtime: null,
-        tagline: '',
-        budget: 0,
-        revenue: 0,
-        trailerKey: null,
-        watchProviders: [],
-        cast: [],
-        director: null,
         // Add properties expected by room screen
         mediaPosterPath: movie.poster,
         mediaTitle: movie.title,
@@ -817,26 +720,16 @@ class MediaService {
     return {
       id: `fallback-movie-${Date.now()}`,
       remoteId: '12345',
-      tmdbId: 12345,
       title: 'Película de ejemplo',
-      originalTitle: 'Example Movie',
       overview: 'Esta es una película de ejemplo que se muestra cuando no se pueden cargar los datos reales. Por favor, verifica tu conexión a internet.',
-      posterPath: null,
-      backdropPath: null,
-      releaseDate: '2024-01-01',
-      year: '2024',
+      poster: null,
+      release_date: '2024-01-01',
+      runtime: 120,
+      vote_average: 7.5,
+      genres: [{ id: 18, name: 'Drama' }, { id: 28, name: 'Acción' }],
       rating: 7.5,
       voteCount: 1000,
-      genres: ['Drama', 'Acción'],
       mediaType: 'movie' as const,
-      runtime: 120,
-      tagline: 'Una película de ejemplo',
-      budget: 0,
-      revenue: 0,
-      trailerKey: null,
-      watchProviders: [],
-      cast: [],
-      director: null,
       // Add properties expected by room screen
       mediaPosterPath: null,
       mediaTitle: 'Película de ejemplo',

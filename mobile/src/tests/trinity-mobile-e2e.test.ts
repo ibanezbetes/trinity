@@ -242,7 +242,7 @@ describe('Trinity Mobile App - End-to-End Integration Tests', () => {
         {
           id: movieId,
           title: 'Test Movie',
-          posterPath: 'https://image.tmdb.org/t/p/w500/poster.jpg',
+          poster: 'https://image.tmdb.org/t/p/w500/poster.jpg',
           overview: 'A test movie',
           genres: ['Action'],
           year: 2023,
@@ -251,7 +251,7 @@ describe('Trinity Mobile App - End-to-End Integration Tests', () => {
         {
           id: 'movie-124',
           title: 'Next Movie',
-          posterPath: 'https://image.tmdb.org/t/p/w500/poster2.jpg',
+          poster: 'https://image.tmdb.org/t/p/w500/poster2.jpg',
           overview: 'The next movie',
           genres: ['Comedy'],
           year: 2023,
@@ -338,7 +338,7 @@ describe('Trinity Mobile App - End-to-End Integration Tests', () => {
           matchedMovie: {
             id: movieId,
             title: 'Matched Movie',
-            posterPath: 'https://image.tmdb.org/t/p/w500/matched.jpg',
+            poster: 'https://image.tmdb.org/t/p/w500/matched.jpg',
           },
         }),
         status: 200,
@@ -433,13 +433,13 @@ describe('Trinity Mobile App - End-to-End Integration Tests', () => {
               id: 'action-1',
               title: 'Action Movie 1',
               genres: ['Action'],
-              posterPath: '/action1.jpg',
+              poster: '/action1.jpg',
             },
             {
               id: 'scifi-1',
               title: 'Sci-Fi Movie 1',
               genres: ['Sci-Fi'],
-              posterPath: '/scifi1.jpg',
+              poster: '/scifi1.jpg',
             },
           ],
         }),
@@ -470,7 +470,7 @@ describe('Trinity Mobile App - End-to-End Integration Tests', () => {
       const movieWithImage = {
         id: 'movie-img',
         title: 'Movie with Image',
-        posterPath: 'https://image.tmdb.org/t/p/w500/poster.jpg',
+        poster: 'https://image.tmdb.org/t/p/w500/poster.jpg',
       };
 
       // Mock image caching
@@ -485,7 +485,7 @@ describe('Trinity Mobile App - End-to-End Integration Tests', () => {
       await moviePreloadService.initializeForRoom(roomId);
       
       // Simulate image preloading
-      const cachedImage = await moviePreloadService.getCachedImage(movieWithImage.posterPath);
+      const cachedImage = await moviePreloadService.getCachedImage(movieWithImage.poster);
       
       expect(cachedImage).toBeDefined();
       expect(cachedImage).toContain('data:image/jpeg;base64');
@@ -516,7 +516,7 @@ describe('Trinity Mobile App - End-to-End Integration Tests', () => {
             {
               id: 'fresh-1',
               title: 'Fresh Movie',
-              posterPath: '/fresh.jpg',
+              poster: '/fresh.jpg',
             },
           ],
         }),
@@ -768,7 +768,7 @@ describe('Trinity Mobile App - End-to-End Integration Tests', () => {
       const largeMovieSet = Array.from({ length: 100 }, (_, i) => ({
         id: `movie-${i}`,
         title: `Movie ${i}`,
-        posterPath: `/poster${i}.jpg`,
+        poster: `/poster${i}.jpg`,
       }));
 
       mockFetch.mockResolvedValueOnce({

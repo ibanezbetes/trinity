@@ -1077,37 +1077,16 @@ class AppSyncService {
       query GetFilteredContent($mediaType: MediaType!, $genreIds: [Int!]!, $limit: Int, $excludeIds: [String!]) {
         getFilteredContent(mediaType: $mediaType, genreIds: $genreIds, limit: $limit, excludeIds: $excludeIds) {
           id
-          tmdbId
           title
-          originalTitle
           overview
-          posterPath
-          backdropPath
-          releaseDate
-          year
-          rating
-          voteCount
-          genres
-          mediaType
+          poster
+          release_date
           runtime
-          tagline
-          budget
-          revenue
-          trailerKey
-          watchProviders {
+          vote_average
+          genres {
             id
             name
-            logoPath
-            type
           }
-          cast {
-            id
-            name
-            character
-            profilePath
-          }
-          director
-          creator
         }
       }
     `;
@@ -1174,58 +1153,132 @@ class AppSyncService {
   }
 
   /**
-   * Get AI recommendations with enhanced response format
+   * Ask Trini for movie recommendations using natural language
    */
-  async getAIRecommendations(input: {
-    roomId: string;
-    preferences?: string[];
-    excludeIds?: string[];
-  }): Promise<{ getChatRecommendations: any }> {
-    const query = `
-      query GetChatRecommendations($text: String!) {
-        getChatRecommendations(text: $text) {
-          chatResponse
-          recommendedGenres
+  async askTrini(query: string, userId: string, sessionId?: string): Promise<{ askTrini: any }> {
+    const mutation = `
+      mutation AskTrini($input: TriniQuery!) {
+        askTrini(input: $input) {
+          sessionId
+          message
+          recommendations {
+            movie {
+              id
+              title
+              overview
+              poster
+              vote_average
+              release_date
+              genres {
+                id
+                name
+              }
+            }
+            relevanceScore
+            reasoning
+          }
+          extractedFilters {
+            genres
+            yearRange {
+              min
+              max
+            }
+            rating {
+              min
+              max
+            }
+            keywords
+          }
           confidence
-          reasoning
-          genreAlignment
-          fallbackUsed
         }
       }
     `;
 
-    // Build context text for AI
-    const contextParts = [`Room: ${input.roomId}`];
-    if (input.preferences && input.preferences.length > 0) {
-      contextParts.push(`Preferences: ${input.preferences.join(', ')}`);
-    }
-    if (input.excludeIds && input.excludeIds.length > 0) {
-      contextParts.push(`Exclude: ${input.excludeIds.join(', ')}`);
-    }
-
-    const text = `Recommend movies for ${contextParts.join('. ')}`;
-
     try {
-      const result = await this.graphqlRequest<{ getChatRecommendations: any }>({
-        query,
-        variables: { text }
+      const result = await this.graphqlRequest<{ askTrini: any }>({
+        query: mutation,
+        variables: {
+          input: {
+            query,
+            userId,
+            sessionId
+          }
+        }
       });
 
       return result;
     } catch (error: any) {
-      loggingService.error('AppSyncService', 'AI recommendations failed', {
-        roomId: input.roomId,
+      loggingService.error('AppSyncService', 'Trini query failed', {
+        query: query.substring(0, 100),
+        userId,
         error: error.message
       });
 
       // Return fallback response
       return {
-        getChatRecommendations: {
-          chatResponse: 'I\'m having trouble generating recommendations right now. Try browsing popular movies instead.',
-          recommendedGenres: input.preferences || [],
+        askTrini: {
+          sessionId: sessionId || `fallback-${Date.now()}`,
+          message: 'Disculpa, tengo problemas técnicos ahora mismo. ¿Puedes intentarlo de nuevo en un momento?',
+          recommendations: [],
+          extractedFilters: {
+            genres: [],
+            yearRange: null,
+            rating: null,
+            keywords: []
+          },
+          confidence: 0.0
+        }
+      };
+    }
+  }
+
+  /**
+   * Get AI recommendations with enhanced response format (legacy method for compatibility)
+   */
+  async getAIRecommendations(userText: string): Promise<{ getAIRecommendations: any }> {
+    // Use askTrini internally but return in legacy format
+    try {
+      const userId = 'anonymous'; // TODO: Get from auth context
+      const result = await this.askTrini(userText, userId);
+      
+      if (result.askTrini) {
+        const triniResponse = result.askTrini;
+        
+        // Transform to legacy format
+        return {
+          getAIRecommendations: {
+            chatResponse: triniResponse.message,
+            recommendedGenres: triniResponse.extractedFilters?.genres || [],
+            recommendedMovies: triniResponse.recommendations?.map((rec: any) => ({
+              id: parseInt(rec.movie.id),
+              title: rec.movie.title,
+              overview: rec.movie.overview,
+              poster_path: rec.movie.poster,
+              vote_average: rec.movie.vote_average,
+              release_date: rec.movie.release_date
+            })) || [],
+            confidence: triniResponse.confidence || 0.0,
+            reasoning: triniResponse.recommendations?.[0]?.reasoning || '',
+            fallbackUsed: false
+          }
+        };
+      }
+      
+      throw new Error('No response from Trini');
+    } catch (error: any) {
+      loggingService.error('AppSyncService', 'AI recommendations failed', {
+        userText: userText.substring(0, 100),
+        error: error.message
+      });
+
+      // Return fallback response
+      return {
+        getAIRecommendations: {
+          chatResponse: 'Disculpa, tengo problemas técnicos ahora mismo. ¿Puedes intentarlo de nuevo?',
+          recommendedGenres: [],
+          recommendedMovies: [],
           confidence: 0.0,
           reasoning: 'AI service unavailable, using fallback response',
-          genreAlignment: 0.0,
           fallbackUsed: true
         }
       };

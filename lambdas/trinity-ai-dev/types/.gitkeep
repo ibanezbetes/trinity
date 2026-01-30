@@ -1,0 +1,5 @@
+# Types directory for TypeScript interfaces and types
+# This directory will contain:
+# - interfaces.js - Common interfaces and type definitions
+# - responses.js - Response type definitions
+# - events.js - Event type definitions

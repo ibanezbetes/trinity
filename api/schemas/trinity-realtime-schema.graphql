@@ -1,0 +1,21 @@
+type Query {
+  getRoomStatus(roomId: ID!): RoomStatus
+}
+
+type Mutation {
+  updateRoomStatus(roomId: ID!, status: String!): RoomStatus
+}
+
+type Subscription {
+  onRoomUpdate(roomId: ID!): RoomStatus
+    @aws_subscribe(mutations: ["updateRoomStatus"])
+}
+
+type RoomStatus {
+  roomId: ID!
+  status: String!
+  timestamp: AWSDateTime!
+  members: [String!]!
+  currentMovie: String
+  votes: AWSJSON
+}

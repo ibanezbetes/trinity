@@ -371,6 +371,18 @@ export default function RoomDetailsScreen() {
 
       {/* Action Buttons */}
       <View style={styles.actionsContainer}>
+        {/* Ask Trini Button */}
+        <TouchableOpacity 
+          style={styles.askTriniButton} 
+          onPress={() => router.push('/trini-chatbot')}
+        >
+          <View style={styles.askTriniContent}>
+            <Ionicons name="chatbubble-ellipses" size={20} color="#FFF" />
+            <Text style={styles.askTriniText}>🤖 Pregunta a Trini</Text>
+          </View>
+          <Text style={styles.askTriniSubtext}>Recomendaciones con IA</Text>
+        </TouchableOpacity>
+
         {isHost ? (
           <TouchableOpacity style={styles.startButton} onPress={handleStartVoting}>
             <Ionicons name="play" size={20} color="#FFF" style={styles.buttonIcon} />
@@ -843,5 +855,34 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     color: colors.textMuted,
     fontFamily: 'monospace',
+  },
+  askTriniButton: {
+    backgroundColor: '#8B5CF6', // Purple color for Trini
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.md,
+    elevation: 3,
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+  },
+  askTriniContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginBottom: 4,
+  },
+  askTriniText: {
+    color: '#FFF',
+    fontSize: fontSize.md,
+    fontWeight: '600',
+  },
+  askTriniSubtext: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: fontSize.sm,
+    textAlign: 'center',
   },
 });

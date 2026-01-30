@@ -5,8 +5,8 @@ Una aplicación móvil React Native para crear salas de votación de películas 
 ## 🏗️ Arquitectura del Sistema
 
 ### Servicios AWS Desplegados
-- **6 Funciones Lambda** para lógica de negocio
-- **8 Tablas DynamoDB** para almacenamiento
+- **6 Funciones Lambda Activas** + 1 Legacy para lógica de negocio
+- **9 Tablas DynamoDB** para almacenamiento (incluye chat sessions)
 - **2 APIs GraphQL AppSync** para comunicación
 - **Cognito** para autenticación
 - **S3** para assets estáticos
@@ -30,12 +30,13 @@ trinity/
 │   └── package.json              # Dependencias móviles
 │
 ├── ⚡ lambdas/                   # Funciones Lambda (código actual de AWS)
-│   ├── trinity-ai-dev/           # IA para recomendaciones de películas
+│   ├── trinity-ai-dev/           # IA para recomendaciones de películas (ACTIVO)
 │   ├── trinity-auth-dev/         # Autenticación y autorización
 │   ├── trinity-movie-dev/        # Gestión de películas y TMDB
 │   ├── trinity-realtime-dev/     # Comunicación en tiempo real
 │   ├── trinity-room-dev/         # Gestión de salas de votación
-│   └── trinity-vote-dev/         # Sistema de votación
+│   ├── trinity-vote-dev/         # Sistema de votación
+│   └── trinity-trini-dev/        # Chatbot IA (LEGACY - Python/Salamandra-2b)
 │
 ├── 🗄️ database/                  # Base de datos
 │   ├── schemas/                  # Esquemas de DynamoDB exportados
@@ -113,6 +114,9 @@ COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 # AppSync
 APPSYNC_API_URL=https://xxxxxxxxxx.appsync-api.eu-west-1.amazonaws.com/graphql
 APPSYNC_REALTIME_URL=wss://xxxxxxxxxx.appsync-realtime-api.eu-west-1.amazonaws.com/graphql
+
+# AI Chatbot (ACTIVO)
+HF_API_TOKEN=tu_hugging_face_token
 ```
 
 ## 📱 Desarrollo Móvil
@@ -135,17 +139,55 @@ npx expo build:android
 npx expo build:ios
 ```
 
+### Prueba app en expo emuladoir Android Studio
+```bash
+cd mobile
+npx expo start --clear
+```
+
+## 🤖 AI Assistant "Trini"
+
+### Arquitectura Actual (Enero 2026)
+- **Lambda Activa**: `trinity-ai-dev` (Node.js 18.x)
+- **Modelo IA**: Qwen/Qwen2.5-1.5B-Instruct via OpenAI SDK + HF Serverless
+- **Fallback Inteligente**: Sistema de análisis de consultas en español
+- **Funcionalidades**:
+  - Análisis de géneros cinematográficos
+  - Filtrado por contenido (bullying, violencia, etc.)
+  - Recomendaciones contextuales
+  - Respuestas en español
+
+### Migración Completada
+- ✅ **Migrado de**: HF Inference API (deprecated) → OpenAI SDK + HF Serverless
+- ✅ **Modelo actualizado**: Salamandra-2b → Qwen2.5-1.5B-Instruct
+- ✅ **Fallback implementado**: Sistema inteligente para casos sin acceso al modelo
+- ✅ **Deployment exitoso**: Lambda actualizada con OpenAI SDK v4.28.0
+
+### Testing
+```bash
+# Test del chatbot AI
+aws lambda invoke --function-name trinity-ai-dev \
+  --payload '{"query":"películas de comedia española","userId":"test"}' \
+  --region eu-west-1 response.json
+
+# Ver logs
+aws logs tail /aws/lambda/trinity-ai-dev --follow --region eu-west-1
+```
+
 ## ⚡ Funciones Lambda
 
 ### Funciones Desplegadas
-| Función | Propósito | Runtime | Handler |
-|---------|-----------|---------|---------|
-| `trinity-ai-dev` | Recomendaciones IA | Node.js 18.x | index.handler |
-| `trinity-auth-dev` | Autenticación | Node.js 18.x | index.handler |
-| `trinity-movie-dev` | Gestión películas | Node.js 18.x | movie.handler |
-| `trinity-realtime-dev` | Tiempo real | Node.js 18.x | index.handler |
-| `trinity-room-dev` | Gestión salas | Node.js 18.x | index.handler |
-| `trinity-vote-dev` | Sistema votación | Node.js 18.x | index.handler |
+| Función | Propósito | Runtime | Handler | Estado |
+|---------|-----------|---------|---------|---------|
+| `trinity-ai-dev` | Recomendaciones IA | Node.js 18.x | index.handler | ✅ **ACTIVO** |
+| `trinity-auth-dev` | Autenticación | Node.js 18.x | index.handler | ✅ ACTIVO |
+| `trinity-movie-dev` | Gestión películas | Node.js 18.x | movie.handler | ✅ ACTIVO |
+| `trinity-realtime-dev` | Tiempo real | Node.js 18.x | index.handler | ✅ ACTIVO |
+| `trinity-room-dev` | Gestión salas | Node.js 18.x | index.handler | ✅ ACTIVO |
+| `trinity-vote-dev` | Sistema votación | Node.js 18.x | index.handler | ✅ ACTIVO |
+| `trinity-trini-dev` | Chatbot IA (Legacy) | Python 3.10 | trini.handler | ⚠️ **LEGACY** |
+
+> **Nota**: `trinity-trini-dev` está marcada como LEGACY. Fue superseded por `trinity-ai-dev` que usa Qwen2.5-1.5B con OpenAI SDK. La lambda legacy aún existe en AWS pero no se usa activamente.
 
 ### Deployment de Lambdas
 ```bash
@@ -171,6 +213,7 @@ aws lambda update-function-code --function-name trinity-movie-dev --zip-file fil
 | `trinity-room-matches-dev` | Matches de películas | roomId, movieId | - |
 | `trinity-room-invites-dev-v2` | Invitaciones | inviteId | roomId-index |
 | `trinity-connections-dev` | Conexiones WebSocket | connectionId | roomId-index |
+| `trinity-chat-sessions-dev` | **Sesiones chat Trini** | sessionId | userId-index |
 
 ### Gestión de Tablas
 ```bash

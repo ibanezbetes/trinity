@@ -142,10 +142,10 @@ class MoviePreloadService {
       ]);
       
       // Pre-cache movie images if details are available
-      if (movieDetails?.posterPath) {
+      if (movieDetails?.poster) {
         try {
           console.log(`🖼️ Pre-caching poster image for ${movieDetails.title}`);
-          await imageCacheService.cacheImage(movieDetails.posterPath);
+          await imageCacheService.cacheImage(movieDetails.poster);
         } catch (imageError) {
           console.warn(`⚠️ Failed to cache poster for ${movieDetails.title}:`, imageError);
           // Don't fail the entire pre-load for image caching errors
@@ -166,7 +166,7 @@ class MoviePreloadService {
         movieId,
         title: movieDetails?.title,
         index,
-        posterCached: !!movieDetails?.posterPath,
+        posterCached: !!movieDetails?.poster,
       });
       
     } catch (error: any) {
@@ -420,7 +420,7 @@ class MoviePreloadService {
     console.log(`🖼️ Pre-caching images for ${movies.length} movies`);
     
     const imageUris = movies
-      .map(movie => movie.posterPath)
+      .map(movie => movie.poster)
       .filter(path => path && path.trim() !== '');
     
     if (imageUris.length > 0) {

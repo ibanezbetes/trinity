@@ -9,7 +9,7 @@ export interface Match {
   roomId: string;
   mediaId: string;
   mediaTitle: string;
-  mediaPosterPath: string;
+  poster: string;
   mediaOverview?: string;
   participantCount: number;
   createdAt: string;
@@ -187,7 +187,7 @@ class MatchService {
         roomId,
         mediaId: '550',
         mediaTitle: 'Fight Club',
-        mediaPosterPath: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
+        poster: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
         mediaOverview: 'Un hombre deprimido que sufre de insomnio conoce a un extraño vendedor de jabón...',
         participantCount: 3,
         createdAt: new Date(Date.now() - 3600000).toISOString(),
@@ -198,7 +198,7 @@ class MatchService {
         roomId,
         mediaId: '680',
         mediaTitle: 'Pulp Fiction',
-        mediaPosterPath: '/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg',
+        poster: '/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg',
         mediaOverview: 'Las vidas de dos sicarios, un boxeador, la esposa de un gángster...',
         participantCount: 3,
         createdAt: new Date(Date.now() - 7200000).toISOString(),
@@ -209,7 +209,7 @@ class MatchService {
         roomId,
         mediaId: '155',
         mediaTitle: 'The Dark Knight',
-        mediaPosterPath: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
+        poster: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
         mediaOverview: 'Batman se enfrenta al Joker, un criminal que siembra el caos en Gotham...',
         participantCount: 3,
         createdAt: new Date(Date.now() - 86400000).toISOString(),
@@ -251,7 +251,7 @@ class MatchService {
       roomId: 'room-1',
       mediaId: '550',
       mediaTitle: 'Fight Club',
-      mediaPosterPath: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
+      poster: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
       mediaOverview: 'Un hombre deprimido que sufre de insomnio conoce a un extraño vendedor de jabón...',
       participantCount: 3,
       createdAt: new Date(Date.now() - 3600000).toISOString(),
@@ -291,7 +291,7 @@ class MatchService {
         roomId: 'room-1',
         mediaId: '550',
         mediaTitle: 'Fight Club',
-        mediaPosterPath: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
+        poster: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
         participantCount: 3,
         createdAt: new Date(Date.now() - 3600000).toISOString(),
         consensusType: 'unanimous_like',
@@ -301,7 +301,7 @@ class MatchService {
         roomId: 'room-2',
         mediaId: '680',
         mediaTitle: 'Pulp Fiction',
-        mediaPosterPath: '/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg',
+        poster: '/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg',
         participantCount: 4,
         createdAt: new Date(Date.now() - 86400000).toISOString(),
         consensusType: 'unanimous_like',

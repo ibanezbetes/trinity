@@ -1,0 +1,7 @@
+{
+  "TableName": "trinity-chat-sessions-dev",
+  "TimeToLiveSpecification": {
+    "AttributeName": "ttl",
+    "Enabled": true
+  }
+}

@@ -450,6 +450,8 @@ enum ChatMessageType {
   TEXT
   SYSTEM
   REACTION
+  USER_QUERY
+  TRINI_RESPONSE
 }
 
 enum ChatAction {
@@ -478,26 +480,80 @@ enum NotificationType {
   SYSTEM_MESSAGE
 }
 
-# Trini AI Response Type
+# Trini AI Types
+type TriniQuery {
+  query: String!
+  userId: ID!
+  sessionId: ID
+}
+
 type TriniResponse {
-  chatResponse: String!
-  recommendedGenres: [String!]!
-  confidence: Float                # New: Confidence score (0.0 to 1.0)
-  reasoning: String               # New: Explanation of the recommendation
-  genreAlignment: Float           # New: How well response aligns with room genres
-  fallbackUsed: Boolean!          # New: Whether fallback was used due to AI failure
+  sessionId: ID!
+  message: String!
+  recommendations: [MovieRecommendation!]!
+  extractedFilters: ExtractedFilters
+  confidence: Float!
+}
+
+type MovieRecommendation {
+  movie: Movie!
+  relevanceScore: Float!
+  reasoning: String
+}
+
+type ExtractedFilters {
+  genres: [String!]
+  yearRange: YearRange
+  rating: RatingRange
+  keywords: [String!]
+}
+
+type YearRange {
+  min: Int
+  max: Int
+}
+
+type RatingRange {
+  min: Float
+  max: Float
+}
+
+type ChatSession {
+  sessionId: ID!
+  userId: ID!
+  messages: [ChatMessage!]!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type ChatMessage {
+  messageId: ID!
+  type: ChatMessageType!
+  content: String!
+  extractedFilters: ExtractedFilters
+  recommendations: [String!]
+  timestamp: AWSDateTime!
+}
+
+type AddToRoomResponse {
+  success: Boolean!
+  message: String
+  roomId: ID
+  movieId: ID
 }
 
 type Query {
   getMovies(genre: String, page: Int, limit: Int): [Movie]           # DataSource: MovieHandler
   getFilteredContent(mediaType: MediaType!, genreIds: [Int!]!, limit: Int, excludeIds: [String!]): [Movie]  # DataSource: MovieHandler
   getAvailableGenres(mediaType: MediaType!): [Genre!]!              # DataSource: MovieHandler - Get available genres for media type
-  getChatRecommendations(text: String!): TriniResponse # DataSource: AIHandler (Trini)
   getMyHistory: [Room]                        # DataSource: RoomHandler
   getUserRooms: [Room]                        # DataSource: RoomHandler (alias for getMyHistory)
   getRoom(roomId: ID!): Room                  # DataSource: RoomHandler
   getMovieDetails(movieId: String!): Movie    # DataSource: MovieHandler
   getUser(id: ID): User                       # DataSource: AuthHandler
+  # Trini AI queries
+  getChatHistory(userId: ID!, limit: Int = 10): [ChatSession!]!     # DataSource: TriniHandler
+  getTriniRecommendations(sessionId: ID!): [MovieRecommendation!]!  # DataSource: TriniHandler
   getRoomMembers(roomId: ID!): [ParticipantInfo] # DataSource: RoomHandler
   getRoomVotes(roomId: ID!): AWSJSON          # DataSource: VoteHandler
 }
@@ -513,6 +569,10 @@ type Mutation {
   startVoting(roomId: ID!): Room              # DataSource: RoomHandler
   updateRoomFilters(roomId: ID!, input: UpdateRoomFiltersInput!): Room # DataSource: RoomHandler
   vote(input: VoteInput!): Room               # DataSource: VoteHandler
+  
+  # Trini AI mutations
+  askTrini(input: TriniQuery!): TriniResponse!                      # DataSource: TriniHandler
+  addTriniRecommendationToRoom(roomId: ID!, movieId: ID!): AddToRoomResponse! # DataSource: TriniHandler
   
   # Connection management
   connect(roomId: ID!): Boolean               # DataSource: RealtimeHandler

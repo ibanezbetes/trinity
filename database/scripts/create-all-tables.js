@@ -13,7 +13,8 @@ async function createAllTables() {
         'create-trinity-votes-dev.json',
         'create-trinity-movies-cache-dev.json',
         'create-trinity-room-matches-dev.json',
-        'create-trinity-connections-dev.json'
+        'create-trinity-connections-dev.json',
+        'create-trinity-chat-sessions-dev.json'
     ];
     
     for (const schemaFile of schemaFiles) {
@@ -28,6 +29,23 @@ async function createAllTables() {
                 });
                 
                 console.log(`✅ Tabla creada exitosamente`);
+                
+                // Configurar TTL si existe el archivo de configuración
+                const ttlConfigFile = schemaFile.replace('create-', 'configure-ttl-');
+                const ttlConfigPath = path.join(__dirname, ttlConfigFile);
+                
+                if (fs.existsSync(ttlConfigPath)) {
+                    console.log(`⏰ Configurando TTL para la tabla...`);
+                    
+                    try {
+                        execSync(`aws dynamodb update-time-to-live --cli-input-json file://${ttlConfigPath} --region eu-west-1`, { 
+                            stdio: 'inherit' 
+                        });
+                        console.log(`✅ TTL configurado exitosamente`);
+                    } catch (ttlError) {
+                        console.log(`⚠️  Error configurando TTL (puede ser normal si ya está configurado):`, ttlError.message);
+                    }
+                }
                 
                 // Esperar un poco entre creaciones
                 await new Promise(resolve => setTimeout(resolve, 2000));

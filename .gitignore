@@ -134,6 +134,20 @@ credentials/
 *.p12
 *.jks
 
+# Python cache directories (anywhere in the project)
+**/__pycache__/
+**/.pytest_cache/
+**/.hypothesis/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
 # Cache directories
 .cache/
 .parcel-cache/
@@ -171,9 +185,46 @@ REORGANIZATION_COMPLETE.md
 *-COMPLETE.md
 *-SUMMARY.md
 *-STATUS.md
+*-FIXES*.md
+*BUILD*.md
+*FINAL*.md
 
 # Script temporary files
 scripts/*/temp-*
 scripts/*/*.tmp
 scripts/*/debug-*
 scripts/*/test-output-*
+
+# Mobile temporary files
+mobile/test-*.js
+mobile/debug-*.js
+mobile/*BUILD*.md
+mobile/*SUMMARY*.md
+mobile/*FIXES*.md
+mobile/*FINAL*.md
+mobile/ICON_CREATION_GUIDE.txt
+
+# Icon creation scripts (keep only essential ones)
+mobile/scripts/create-*-icon*.js
+mobile/scripts/create-*-png*.js
+mobile/scripts/create-*-square*.js
+
+# Lambda temporary files
+lambdas/*/test-*.js
+lambdas/*/debug-*.js
+lambdas/*/temp-*.js
+lambdas/*/*.zip
+lambdas/*/deployment-*.json
+
+# Infrastructure temporary files
+infrastructure/*/temp-*
+infrastructure/*/debug-*
+infrastructure/clean/cdk.out/asset.*/.hypothesis/
+
+# Infrastructure deployment scripts (legacy)
+infrastructure/src/deploy-*.bat
+infrastructure/src/deploy-*.js
+infrastructure/src/fix-and-deploy.js
+
+# Database test scripts (temporary)
+database/scripts/test-*.js

@@ -1,0 +1,38 @@
+{
+  "functionName": "trinity-trini-dev",
+  "runtime": "python3.10",
+  "handler": "trini.handler",
+  "timeout": 30,
+  "memorySize": 1024,
+  "environment": {
+    "Variables": {
+      "HUGGINGFACE_API_KEY": "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",
+      "TMDB_API_KEY": "dc4dbcd2404c1ca852f8eb964add267d",
+      "TMDB_BASE_URL": "https://api.themoviedb.org/3",
+      "STAGE": "dev",
+      "NODE_ENV": "development",
+      "DEBUG_MODE": "true",
+      "VERBOSE_LOGGING": "true",
+      "LOG_LEVEL": "info",
+      "ENABLE_METRICS": "true",
+      "CHAT_SESSIONS_TABLE": "trinity-chat-sessions-dev",
+      "MOVIES_CACHE_TABLE": "trinity-movies-cache-dev",
+      "USERS_TABLE": "trinity-users-dev",
+      "ROOMS_TABLE": "trinity-rooms-dev-v2",
+      "ROOM_MEMBERS_TABLE": "trinity-room-members-dev",
+      "ROOM_MATCHES_TABLE": "trinity-room-matches-dev",
+      "VOTES_TABLE": "trinity-votes-dev",
+      "CONNECTIONS_TABLE": "trinity-connections-dev",
+      "ROOM_INVITES_TABLE": "trinity-room-invites-dev-v2",
+      "USER_POOL_ID": "eu-west-1_EtOx2swvP",
+      "USER_POOL_CLIENT_ID": "l08ofv6tef7dp8eorn022fqpj",
+      "HF_API_TOKEN": "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",
+      "SALAMANDRA_MODEL": "BSC-LT/salamandra-2b-instruct",
+      "MAX_QUERIES_PER_MINUTE": "5",
+      "SESSION_TTL_DAYS": "30",
+      "MAX_SESSION_MESSAGES": "10"
+    }
+  },
+  "description": "Trini chatbot Lambda function for intelligent movie recommendations using Salamandra-2b AI model",
+  "lastModified": "2026-01-27T17:00:00.000+0000"
+}

@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export interface UserListItem {
   id: string; // formato: "movie-123" o "tv-456"
   title: string;
-  posterPath?: string;
+  poster?: string;
   mediaType: 'movie' | 'tv';
   year: string;
   addedAt: string;

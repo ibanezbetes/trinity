@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { colors, spacing, fontSize, borderRadius, shadows } from '../../src/utils/theme';
 import { useAppSync } from '../../src/services/apiClient';
+import { useCognitoAuth } from '../../src/context/CognitoAuthContext';
 import CreateRoomModal from '../../src/components/CreateRoomModal';
 import Logo from '../../src/components/Logo';
 
@@ -31,6 +32,7 @@ const TRENDING_POSTERS = [
 ];
 
 export default function HomeScreen() {
+  const { user } = useCognitoAuth();
   const appSync = useAppSync();
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,6 +90,23 @@ export default function HomeScreen() {
     outputRange: [0, -width * 0.5],
   });
 
+  // Handlers para las nuevas opciones
+  const handlePreguntarTrini = () => {
+    router.push('/trini-chatbot');
+  };
+
+  const handleCrearSala = () => {
+    setShowCreateModal(true);
+  };
+
+  const handleUnirseASala = () => {
+    router.push('/join');
+  };
+
+  const handleMisSalas = () => {
+    router.push('/my-rooms');
+  };
+
   return (
     <View style={styles.container}>
       {/* Header con posters animados */}
@@ -113,39 +132,101 @@ export default function HomeScreen() {
             {/* Header */}
             <View style={styles.header}>
               <View>
-                <Text style={styles.greeting}>¡Hola! 👋</Text>
-                <Text style={styles.headerTitle}>¿Qué vemos hoy?</Text>
+                <Text style={styles.greeting}>¡Hola, {user?.name || 'Usuario'}! 👋</Text>
+                <Text style={styles.headerTitle}>¿Qué hacemos hoy?</Text>
               </View>
               <Logo size="small" />
             </View>
 
-            {/* Banner crear sala */}
-            <TouchableOpacity 
-              style={styles.bannerWrapper}
-              onPress={() => setShowCreateModal(true)}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={[colors.primary, '#6366F1']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.banner}
+            {/* Opciones Principales */}
+            <View style={styles.mainActionsContainer}>
+              {/* Preguntar a Trini - Opción destacada */}
+              <TouchableOpacity 
+                style={styles.primaryActionCard}
+                onPress={handlePreguntarTrini}
+                activeOpacity={0.9}
               >
-                <View style={styles.bannerContent}>
-                  <View style={styles.bannerIconBg}>
-                    <Ionicons name="add" size={28} color="#FFF" />
+                <LinearGradient
+                  colors={[colors.primary, '#6366F1']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.primaryActionGradient}
+                >
+                  <View style={styles.primaryActionContent}>
+                    <View style={styles.primaryActionIcon}>
+                      <Text style={styles.primaryActionEmoji}>🤖</Text>
+                    </View>
+                    <View style={styles.primaryActionText}>
+                      <Text style={styles.primaryActionTitle}>Preguntar a Trini</Text>
+                      <Text style={styles.primaryActionDescription}>
+                        Chatea con nuestro asistente IA para recomendaciones
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.7)" />
                   </View>
-                  <View style={styles.bannerText}>
-                    <Text style={styles.bannerTitle}>Crear nueva sala</Text>
-                    <Text style={styles.bannerSubtitle}>Invita amigos y haz swipe juntos</Text>
+                  {/* Decoración */}
+                  <View style={styles.primaryActionDecor1} />
+                  <View style={styles.primaryActionDecor2} />
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* Opciones secundarias en fila */}
+              <View style={styles.secondaryActionsRow}>
+                <TouchableOpacity 
+                  style={styles.secondaryActionCard}
+                  onPress={handleCrearSala}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={['rgba(139, 92, 246, 0.12)', 'transparent']}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <View style={[styles.secondaryActionIcon, { backgroundColor: 'rgba(139, 92, 246, 0.2)' }]}>
+                    <Text style={styles.secondaryActionEmoji}>➕</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.7)" />
+                  <Text style={styles.secondaryActionTitle}>Crear Nueva Sala</Text>
+                  <Text style={styles.secondaryActionDescription}>
+                    Inicia una sesión de votación
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.secondaryActionCard}
+                  onPress={handleUnirseASala}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={['rgba(6, 182, 212, 0.12)', 'transparent']}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <View style={[styles.secondaryActionIcon, { backgroundColor: 'rgba(6, 182, 212, 0.2)' }]}>
+                    <Text style={styles.secondaryActionEmoji}>🚪</Text>
+                  </View>
+                  <Text style={styles.secondaryActionTitle}>Unirse a Sala</Text>
+                  <Text style={styles.secondaryActionDescription}>
+                    Únete con un código
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Mis Salas - Opción terciaria */}
+              <TouchableOpacity 
+                style={styles.tertiaryActionCard}
+                onPress={handleMisSalas}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.tertiaryActionIcon, { backgroundColor: 'rgba(239, 68, 68, 0.2)' }]}>
+                  <Text style={styles.tertiaryActionEmoji}>📋</Text>
                 </View>
-                {/* Decoración */}
-                <View style={styles.bannerDecor1} />
-                <View style={styles.bannerDecor2} />
-              </LinearGradient>
-            </TouchableOpacity>
+                <View style={styles.tertiaryActionText}>
+                  <Text style={styles.tertiaryActionTitle}>Mis Salas</Text>
+                  <Text style={styles.tertiaryActionDescription}>
+                    Ver salas creadas y participaciones
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
 
             {/* Stats */}
             <View style={styles.statsContainer}>
@@ -237,7 +318,7 @@ export default function HomeScreen() {
                 </LinearGradient>
                 <Text style={styles.emptyTitle}>¡Empieza tu aventura!</Text>
                 <Text style={styles.emptySubtitle}>Crea tu primera sala y descubre qué ver con tus amigos</Text>
-                <TouchableOpacity style={styles.emptyButtonWrapper} onPress={() => setShowCreateModal(true)}>
+                <TouchableOpacity style={styles.emptyButtonWrapper} onPress={handleCrearSala}>
                   <LinearGradient colors={[colors.primary, '#6366F1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.emptyButton}>
                     <Ionicons name="add" size={20} color="#FFF" />
                     <Text style={styles.emptyButtonText}>Crear sala</Text>
@@ -275,7 +356,147 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, paddingTop: spacing.md, marginBottom: spacing.lg },
   greeting: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: 2 },
   headerTitle: { fontSize: 26, fontWeight: '700', color: colors.textPrimary },
-  // Banner
+  
+  // Nuevas opciones principales
+  mainActionsContainer: { 
+    paddingHorizontal: spacing.lg, 
+    marginBottom: spacing.lg,
+    gap: spacing.md,
+  },
+  
+  // Preguntar a Trini - Opción principal
+  primaryActionCard: { 
+    borderRadius: borderRadius.xl, 
+    overflow: 'hidden', 
+    ...shadows.glow 
+  },
+  primaryActionGradient: { 
+    padding: spacing.lg, 
+    position: 'relative', 
+    overflow: 'hidden' 
+  },
+  primaryActionContent: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
+  },
+  primaryActionIcon: { 
+    width: 50, 
+    height: 50, 
+    borderRadius: 15, 
+    backgroundColor: 'rgba(255,255,255,0.2)', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginRight: spacing.md 
+  },
+  primaryActionEmoji: { 
+    fontSize: 24 
+  },
+  primaryActionText: { 
+    flex: 1 
+  },
+  primaryActionTitle: { 
+    fontSize: fontSize.lg, 
+    fontWeight: '700', 
+    color: '#FFF', 
+    marginBottom: 2 
+  },
+  primaryActionDescription: { 
+    fontSize: fontSize.sm, 
+    color: 'rgba(255,255,255,0.8)' 
+  },
+  primaryActionDecor1: { 
+    position: 'absolute', 
+    top: -20, 
+    right: -20, 
+    width: 80, 
+    height: 80, 
+    borderRadius: 40, 
+    backgroundColor: 'rgba(255,255,255,0.1)' 
+  },
+  primaryActionDecor2: { 
+    position: 'absolute', 
+    bottom: -30, 
+    right: 50, 
+    width: 60, 
+    height: 60, 
+    borderRadius: 30, 
+    backgroundColor: 'rgba(255,255,255,0.05)' 
+  },
+  
+  // Opciones secundarias en fila
+  secondaryActionsRow: { 
+    flexDirection: 'row', 
+    gap: spacing.sm 
+  },
+  secondaryActionCard: { 
+    flex: 1, 
+    backgroundColor: colors.surface, 
+    borderRadius: borderRadius.lg, 
+    padding: spacing.md, 
+    borderWidth: 1, 
+    borderColor: colors.border, 
+    overflow: 'hidden',
+    minHeight: 120,
+  },
+  secondaryActionIcon: { 
+    width: 40, 
+    height: 40, 
+    borderRadius: 12, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginBottom: spacing.sm 
+  },
+  secondaryActionEmoji: { 
+    fontSize: 20 
+  },
+  secondaryActionTitle: { 
+    fontSize: fontSize.md, 
+    fontWeight: '600', 
+    color: colors.textPrimary, 
+    marginBottom: spacing.xs 
+  },
+  secondaryActionDescription: { 
+    fontSize: fontSize.sm, 
+    color: colors.textSecondary, 
+    lineHeight: 18 
+  },
+  
+  // Mis Salas - Opción terciaria
+  tertiaryActionCard: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: colors.surface, 
+    borderRadius: borderRadius.lg, 
+    padding: spacing.md, 
+    borderWidth: 1, 
+    borderColor: colors.border 
+  },
+  tertiaryActionIcon: { 
+    width: 44, 
+    height: 44, 
+    borderRadius: 12, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginRight: spacing.md 
+  },
+  tertiaryActionEmoji: { 
+    fontSize: 20 
+  },
+  tertiaryActionText: { 
+    flex: 1 
+  },
+  tertiaryActionTitle: { 
+    fontSize: fontSize.md, 
+    fontWeight: '600', 
+    color: colors.textPrimary, 
+    marginBottom: spacing.xs 
+  },
+  tertiaryActionDescription: { 
+    fontSize: fontSize.sm, 
+    color: colors.textSecondary 
+  },
+
+  // Banner (mantener para compatibilidad)
   bannerWrapper: { marginHorizontal: spacing.lg, marginBottom: spacing.lg, borderRadius: borderRadius.xl, overflow: 'hidden', ...shadows.glow },
   banner: { padding: spacing.lg, position: 'relative', overflow: 'hidden' },
   bannerContent: { flexDirection: 'row', alignItems: 'center' },
@@ -285,6 +506,7 @@ const styles = StyleSheet.create({
   bannerSubtitle: { fontSize: fontSize.sm, color: 'rgba(255,255,255,0.8)' },
   bannerDecor1: { position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.1)' },
   bannerDecor2: { position: 'absolute', bottom: -30, right: 50, width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255,255,255,0.05)' },
+  
   // Stats
   statsContainer: { flexDirection: 'row', paddingHorizontal: spacing.lg, marginBottom: spacing.lg, gap: spacing.sm },
   statCard: { flex: 1, backgroundColor: colors.surface, borderRadius: borderRadius.lg, padding: spacing.md, alignItems: 'center', borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },

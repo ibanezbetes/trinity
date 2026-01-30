@@ -36,13 +36,34 @@ interface Message {
 interface TriniChatProps {
   visible: boolean;
   onClose: () => void;
-  onGenresSelected?: (genres: string[]) => void;
+  onRecommendationsReceived?: (recommendations: MovieRecommendation[]) => void;
+  sessionId?: string | null;
+  onSessionIdChange?: (sessionId: string) => void;
+}
+
+interface MovieRecommendation {
+  movie: {
+    id: number;
+    title: string;
+    overview: string;
+    poster_path: string;
+    vote_average: number;
+    release_date: string;
+  };
+  relevanceScore: number;
+  reasoning?: string;
 }
 
 // Saludo inicial hardcodeado de Trini
 const TRINI_GREETING = "Hola, soy Trini. ¿Qué te apetece ver hoy?";
 
-export default function TriniChat({ visible, onClose, onGenresSelected }: TriniChatProps) {
+export default function TriniChat({ 
+  visible, 
+  onClose, 
+  onRecommendationsReceived,
+  sessionId,
+  onSessionIdChange
+}: TriniChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -103,9 +124,35 @@ export default function TriniChat({ visible, onClose, onGenresSelected }: TriniC
 
       setMessages(prev => [...prev, triniMessage]);
 
-      // Notificar géneros seleccionados
-      if (onGenresSelected && response.recommendedGenres.length > 0) {
-        onGenresSelected(response.recommendedGenres);
+      // Update session ID if provided
+      if (response.sessionId && onSessionIdChange) {
+        onSessionIdChange(response.sessionId);
+      }
+
+      // Transform and notify about recommendations
+      if (response.recommendedMovies && response.recommendedMovies.length > 0 && onRecommendationsReceived) {
+        const recommendations: MovieRecommendation[] = response.recommendedMovies.map(movie => ({
+          movie: {
+            id: movie.id,
+            title: movie.title,
+            overview: movie.overview,
+            poster_path: movie.poster_path,
+            vote_average: movie.vote_average,
+            release_date: movie.release_date
+          },
+          relevanceScore: 0.8, // Default relevance score
+          reasoning: response.reasoning || `Recomendada por Trini basada en tu consulta`
+        }));
+        
+        console.log('✅ Trini recommendations received successfully:', recommendations.length, 'movies');
+        onRecommendationsReceived(recommendations);
+      } else if (response.recommendedMovies && response.recommendedMovies.length === 0) {
+        console.log('ℹ️ Trini response received but no movie recommendations (likely asking for clarification)');
+      }
+
+      // Legacy support for genre selection
+      if (response.recommendedGenres && response.recommendedGenres.length > 0) {
+        // onGenresSelected is no longer used, but keeping for compatibility
       }
     } catch (error) {
       console.error('Error getting Trini response:', error);

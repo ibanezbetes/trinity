@@ -1,4 +1,5 @@
 import { appSyncService } from './appSyncService';
+import { cognitoAuthService } from './cognitoAuthService';
 
 export interface TriniResponse {
   chatResponse: string;
@@ -11,6 +12,9 @@ export interface TriniResponse {
     vote_average: number;
     release_date: string;
   }>;
+  sessionId?: string;
+  confidence?: number;
+  reasoning?: string;
 }
 
 /**
@@ -19,35 +23,56 @@ export interface TriniResponse {
  */
 export const aiService = {
   /**
-   * Obtener recomendaciones de Trini basadas en el estado emocional del usuario
-   * Ahora usa AppSync GraphQL en lugar de REST API
+   * Obtener recomendaciones de Trini basadas en consultas en lenguaje natural
+   * Ahora usa la nueva operación askTrini de GraphQL
    */
   async getChatRecommendations(userText: string): Promise<TriniResponse> {
     try {
-      console.log('🤖 Getting AI recommendations via AppSync for:', userText);
+      console.log('🤖 Getting Trini recommendations via AppSync for:', userText);
       
-      const result = await appSyncService.getAIRecommendations(userText);
+      // Get current user ID from auth context
+      let userId = 'anonymous';
+      try {
+        const authResult = await cognitoAuthService.checkStoredAuth();
+        if (authResult.isAuthenticated && authResult.user?.userId) {
+          userId = authResult.user.userId;
+        }
+      } catch (authError) {
+        console.warn('⚠️ Could not get user ID, using anonymous:', authError);
+      }
       
-      if (result.getAIRecommendations) {
-        const aiResponse = result.getAIRecommendations;
+      const result = await appSyncService.askTrini(userText, userId);
+      
+      if (result.askTrini) {
+        const triniResponse = result.askTrini;
         
-        // Transformar respuesta de GraphQL al formato esperado
+        // Transform response to expected format
         const response: TriniResponse = {
-          chatResponse: aiResponse.chatResponse || 'Hmm, no estoy seguro de qué recomendarte. ¿Puedes ser más específico?',
-          recommendedGenres: aiResponse.recommendedGenres || [],
-          recommendedMovies: aiResponse.recommendedMovies || [],
+          chatResponse: triniResponse.message || 'Hmm, no estoy seguro de qué recomendarte. ¿Puedes ser más específico?',
+          recommendedGenres: triniResponse.extractedFilters?.genres || [],
+          recommendedMovies: triniResponse.recommendations?.map((rec: any) => ({
+            id: parseInt(rec.movie.id),
+            title: rec.movie.title,
+            overview: rec.movie.overview,
+            poster_path: rec.movie.poster,
+            vote_average: rec.movie.vote_average,
+            release_date: rec.movie.release_date
+          })) || [],
+          sessionId: triniResponse.sessionId,
+          confidence: triniResponse.confidence,
+          reasoning: triniResponse.recommendations?.[0]?.reasoning
         };
         
-        console.log('✅ AI recommendations received successfully');
+        console.log('✅ Trini recommendations received successfully');
         return response;
       }
       
       // Si no hay respuesta válida, usar fallback
-      console.warn('⚠️ No valid AI response from GraphQL, using fallback');
+      console.warn('⚠️ No valid Trini response from GraphQL, using fallback');
       return getFallbackResponse(userText);
       
     } catch (error: any) {
-      console.error('❌ Error getting AI recommendations via AppSync:', error);
+      console.error('❌ Error getting Trini recommendations via AppSync:', error);
       
       // Manejar errores específicos
       if (error.message?.includes('Circuit breaker is OPEN')) {

@@ -37,6 +37,22 @@ async function createTablesFromSchemas() {
             
             console.log(`✅ Comando de creación guardado: ${commandFile}`);
             
+            // Si la tabla tiene TTL configurado, crear script adicional para configurar TTL
+            if (schema.ttlEnabled && schema.ttlAttribute) {
+                const ttlCommand = {
+                    TableName: schema.tableName,
+                    TimeToLiveSpecification: {
+                        AttributeName: schema.ttlAttribute,
+                        Enabled: true
+                    }
+                };
+                
+                const ttlCommandFile = `database/scripts/configure-ttl-${schema.tableName}.json`;
+                fs.writeFileSync(ttlCommandFile, JSON.stringify(ttlCommand, null, 2));
+                
+                console.log(`✅ Comando TTL guardado: ${ttlCommandFile}`);
+            }
+            
         } catch (error) {
             console.error(`❌ Error procesando ${schemaFile}:`, error.message);
         }
@@ -45,6 +61,8 @@ async function createTablesFromSchemas() {
     console.log('\n🎉 Scripts de creación de tablas generados');
     console.log('Para crear las tablas ejecuta:');
     console.log('aws dynamodb create-table --cli-input-json file://database/scripts/create-[table-name].json --region eu-west-1');
+    console.log('\nPara configurar TTL en tablas que lo requieran:');
+    console.log('aws dynamodb update-time-to-live --cli-input-json file://database/scripts/configure-ttl-[table-name].json --region eu-west-1');
 }
 
 createTablesFromSchemas();
