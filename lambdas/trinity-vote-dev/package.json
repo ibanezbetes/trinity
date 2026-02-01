@@ -1,11 +1,6 @@
 {
-  "name": "trinity-lambda-handlers",
+  "name": "trinity-vote-dev",
   "version": "1.0.0",
-  "description": "Lambda handlers for Trinity MVP",
-  "main": "index.js",
-  "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.282.0",
-    "@aws-sdk/lib-dynamodb": "^3.975.0",
-    "uuid": "^9.0.0"
-  }
+  "description": "Trinity Vote Lambda - Optimized",
+  "main": "vote.js"
 }

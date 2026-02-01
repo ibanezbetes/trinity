@@ -77,7 +77,7 @@ trinity/
 4. **Cache en DynamoDB** → Los 50 títulos se almacenan con orden determinístico
 5. **Usuarios leen de cache** → No más llamadas a TMDB API durante la sesión
 
-#### Lógica de Filtrado Específica
+#### Lógica de Filtrado Específica por orden de prioridad y segmentación
 
 ##### 1. Filtros Base Obligatorios (NO OMITIBLES)
 - **Solo idiomas occidentales** (inglés, español, francés, alemán, italiano, portugués, etc.)

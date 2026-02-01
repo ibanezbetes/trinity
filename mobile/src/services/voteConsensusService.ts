@@ -1,108 +1,49 @@
 /**
  * Trinity Vote Consensus Service
- * Integrates with the new Vote Consensus Matchmaking system
+ * Updated for new VoteResponse structure and individual voting system
  */
 
 import { appSyncService } from './appSyncService';
 import { errorLoggingService } from './errorLoggingService';
-
-export type VoteConsensusType = 'YES' | 'NO' | 'SKIP';
-
-export interface VoteConsensusInput {
-  roomId: string;
-  movieId: string;
-  voteType: VoteConsensusType;
-}
-
-export interface VoteConsensusRoom {
-  id: string;
-  status: string;
-  memberCount: number;
-  currentMovieId?: string;
-  consensusReachedAt?: string;
-}
-
-export interface VoteConsensusError {
-  message: string;
-  errorCode: string;
-  roomId: string;
-  movieId: string;
-}
-
-export interface ConsensusReachedEvent {
-  roomId: string;
-  movieId: string;
-  movieTitle: string;
-  participants: Array<{
-    userId: string;
-    votedAt: string;
-    voteType: string;
-  }>;
-  consensusReachedAt: string;
-  eventType: string;
-}
-
-export interface VoteUpdateEvent {
-  roomId: string;
-  movieId: string;
-  userId: string;
-  voteType: VoteConsensusType;
-  yesVoteCount: number;
-  memberCount: number;
-  timestamp: string;
-}
+import { VoteType, VoteInput, VoteResponse, VoteResponseEvent, UserVotingProgress } from '../types';
 
 class VoteConsensusService {
   /**
-   * Vote for a movie using the new consensus system
+   * Vote for a movie using the new individual voting system with VoteResponse
    */
-  async voteForMovie(input: VoteConsensusInput): Promise<VoteConsensusRoom | VoteConsensusError> {
-    console.log('🗳️ VoteConsensusService.voteForMovie - Starting consensus vote:', input);
+  async voteForMovie(input: VoteInput): Promise<VoteResponse> {
+    console.log('🗳️ VoteConsensusService.voteForMovie - Starting vote with new system:', input);
     
     try {
-      // Use GraphQL mutation for vote consensus
-      const mutation = `
-        mutation VoteForMovie($input: VoteMovieInput!) {
-          voteForMovie(input: $input) {
-            ... on VoteConsensusRoom {
-              id
-              status
-              memberCount
-              currentMovieId
-              consensusReachedAt
-            }
-            ... on VoteError {
-              message
-              errorCode
-              roomId
-              movieId
-            }
-          }
-        }
-      `;
-
-      const variables = {
-        input: {
-          roomId: input.roomId,
-          movieId: input.movieId,
-          voteType: input.voteType
-        }
-      };
-
-      const result = await appSyncService.executeGraphQL(mutation, variables);
+      // Use the updated AppSyncService vote method
+      const result = await appSyncService.vote(input.roomId, input.movieId, input.voteType);
       
-      if (result.data?.voteForMovie) {
-        const response = result.data.voteForMovie;
+      if (result.vote) {
+        const voteResponse: VoteResponse = result.vote;
         
-        // Check if it's an error response
-        if (response.errorCode) {
-          console.error('❌ VoteConsensusService.voteForMovie - Vote error:', response);
-          return response as VoteConsensusError;
+        console.log('✅ VoteConsensusService.voteForMovie - Vote response:', voteResponse);
+        
+        // Handle different response types
+        switch (voteResponse.responseType) {
+          case 'VOTE_RECORDED':
+            console.log('📝 Vote recorded successfully');
+            break;
+            
+          case 'MATCH_FOUND':
+            console.log('🎉 MATCH FOUND!', voteResponse.matchInfo);
+            // The UI should handle this by showing match popup
+            break;
+            
+          case 'VOTE_IGNORED_MATCH_FOUND':
+            console.log('🎯 Vote ignored - match already found');
+            break;
+            
+          case 'ERROR':
+            console.error('❌ Vote error:', voteResponse.error);
+            break;
         }
         
-        // Success response
-        console.log('✅ VoteConsensusService.voteForMovie - Vote successful:', response);
-        return response as VoteConsensusRoom;
+        return voteResponse;
       }
       
       throw new Error('Invalid response from vote mutation');
@@ -117,39 +58,61 @@ class VoteConsensusService {
         metadata: { voteType: input.voteType }
       });
       
-      // Return error in expected format
+      // Return error in VoteResponse format
       return {
-        message: error.message || 'Error al votar por la película',
-        errorCode: 'VOTE_FAILED',
-        roomId: input.roomId,
-        movieId: input.movieId
+        success: false,
+        responseType: 'ERROR',
+        error: error.message || 'Error al votar por la película',
+        message: 'Vote failed'
       };
     }
   }
 
   /**
-   * Subscribe to consensus reached events
+   * Subscribe to vote response events using the new VoteResponse subscription
    */
-  async subscribeToConsensusReached(
+  async subscribeToVoteResponses(
     roomId: string,
-    callback: (event: ConsensusReachedEvent) => void
+    callback: (event: VoteResponseEvent) => void
   ): Promise<(() => void) | null> {
-    console.log('🔔 VoteConsensusService.subscribeToConsensusReached - Setting up subscription for room:', roomId);
+    console.log('🔔 VoteConsensusService.subscribeToVoteResponses - Setting up subscription for room:', roomId);
     
     try {
       const subscription = `
-        subscription OnConsensusReached($roomId: ID!) {
-          onConsensusReached(roomId: $roomId) {
-            roomId
-            movieId
-            movieTitle
-            participants {
-              userId
-              votedAt
-              voteType
+        subscription OnVoteResponse($roomId: ID!) {
+          onVoteResponse(roomId: $roomId) {
+            success
+            responseType
+            room {
+              id
+              status
+              memberCount
+              matchFound
+              userFinished
+              message
+              currentVotes
+              totalMembers
+              userProgress
             }
-            consensusReachedAt
-            eventType
+            matchInfo {
+              movieId
+              movieTitle
+              movieInfo {
+                id
+                title
+                overview
+                poster
+                rating
+                runtime
+                year
+                genres
+              }
+              matchedAt
+              participants
+              roomId
+            }
+            message
+            error
           }
         }
       `;
@@ -160,18 +123,18 @@ class VoteConsensusService {
         subscription,
         variables,
         (data) => {
-          if (data.onConsensusReached) {
-            console.log('🎉 VoteConsensusService - Consensus reached event:', data.onConsensusReached);
-            callback(data.onConsensusReached);
+          if (data.onVoteResponse) {
+            console.log('📡 VoteConsensusService - Vote response event:', data.onVoteResponse);
+            callback(data.onVoteResponse);
           }
         }
       );
       
     } catch (error: any) {
-      console.error('❌ VoteConsensusService.subscribeToConsensusReached - Failed:', error);
+      console.error('❌ VoteConsensusService.subscribeToVoteResponses - Failed:', error);
       
       errorLoggingService.logError(error, {
-        operation: 'subscribeToConsensusReached',
+        operation: 'subscribeToVoteResponses',
         roomId
       });
       
@@ -180,24 +143,39 @@ class VoteConsensusService {
   }
 
   /**
-   * Subscribe to vote updates for real-time progress
+   * Subscribe to match found events (enhanced version)
    */
-  async subscribeToVoteUpdates(
+  async subscribeToMatchFound(
     roomId: string,
-    callback: (event: VoteUpdateEvent) => void
+    callback: (matchInfo: VoteResponse['matchInfo']) => void
   ): Promise<(() => void) | null> {
-    console.log('📊 VoteConsensusService.subscribeToVoteUpdates - Setting up subscription for room:', roomId);
+    console.log('🎉 VoteConsensusService.subscribeToMatchFound - Setting up match subscription for room:', roomId);
     
     try {
       const subscription = `
-        subscription OnVoteUpdate($roomId: ID!) {
-          onVoteUpdate(roomId: $roomId) {
-            roomId
-            movieId
-            userId
-            voteType
-            yesVoteCount
-            memberCount
+        subscription OnMatchFoundEnhanced($roomId: ID!) {
+          onMatchFoundEnhanced(roomId: $roomId) {
+            matchId
+            movieInfo {
+              id
+              title
+              overview
+              poster
+              rating
+              runtime
+              year
+              genres
+            }
+            participants {
+              userId
+              displayName
+              isHost
+              votingStatus
+              connectionStatus
+              lastActivity
+            }
+            consensusType
+            votingDuration
             timestamp
           }
         }
@@ -209,18 +187,29 @@ class VoteConsensusService {
         subscription,
         variables,
         (data) => {
-          if (data.onVoteUpdate) {
-            console.log('📊 VoteConsensusService - Vote update event:', data.onVoteUpdate);
-            callback(data.onVoteUpdate);
+          if (data.onMatchFoundEnhanced) {
+            console.log('🎉 VoteConsensusService - Enhanced match found event:', data.onMatchFoundEnhanced);
+            
+            // Transform to matchInfo format
+            const matchInfo = {
+              movieId: data.onMatchFoundEnhanced.movieInfo.id,
+              movieTitle: data.onMatchFoundEnhanced.movieInfo.title,
+              movieInfo: data.onMatchFoundEnhanced.movieInfo,
+              matchedAt: data.onMatchFoundEnhanced.timestamp,
+              participants: data.onMatchFoundEnhanced.participants.map((p: any) => p.userId),
+              roomId: roomId
+            };
+            
+            callback(matchInfo);
           }
         }
       );
       
     } catch (error: any) {
-      console.error('❌ VoteConsensusService.subscribeToVoteUpdates - Failed:', error);
+      console.error('❌ VoteConsensusService.subscribeToMatchFound - Failed:', error);
       
       errorLoggingService.logError(error, {
-        operation: 'subscribeToVoteUpdates',
+        operation: 'subscribeToMatchFound',
         roomId
       });
       
@@ -229,40 +218,40 @@ class VoteConsensusService {
   }
 
   /**
-   * Subscribe to all consensus events for a room
+   * Subscribe to all voting events for a room
    */
-  async subscribeToAllConsensusEvents(
+  async subscribeToAllVotingEvents(
     roomId: string,
     callbacks: {
-      onConsensusReached?: (event: ConsensusReachedEvent) => void;
-      onVoteUpdate?: (event: VoteUpdateEvent) => void;
+      onVoteResponse?: (event: VoteResponseEvent) => void;
+      onMatchFound?: (matchInfo: VoteResponse['matchInfo']) => void;
     }
   ): Promise<(() => void) | null> {
-    console.log('🔔 VoteConsensusService.subscribeToAllConsensusEvents - Setting up all subscriptions for room:', roomId);
+    console.log('🔔 VoteConsensusService.subscribeToAllVotingEvents - Setting up all subscriptions for room:', roomId);
     
     const cleanupFunctions: (() => void)[] = [];
     
     try {
-      // Subscribe to consensus reached events
-      if (callbacks.onConsensusReached) {
-        const consensusCleanup = await this.subscribeToConsensusReached(roomId, callbacks.onConsensusReached);
-        if (consensusCleanup) cleanupFunctions.push(consensusCleanup);
+      // Subscribe to vote responses
+      if (callbacks.onVoteResponse) {
+        const voteCleanup = await this.subscribeToVoteResponses(roomId, callbacks.onVoteResponse);
+        if (voteCleanup) cleanupFunctions.push(voteCleanup);
       }
       
-      // Subscribe to vote updates
-      if (callbacks.onVoteUpdate) {
-        const voteCleanup = await this.subscribeToVoteUpdates(roomId, callbacks.onVoteUpdate);
-        if (voteCleanup) cleanupFunctions.push(voteCleanup);
+      // Subscribe to match found events
+      if (callbacks.onMatchFound) {
+        const matchCleanup = await this.subscribeToMatchFound(roomId, callbacks.onMatchFound);
+        if (matchCleanup) cleanupFunctions.push(matchCleanup);
       }
       
       // Return master cleanup function
       return () => {
-        console.log(`🧹 VoteConsensusService - Cleaning up all consensus subscriptions for room ${roomId}`);
+        console.log(`🧹 VoteConsensusService - Cleaning up all voting subscriptions for room ${roomId}`);
         cleanupFunctions.forEach(cleanup => cleanup());
       };
       
     } catch (error: any) {
-      console.error('❌ VoteConsensusService.subscribeToAllConsensusEvents - Failed:', error);
+      console.error('❌ VoteConsensusService.subscribeToAllVotingEvents - Failed:', error);
       
       // Cleanup any successful subscriptions
       cleanupFunctions.forEach(cleanup => cleanup());
@@ -271,46 +260,27 @@ class VoteConsensusService {
   }
 
   /**
-   * Get current vote status for a room and movie
+   * Get user voting progress using the new individual system
    */
-  async getVoteStatus(roomId: string, movieId: string): Promise<{
-    yesVoteCount: number;
-    memberCount: number;
-    consensusReached: boolean;
-    participants: string[];
-  } | null> {
-    console.log('📊 VoteConsensusService.getVoteStatus - Getting vote status:', { roomId, movieId });
+  async getUserVotingProgress(roomId: string): Promise<UserVotingProgress | null> {
+    console.log('📊 VoteConsensusService.getUserVotingProgress - Getting progress for room:', roomId);
     
     try {
-      const query = `
-        query GetVoteStatus($roomId: ID!, $movieId: ID!) {
-          getVoteStatus(roomId: $roomId, movieId: $movieId) {
-            yesVoteCount
-            memberCount
-            consensusReached
-            participants
-          }
-        }
-      `;
-
-      const variables = { roomId, movieId };
-
-      const result = await appSyncService.executeGraphQL(query, variables);
+      const result = await appSyncService.getUserVotingProgress(roomId);
       
-      if (result.data?.getVoteStatus) {
-        console.log('✅ VoteConsensusService.getVoteStatus - Status retrieved:', result.data.getVoteStatus);
-        return result.data.getVoteStatus;
+      if (result.getUserVotingProgress) {
+        console.log('✅ VoteConsensusService.getUserVotingProgress - Progress retrieved:', result.getUserVotingProgress);
+        return result.getUserVotingProgress;
       }
       
       return null;
       
     } catch (error: any) {
-      console.error('❌ VoteConsensusService.getVoteStatus - Failed:', error);
+      console.error('❌ VoteConsensusService.getUserVotingProgress - Failed:', error);
       
       errorLoggingService.logError(error, {
-        operation: 'getVoteStatus',
-        roomId,
-        movieId
+        operation: 'getUserVotingProgress',
+        roomId
       });
       
       return null;
@@ -318,22 +288,127 @@ class VoteConsensusService {
   }
 
   /**
-   * Check if consensus has been reached for a specific movie
+   * Get next movie for user using the new individual system
    */
-  async checkConsensusStatus(roomId: string, movieId: string): Promise<boolean> {
-    const status = await this.getVoteStatus(roomId, movieId);
-    return status?.consensusReached || false;
+  async getNextMovieForUser(roomId: string): Promise<any | null> {
+    console.log('🎬 VoteConsensusService.getNextMovieForUser - Getting next movie for room:', roomId);
+    
+    try {
+      const result = await appSyncService.getNextMovieForUser(roomId);
+      
+      if (result.getNextMovieForUser) {
+        console.log('✅ VoteConsensusService.getNextMovieForUser - Movie retrieved:', result.getNextMovieForUser);
+        return result.getNextMovieForUser;
+      }
+      
+      return null;
+      
+    } catch (error: any) {
+      console.error('❌ VoteConsensusService.getNextMovieForUser - Failed:', error);
+      
+      errorLoggingService.logError(error, {
+        operation: 'getNextMovieForUser',
+        roomId
+      });
+      
+      return null;
+    }
+  }
+
+  /**
+   * Check if user has finished voting all movies
+   */
+  async hasUserFinishedVoting(roomId: string): Promise<boolean> {
+    const progress = await this.getUserVotingProgress(roomId);
+    return progress?.isFinished || false;
   }
 
   /**
    * Get vote progress as percentage
    */
-  async getVoteProgress(roomId: string, movieId: string): Promise<number> {
-    const status = await this.getVoteStatus(roomId, movieId);
-    if (!status || status.memberCount === 0) return 0;
+  async getVoteProgressPercentage(roomId: string): Promise<number> {
+    const progress = await this.getUserVotingProgress(roomId);
+    if (!progress || progress.totalMovies === 0) return 0;
     
-    return Math.round((status.yesVoteCount / status.memberCount) * 100);
+    return Math.round((progress.votedCount / progress.totalMovies) * 100);
   }
+
+  /**
+   * Check if a match has been found in the room
+   */
+  async checkForMatch(roomId: string): Promise<VoteResponse['matchInfo'] | null> {
+    console.log('🔍 VoteConsensusService.checkForMatch - Checking for match in room:', roomId);
+    
+    try {
+      // Use the checkMatchBeforeAction query
+      const query = `
+        query CheckMatchBeforeAction($roomId: ID!, $action: ActionInput!) {
+          checkMatchBeforeAction(roomId: $roomId, action: $action) {
+            isMatch
+            matchedMovie {
+              id
+              title
+              overview
+              poster
+              vote_average
+              release_date
+              runtime
+              genres {
+                id
+                name
+              }
+            }
+            message
+            canClose
+            roomStatus
+            error
+          }
+        }
+      `;
+
+      const variables = {
+        roomId,
+        action: {
+          type: 'CHECK_MATCH'
+        }
+      };
+
+      const result = await appSyncService.graphqlRequest({ query, variables });
+      
+      if (result.checkMatchBeforeAction?.isMatch && result.checkMatchBeforeAction.matchedMovie) {
+        const movie = result.checkMatchBeforeAction.matchedMovie;
+        
+        // Transform to matchInfo format
+        const matchInfo = {
+          movieId: movie.id,
+          movieTitle: movie.title,
+          movieInfo: {
+            id: movie.id,
+            title: movie.title,
+            overview: movie.overview,
+            poster: movie.poster,
+            rating: movie.vote_average,
+            runtime: movie.runtime,
+            year: movie.release_date ? new Date(movie.release_date).getFullYear() : 0,
+            genres: movie.genres?.map((g: any) => g.name) || []
+          },
+          matchedAt: new Date().toISOString(),
+          participants: [], // Will be populated by subscription
+          roomId: roomId
+        };
+        
+        console.log('🎉 VoteConsensusService.checkForMatch - Match found:', matchInfo);
+        return matchInfo;
+      }
+      
+      return null;
+      
+    } catch (error: any) {
+      console.error('❌ VoteConsensusService.checkForMatch - Failed:', error);
+      return null;
+    }
+  }
+}
 }
 
 export const voteConsensusService = new VoteConsensusService();

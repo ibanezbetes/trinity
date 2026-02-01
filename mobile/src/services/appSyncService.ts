@@ -911,23 +911,49 @@ class AppSyncService {
     const mutation = `
       mutation Vote($input: VoteInput!) {
         vote(input: $input) {
-          id
-          name
-          description
-          status
-          resultMovieId
-          hostId
-          inviteCode
-          isActive
-          isPrivate
-          memberCount
-          maxMembers
-          matchCount
-          createdAt
-          updatedAt
-          matchFound
-          userFinished
+          success
+          responseType
+          room {
+            id
+            name
+            description
+            status
+            resultMovieId
+            hostId
+            inviteCode
+            isActive
+            isPrivate
+            memberCount
+            maxMembers
+            matchCount
+            createdAt
+            updatedAt
+            matchFound
+            userFinished
+            message
+            currentVotes
+            totalMembers
+            userProgress
+          }
+          matchInfo {
+            movieId
+            movieTitle
+            movieInfo {
+              id
+              title
+              overview
+              poster
+              rating
+              runtime
+              year
+              genres
+            }
+            matchedAt
+            participants
+            roomId
+          }
           message
+          error
         }
       }
     `;
@@ -947,6 +973,17 @@ class AppSyncService {
       });
 
       console.log('🗳️ AppSyncService.vote - Result:', JSON.stringify(result, null, 2));
+      
+      // Handle the new VoteResponse structure
+      const voteResponse = result.vote;
+      
+      if (!voteResponse.success) {
+        throw new Error(voteResponse.error || 'Vote failed');
+      }
+      
+      // Log the response type for debugging
+      console.log('🗳️ AppSyncService.vote - Response Type:', voteResponse.responseType);
+      
       return result;
     } catch (error: any) {
       loggingService.error('AppSyncService', 'Vote failed', {
@@ -2292,6 +2329,51 @@ class AppSyncService {
           error: error.message,
           roomId: roomId
         }
+      };
+    }
+  }
+
+  /**
+   * Generic GraphQL subscription method
+   * Used by voteConsensusService for custom subscriptions
+   */
+  async subscribeToGraphQL(
+    subscription: string,
+    variables: Record<string, any>,
+    callback: (data: any) => void
+  ): Promise<(() => void) | null> {
+    console.log('📡 AppSyncService.subscribeToGraphQL - Setting up custom subscription');
+    
+    try {
+      // Extract subscription name for tracking
+      const subscriptionMatch = subscription.match(/subscription\s+(\w+)/);
+      const subscriptionName = subscriptionMatch ? subscriptionMatch[1] : 'CustomSubscription';
+      
+      // Use the existing WebSocket connection method
+      return await this.createWebSocketConnection(
+        subscription,
+        variables,
+        callback,
+        subscriptionName
+      );
+      
+    } catch (error: any) {
+      console.error('❌ AppSyncService.subscribeToGraphQL - Failed:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Make GraphQL request (public method for voteConsensusService)
+   */
+  async executeGraphQL<T>(query: string, variables?: Record<string, any>): Promise<{ data?: T; errors?: any[] }> {
+    try {
+      const data = await this.graphqlRequest<T>({ query, variables });
+      return { data };
+    } catch (error: any) {
+      console.error('❌ AppSyncService.executeGraphQL - Error:', error);
+      return { 
+        errors: [{ message: error.message }] 
       };
     }
   }

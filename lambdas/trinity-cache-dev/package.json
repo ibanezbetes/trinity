@@ -1,31 +1,9 @@
 {
   "name": "trinity-cache-dev",
   "version": "1.0.0",
-  "description": "Trinity Room Movie Cache Service",
+  "description": "Trinity Room Movie Cache Service - IMMUTABLE BUSINESS LOGIC",
   "main": "index.js",
-  "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
-  },
   "dependencies": {
-    "@aws-sdk/client-cloudwatch": "^3.980.0",
-    "@aws-sdk/client-dynamodb": "^3.658.1",
-    "@aws-sdk/lib-dynamodb": "^3.658.1",
-    "aws-sdk": "^2.1691.0",
-    "axios": "^1.7.7"
-  },
-  "devDependencies": {
-    "fast-check": "^3.22.0",
-    "jest": "^29.7.0"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "collectCoverageFrom": [
-      "**/*.js",
-      "!**/node_modules/**",
-      "!**/coverage/**",
-      "!jest.config.js"
-    ]
+    "axios": "^1.13.4"
   }
 }

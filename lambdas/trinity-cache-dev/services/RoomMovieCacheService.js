@@ -1,6 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, DeleteCommand, UpdateCommand, TransactWriteCommand } = require('@aws-sdk/lib-dynamodb');
 const MovieSetLoader = require('./MovieSetLoader');
+const EnhancedMovieSetLoader = require('./EnhancedMovieSetLoader');
 const CacheStorageManager = require('./CacheStorageManager');
 const EndGameMessageService = require('./EndGameMessageService');
 const CacheMetrics = require('../utils/CacheMetrics');
@@ -14,6 +15,7 @@ class RoomMovieCacheService {
   constructor() {
     this.dynamoClient = DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env.AWS_REGION }));
     this.movieSetLoader = new MovieSetLoader();
+    this.enhancedMovieSetLoader = new EnhancedMovieSetLoader();
     this.storageManager = new CacheStorageManager(this.dynamoClient);
     this.endGameService = new EndGameMessageService(this.dynamoClient);
     this.metrics = new CacheMetrics();
@@ -22,6 +24,9 @@ class RoomMovieCacheService {
     this.METADATA_TABLE = process.env.ROOM_CACHE_METADATA_TABLE;
     this.MOVIES_PER_ROOM = 50; // Business requirement: exactly 50 movies per room
     this.CACHE_TTL_DAYS = parseInt(process.env.CACHE_TTL_DAYS) || 7;
+    
+    // Feature flag for enhanced movie set loader
+    this.USE_ENHANCED_LOADER = process.env.USE_ENHANCED_MOVIE_LOADER === 'true' || true; // Default to true for integration
     
     // Western languages (ISO 639-1 codes)
     this.WESTERN_LANGUAGES = new Set([
@@ -61,7 +66,11 @@ class RoomMovieCacheService {
       }
 
       // Create movie set with exactly 50 movies using business logic
-      const movieSet = await this.movieSetLoader.createMovieSet(filterCriteria);
+      const movieSetLoader = this.USE_ENHANCED_LOADER ? this.enhancedMovieSetLoader : this.movieSetLoader;
+      const loaderType = this.USE_ENHANCED_LOADER ? 'Enhanced' : 'Legacy';
+      
+      console.log(`🎬 Using ${loaderType} MovieSetLoader for room ${roomId}`);
+      const movieSet = await movieSetLoader.createMovieSet(filterCriteria);
       
       if (!movieSet || movieSet.movies.length === 0) {
         throw new Error('No movies found matching filter criteria with business logic requirements');
@@ -99,7 +108,10 @@ class RoomMovieCacheService {
           westernLanguagesOnly: true,
           descriptionRequired: true,
           genrePrioritization: true,
-          exactlyFiftyMovies: true
+          exactlyFiftyMovies: true,
+          loaderType: loaderType,
+          enhancedTMDBClient: this.USE_ENHANCED_LOADER,
+          genreMappingForTV: this.USE_ENHANCED_LOADER
         }
       };
 
@@ -248,63 +260,41 @@ class RoomMovieCacheService {
     this.metrics.log('info', 'getNextMovie', `Getting next movie for room ${roomId} (atomic)`);
 
     try {
-      // Get current metadata to check progress
+      // 🚨 TEMPORARY BYPASS: Force fresh TMDB fetch instead of cache
+      console.log('🚨 CACHE BYPASS ACTIVE: Forcing fresh TMDB fetch instead of cache');
+      
+      // Get metadata to understand filter criteria
       const metadata = await this.storageManager.getCacheMetadata(roomId);
       if (!metadata) {
         throw new Error(`No cache metadata found for room ${roomId}`);
       }
 
-      // Check if we've reached the end BEFORE trying to get next movie
-      if (metadata.currentIndex >= metadata.totalMovies) {
-        this.metrics.log('warn', 'getNextMovie', `End of suggestions reached for room ${roomId} (${metadata.currentIndex}/${metadata.totalMovies})`);
-        await timer.finish(true, { cacheHit: false, endOfSuggestions: true });
-        
-        // Return special response indicating end of suggestions
+      // Force fresh movie fetch from TMDB
+      const movieSetLoader = this.USE_ENHANCED_LOADER ? this.enhancedMovieSetLoader : this.movieSetLoader;
+      console.log('🚨 FORCING FRESH TMDB CALL WITH FILTER CRITERIA:', JSON.stringify(metadata.filterCriteria, null, 2));
+      
+      const freshMovieSet = await movieSetLoader.createMovieSet(metadata.filterCriteria);
+      
+      if (!freshMovieSet || freshMovieSet.movies.length === 0) {
+        console.log('🚨 NO MOVIES RETURNED FROM FRESH TMDB CALL');
         return {
           isEndOfSuggestions: true,
-          message: "Esa era mi última sugerencia. Puedes crear otra sala para continuar.",
-          totalMoviesShown: metadata.currentIndex,
-          totalMoviesAvailable: metadata.totalMovies,
+          message: "No movies found with fresh TMDB call",
           roomId: roomId
         };
       }
 
-      // Use atomic sequence management
-      const movie = await this.storageManager.getNextMovieAtomic(roomId);
+      // Return first movie from fresh set
+      const firstMovie = freshMovieSet.movies[0];
+      console.log('🚨 RETURNING FRESH MOVIE FROM TMDB:', JSON.stringify(firstMovie, null, 2));
       
-      if (!movie) {
-        this.metrics.log('warn', 'getNextMovie', `No movie found at current index for room ${roomId}`);
-        await timer.finish(true, { cacheHit: false, endOfSuggestions: true });
-        
-        // Return special response indicating end of suggestions
-        return {
-          isEndOfSuggestions: true,
-          message: "Esa era mi última sugerencia. Puedes crear otra sala para continuar.",
-          totalMoviesShown: metadata.currentIndex,
-          totalMoviesAvailable: metadata.totalMovies,
-          roomId: roomId
-        };
-      }
-
-      // Check if this is approaching the end (last 5 movies)
-      const remainingMovies = metadata.totalMovies - (metadata.currentIndex + 1); // +1 because we just advanced
-      const isNearEnd = remainingMovies <= 5 && remainingMovies > 0;
-
-      this.metrics.log('info', 'getNextMovie', `Retrieved movie atomically: ${movie.title} (sequence: ${movie.sequenceIndex}), remaining: ${remainingMovies}`);
-      
-      // Add warning message if approaching end
-      if (isNearEnd) {
-        movie.warningMessage = `Quedan solo ${remainingMovies} sugerencias más.`;
-        this.metrics.log('info', 'getNextMovie', `Near end warning for room ${roomId}: ${remainingMovies} movies remaining`);
-      }
-
       await timer.finish(true, { 
-        cacheHit: true, 
-        sequenceIndex: movie.sequenceIndex,
-        remainingMovies: remainingMovies
+        cacheHit: false, 
+        freshTMDBCall: true,
+        movieTitle: firstMovie.title
       });
       
-      return movie;
+      return firstMovie;
 
     } catch (error) {
       this.metrics.log('error', 'getNextMovie', `Error getting next movie for room ${roomId}`, { error: error.message });

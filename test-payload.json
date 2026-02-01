@@ -1,0 +1,10 @@
+{
+  "action": "createCache",
+  "roomId": "test-tv-room-fix-001",
+  "filterCriteria": {
+    "mediaType": "TV",
+    "genreIds": [80, 18],
+    "roomCapacity": 2,
+    "roomId": "test-tv-room-fix-001"
+  }
+}

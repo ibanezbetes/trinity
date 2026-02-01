@@ -109,6 +109,9 @@ const handler = async (event) => {
     }
 };
 exports.handler = handler;
+
+// Export for testing
+exports.checkAndUpdateMatchAtomically = checkAndUpdateMatchAtomically;
 /**
  * Procesar voto con algoritmo Stop-on-Match CORRECTO
  * Cada usuario avanza independientemente por los 50 títulos
@@ -116,36 +119,49 @@ exports.handler = handler;
 async function processVote(userId, roomId, movieId, voteType) {
     const timer = new metrics.PerformanceTimer('ProcessVote');
     console.log(`🗳️ Procesando voto: Usuario ${userId}, Sala ${roomId}, Película ${movieId}, Tipo: ${voteType}`);
+    
     try {
-        // 1. Verificar que la sala existe y está ACTIVE/WAITING
-        const room = await getRoomAndValidate(roomId);
+        // 1. ENHANCED: Priority-based room status checking
+        const roomStatusCheck = await checkRoomStatusWithPriority(roomId);
         
-        // 2. Verificar que el usuario es miembro de la sala
-        await validateUserMembership(userId, roomId);
-
-        // 3. CRÍTICO: Verificar si ya hay un match ANTES de procesar cualquier voto
-        const existingMatch = await checkExistingMatch(roomId);
-        if (existingMatch) {
-            console.log(`🎉 MATCH YA EXISTE en sala ${roomId}: película ${existingMatch.movieId}`);
+        if (roomStatusCheck.action === 'RETURN_MATCH') {
+            // CRITICAL FIX: Return match info instead of throwing error
             return {
-                ...room,
-                status: 'MATCHED',
-                resultMovieId: existingMatch.movieId,
-                matchFound: true,
-                message: `¡Match encontrado! Película: ${existingMatch.movieTitle}`
+                success: true,
+                responseType: 'VOTE_IGNORED_MATCH_FOUND',
+                room: null,
+                matchInfo: roomStatusCheck.matchInfo,
+                message: `Match already found: ${roomStatusCheck.matchInfo.movieTitle}`,
+                error: null
             };
         }
+        
+        if (roomStatusCheck.action === 'HANDLE_ERROR') {
+            // Enhanced error handling with user-friendly messages
+            const errorResponse = createUserFriendlyResponse(
+                new Error(`Room status error: ${roomStatusCheck.status}`),
+                roomId,
+                { statusCheck: roomStatusCheck }
+            );
+            return errorResponse;
+        }
+
+        // 2. Verificar que la sala existe y está ACTIVE/WAITING
+        const room = await getRoomAndValidate(roomId);
+        
+        // 3. Verificar que el usuario es miembro de la sala
+        await validateUserMembership(userId, roomId);
 
         // 4. Prevenir votos duplicados del mismo usuario para la misma película
         await preventDuplicateVote(userId, roomId, movieId);
 
-        // 5. Registrar el voto individual del usuario (tanto LIKE como DISLIKE)
-        await recordUserVote(userId, roomId, movieId, voteType);
+        // 5. CRITICAL FIX: Atomic vote recording with conditional writes
+        await recordVoteAtomically(userId, roomId, movieId, voteType);
 
         // 6. Si es voto LIKE, incrementar contador de votos positivos para esta película
         let currentLikes = 0;
         if (voteType === 'LIKE') {
-            currentLikes = await incrementVoteCount(roomId, movieId);
+            currentLikes = await incrementVoteCountAtomically(roomId, movieId);
         } else {
             currentLikes = await getCurrentVoteCount(roomId, movieId);
         }
@@ -153,36 +169,42 @@ async function processVote(userId, roomId, movieId, voteType) {
         const totalMembers = room.maxMembers || 2;
         console.log(`📊 Película ${movieId}: ${currentLikes}/${totalMembers} votos LIKE`);
 
-        // 7. VERIFICAR MATCH: ¿Todos los miembros votaron LIKE a esta película específica?
+        // 7. CRITICAL FIX: Atomic match detection
         if (voteType === 'LIKE' && currentLikes === totalMembers) {
             console.log(`🎉 ¡MATCH DETECTADO! Consenso COMPLETO para película ${movieId} (${currentLikes}/${totalMembers})`);
             
-            // Actualizar sala con resultado INMEDIATAMENTE
-            await updateRoomWithMatch(roomId, movieId);
+            const matchResult = await checkAndUpdateMatchAtomically(roomId, movieId);
             
-            // Obtener título de la película
-            const movieTitle = await appsyncPublisher.getMovieTitle(movieId);
-            
-            // Notificar a TODOS los miembros de la sala (incluso si están fuera)
-            await notifyAllRoomMembers(roomId, {
-                type: 'MATCH_FOUND',
-                movieId,
-                movieTitle,
-                message: `¡Match encontrado! Película: ${movieTitle}`
-            });
-            
-            // Log business metrics
-            metrics.logBusinessMetric('VOTE_CAST', 1, 'count');
-            metrics.logBusinessMetric('MATCH_FOUND', 1, 'count');
-            
-            timer.end();
-            return {
-                ...room,
-                status: 'MATCHED',
-                resultMovieId: movieId,
-                matchFound: true,
-                message: `¡Match encontrado! Película: ${movieTitle}`
-            };
+            if (matchResult.success) {
+                // Log business metrics
+                metrics.logBusinessMetric('VOTE_CAST', 1, 'count');
+                metrics.logBusinessMetric('MATCH_FOUND', 1, 'count');
+                
+                timer.end();
+                return {
+                    success: true,
+                    responseType: 'MATCH_FOUND',
+                    room: {
+                        ...room,
+                        status: 'MATCHED',
+                        resultMovieId: movieId,
+                        matchFound: true
+                    },
+                    matchInfo: matchResult.matchInfo,
+                    message: `¡Match encontrado! Película: ${matchResult.matchInfo.movieTitle}`,
+                    error: null
+                };
+            } else {
+                // Another user already triggered the match
+                return {
+                    success: true,
+                    responseType: 'VOTE_IGNORED_MATCH_FOUND',
+                    room: null,
+                    matchInfo: matchResult.existingMatch,
+                    message: `Match found by another user: ${matchResult.existingMatch.movieTitle}`,
+                    error: null
+                };
+            }
         }
 
         // 8. Voto normal procesado - usuario continúa con su siguiente película
@@ -205,17 +227,32 @@ async function processVote(userId, roomId, movieId, voteType) {
                     message: 'No han conseguido ponerse de acuerdo. Intenten en otra sala.'
                 });
                 
+                timer.end();
                 return {
-                    ...room,
-                    status: 'NO_CONSENSUS',
-                    endOfMovies: true,
-                    message: 'No han conseguido ponerse de acuerdo. Intenten en otra sala.'
+                    success: true,
+                    responseType: 'VOTE_RECORDED',
+                    room: {
+                        ...room,
+                        status: 'NO_CONSENSUS',
+                        endOfMovies: true,
+                        userFinished: true
+                    },
+                    matchInfo: null,
+                    message: 'No han conseguido ponerse de acuerdo. Intenten en otra sala.',
+                    error: null
                 };
             } else {
+                timer.end();
                 return {
-                    ...room,
-                    userFinished: true,
-                    message: 'Has votado todas las películas. Esperando otros usuarios...'
+                    success: true,
+                    responseType: 'VOTE_RECORDED',
+                    room: {
+                        ...room,
+                        userFinished: true
+                    },
+                    matchInfo: null,
+                    message: 'Has votado todas las películas. Esperando otros usuarios...',
+                    error: null
                 };
             }
         }
@@ -235,19 +272,585 @@ async function processVote(userId, roomId, movieId, voteType) {
 
         timer.end();
         return {
-            ...room,
-            currentVotes: currentLikes,
-            totalMembers,
-            userProgress: userProgress.votedCount,
-            message: `Voto registrado. Continúa con la siguiente película.`
+            success: true,
+            responseType: 'VOTE_RECORDED',
+            room: {
+                ...room,
+                currentVotes: currentLikes,
+                totalMembers,
+                userProgress: userProgress.votedCount
+            },
+            matchInfo: null,
+            message: `Voto registrado. Continúa con la siguiente película.`,
+            error: null
         };
     }
     catch (error) {
         metrics.logError('ProcessVote', error);
         timer.end();
+        
+        // ENHANCED: Use improved error handling
+        return createUserFriendlyResponse(error, roomId, { userId, movieId, voteType });
+    }
+}
+/**
+ * CRITICAL FIX: Get room status with consistent read
+ */
+async function getRoomStatusConsistent(roomId) {
+    try {
+        const response = await docClient.send(new lib_dynamodb_1.GetCommand({
+            TableName: process.env.ROOMS_TABLE,
+            Key: { PK: roomId, SK: 'ROOM' },
+            ConsistentRead: true, // CRITICAL: Use consistent read
+            ProjectionExpression: '#status',
+            ExpressionAttributeNames: {
+                '#status': 'status'
+            }
+        }));
+        
+        return response.Item?.status || null;
+    } catch (error) {
+        console.warn(`⚠️ Error getting room status for ${roomId}:`, error);
+        return null;
+    }
+}
+
+/**
+ * ENHANCED: Get comprehensive room status with metadata
+ */
+async function getRoomStatusWithMetadata(roomId) {
+    try {
+        const response = await docClient.send(new lib_dynamodb_1.GetCommand({
+            TableName: process.env.ROOMS_TABLE,
+            Key: { PK: roomId, SK: 'ROOM' },
+            ConsistentRead: true,
+            ProjectionExpression: '#status, resultMovieId, updatedAt, maxMembers, memberCount',
+            ExpressionAttributeNames: {
+                '#status': 'status'
+            }
+        }));
+        
+        if (response.Item) {
+            return {
+                status: response.Item.status,
+                resultMovieId: response.Item.resultMovieId,
+                updatedAt: response.Item.updatedAt,
+                maxMembers: response.Item.maxMembers || 2,
+                memberCount: response.Item.memberCount || 0,
+                isMatchedRoom: response.Item.status === 'MATCHED'
+            };
+        }
+        
+        return null;
+    } catch (error) {
+        console.warn(`⚠️ Error getting room status metadata for ${roomId}:`, error);
+        return null;
+    }
+}
+
+/**
+ * ENHANCED: Validate room availability for voting with detailed checks
+ */
+async function validateRoomAvailabilityForVoting(roomId) {
+    const statusMetadata = await getRoomStatusWithMetadata(roomId);
+    
+    if (!statusMetadata) {
+        return {
+            isAvailable: false,
+            reason: 'ROOM_NOT_FOUND',
+            message: 'La sala especificada no existe.',
+            shouldReturnMatch: false
+        };
+    }
+    
+    if (statusMetadata.isMatchedRoom) {
+        return {
+            isAvailable: false,
+            reason: 'ROOM_ALREADY_MATCHED',
+            message: 'La sala ya tiene un match encontrado.',
+            shouldReturnMatch: true,
+            matchMovieId: statusMetadata.resultMovieId
+        };
+    }
+    
+    if (statusMetadata.status !== 'ACTIVE' && statusMetadata.status !== 'WAITING') {
+        return {
+            isAvailable: false,
+            reason: 'ROOM_NOT_ACTIVE',
+            message: `La sala no está disponible para votar. Estado: ${statusMetadata.status}`,
+            shouldReturnMatch: false
+        };
+    }
+    
+    return {
+        isAvailable: true,
+        reason: 'AVAILABLE',
+        message: 'Sala disponible para votación.',
+        statusMetadata
+    };
+}
+
+/**
+ * CRITICAL FIX: Get existing match info with enhanced details and complete movie info
+ */
+async function getExistingMatchInfo(roomId) {
+    try {
+        const response = await docClient.send(new lib_dynamodb_1.GetCommand({
+            TableName: process.env.ROOMS_TABLE,
+            Key: { PK: roomId, SK: 'ROOM' },
+            ConsistentRead: true,
+            ProjectionExpression: '#status, resultMovieId, updatedAt',
+            ExpressionAttributeNames: {
+                '#status': 'status'
+            }
+        }));
+        
+        if (response.Item && response.Item.status === 'MATCHED') {
+            const movieId = response.Item.resultMovieId;
+            
+            // CRITICAL FIX: Get complete movie details including genres
+            const movieDetails = await getCompleteMovieDetails(movieId);
+            const participants = await getRoomParticipants(roomId);
+            
+            return {
+                movieId: movieId,
+                movieTitle: movieDetails.title,
+                movieInfo: {
+                    id: movieId,
+                    title: movieDetails.title,
+                    overview: movieDetails.overview || '',
+                    poster: movieDetails.poster || '',
+                    rating: movieDetails.rating || 0,
+                    runtime: movieDetails.runtime || 0,
+                    year: movieDetails.year || 0,
+                    genres: movieDetails.genres || [] // CRITICAL: Always provide genres array
+                },
+                matchedAt: response.Item.updatedAt || new Date().toISOString(),
+                participants,
+                roomId
+            };
+        }
+        
+        return null;
+    } catch (error) {
+        console.warn(`⚠️ Error getting match info for room ${roomId}:`, error);
+        return null;
+    }
+}
+
+/**
+ * CRITICAL FIX: Get complete movie details from cache or TMDB
+ */
+async function getCompleteMovieDetails(movieId) {
+    try {
+        // First try to get from room movie cache
+        const cacheResponse = await docClient.send(new lib_dynamodb_1.QueryCommand({
+            TableName: process.env.ROOM_MOVIE_CACHE_TABLE,
+            IndexName: 'tmdbId-index',
+            KeyConditionExpression: 'tmdbId = :movieId',
+            ExpressionAttributeValues: {
+                ':movieId': movieId
+            },
+            Limit: 1
+        }));
+        
+        if (cacheResponse.Items && cacheResponse.Items.length > 0) {
+            const cachedMovie = cacheResponse.Items[0];
+            console.log(`✅ Found movie details in cache for ${movieId}`);
+            
+            return {
+                title: cachedMovie.title || 'Unknown Title',
+                overview: cachedMovie.overview || '',
+                poster: cachedMovie.posterPath || '',
+                rating: cachedMovie.voteAverage || 0,
+                runtime: cachedMovie.runtime || 0,
+                year: cachedMovie.releaseDate ? new Date(cachedMovie.releaseDate).getFullYear() : 0,
+                genres: cachedMovie.genreNames || [] // Use cached genre names
+            };
+        }
+        
+        // If not in cache, call movie lambda to get details
+        console.log(`🎬 Fetching movie details from movie lambda for ${movieId}`);
+        const movieLambdaResponse = await getLambdaClient().send(new InvokeCommand({
+            FunctionName: process.env.MOVIE_LAMBDA_NAME || 'trinity-movie-dev',
+            Payload: JSON.stringify({
+                info: { fieldName: 'getMovieDetails' },
+                arguments: { movieId: movieId }
+            })
+        }));
+        
+        const movieData = JSON.parse(new TextDecoder().decode(movieLambdaResponse.Payload));
+        
+        if (movieData && movieData.id) {
+            return {
+                title: movieData.title || 'Unknown Title',
+                overview: movieData.overview || '',
+                poster: movieData.poster || '',
+                rating: movieData.vote_average || 0,
+                runtime: movieData.runtime || 0,
+                year: movieData.release_date ? new Date(movieData.release_date).getFullYear() : 0,
+                genres: movieData.genres ? movieData.genres.map(g => g.name) : []
+            };
+        }
+        
+        // Fallback with safe defaults
+        console.warn(`⚠️ Could not get complete details for movie ${movieId}, using fallback`);
+        return {
+            title: `Movie ${movieId}`,
+            overview: '',
+            poster: '',
+            rating: 0,
+            runtime: 0,
+            year: 0,
+            genres: [] // CRITICAL: Always provide empty array, never null
+        };
+        
+    } catch (error) {
+        console.error(`❌ Error getting complete movie details for ${movieId}:`, error);
+        
+        // Safe fallback that satisfies GraphQL schema
+        return {
+            title: `Movie ${movieId}`,
+            overview: '',
+            poster: '',
+            rating: 0,
+            runtime: 0,
+            year: 0,
+            genres: [] // CRITICAL: Always provide empty array, never null
+        };
+    }
+}
+function createUserFriendlyResponse(error, roomId, context = {}) {
+    // Enhanced error suppression for matched rooms
+    if (error.message.includes('no está disponible para votar')) {
+        return {
+            success: false,
+            responseType: 'ERROR',
+            room: null,
+            matchInfo: null,
+            message: null,
+            error: 'Esta sala no está disponible para votar en este momento. Es posible que ya se haya encontrado un match.'
+        };
+    }
+    
+    // Network or connectivity errors
+    if (error.message.includes('Network') || error.message.includes('timeout')) {
+        return {
+            success: false,
+            responseType: 'ERROR',
+            room: null,
+            matchInfo: null,
+            message: null,
+            error: 'Problema de conexión. Por favor, verifica tu conexión a internet e inténtalo de nuevo.'
+        };
+    }
+    
+    // Authorization errors
+    if (error.message.includes('Unauthorized') || error.message.includes('Forbidden')) {
+        return {
+            success: false,
+            responseType: 'ERROR',
+            room: null,
+            matchInfo: null,
+            message: null,
+            error: 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.'
+        };
+    }
+    
+    // Validation errors
+    if (error.message.includes('ValidationException') || error.message.includes('Invalid')) {
+        return {
+            success: false,
+            responseType: 'ERROR',
+            room: null,
+            matchInfo: null,
+            message: null,
+            error: 'Los datos enviados no son válidos. Por favor, inténtalo de nuevo.'
+        };
+    }
+    
+    // Duplicate vote errors
+    if (error.message.includes('ya votó por la película')) {
+        return {
+            success: false,
+            responseType: 'ERROR',
+            room: null,
+            matchInfo: null,
+            message: null,
+            error: 'Ya has votado por esta película en esta sala.'
+        };
+    }
+    
+    // Membership errors
+    if (error.message.includes('no es miembro activo')) {
+        return {
+            success: false,
+            responseType: 'ERROR',
+            room: null,
+            matchInfo: null,
+            message: null,
+            error: 'No eres miembro de esta sala o tu membresía no está activa.'
+        };
+    }
+    
+    // Room not found errors
+    if (error.message.includes('Sala no encontrada')) {
+        return {
+            success: false,
+            responseType: 'ERROR',
+            room: null,
+            matchInfo: null,
+            message: null,
+            error: 'La sala especificada no existe o no tienes acceso a ella.'
+        };
+    }
+    
+    // Generic error for unhandled cases
+    return {
+        success: false,
+        responseType: 'ERROR',
+        room: null,
+        matchInfo: null,
+        message: null,
+        error: 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde.'
+    };
+}
+
+/**
+ * ENHANCED: Check room status with priority handling
+ */
+async function checkRoomStatusWithPriority(roomId) {
+    try {
+        // First, get basic status quickly
+        const quickStatus = await getRoomStatusConsistent(roomId);
+        
+        if (quickStatus === 'MATCHED') {
+            // If matched, get full match details immediately
+            const matchInfo = await getExistingMatchInfo(roomId);
+            return {
+                status: 'MATCHED',
+                priority: 'HIGH',
+                action: 'RETURN_MATCH',
+                matchInfo
+            };
+        }
+        
+        if (quickStatus === 'ACTIVE' || quickStatus === 'WAITING') {
+            return {
+                status: quickStatus,
+                priority: 'NORMAL',
+                action: 'PROCEED_WITH_VOTE'
+            };
+        }
+        
+        // For other statuses, get detailed information
+        const statusMetadata = await getRoomStatusWithMetadata(roomId);
+        return {
+            status: quickStatus,
+            priority: 'LOW',
+            action: 'HANDLE_ERROR',
+            metadata: statusMetadata
+        };
+        
+    } catch (error) {
+        console.error(`❌ Error in priority room status check for ${roomId}:`, error);
+        return {
+            status: null,
+            priority: 'ERROR',
+            action: 'HANDLE_ERROR',
+            error: error.message
+        };
+    }
+}
+
+/**
+ * CRITICAL FIX: Record vote atomically with conditional writes
+ */
+async function recordVoteAtomically(userId, roomId, movieId, voteType) {
+    try {
+        const userMovieKey = `${userId}#${movieId}`;
+        
+        await docClient.send(new lib_dynamodb_1.PutCommand({
+            TableName: process.env.VOTES_TABLE,
+            Item: {
+                roomId,
+                'userId#movieId': userMovieKey,
+                userId,
+                movieId,
+                voteType, // 'LIKE' o 'DISLIKE'
+                votedAt: new Date().toISOString(),
+                version: 1 // For conflict detection
+            },
+            ConditionExpression: 'attribute_not_exists(roomId) AND attribute_not_exists(#sk)',
+            ExpressionAttributeNames: {
+                '#sk': 'userId#movieId'
+            }
+        }));
+        
+        console.log(`✅ Voto ${voteType} registrado atómicamente: Usuario ${userId}, Película ${movieId}`);
+    } catch (error) {
+        if (error.name === 'ConditionalCheckFailedException') {
+            throw new Error(`Usuario ${userId} ya votó por la película ${movieId}`);
+        }
         throw error;
     }
 }
+
+/**
+ * CRITICAL FIX: Increment vote count atomically
+ */
+async function incrementVoteCountAtomically(roomId, movieId) {
+    const maxRetries = 3;
+    let attempt = 0;
+    
+    while (attempt < maxRetries) {
+        try {
+            // Try to update existing vote count with atomic operation
+            const response = await docClient.send(new lib_dynamodb_1.UpdateCommand({
+                TableName: process.env.ROOM_MATCHES_TABLE,
+                Key: { roomId, movieId },
+                UpdateExpression: 'ADD votes :increment SET updatedAt = :updatedAt, version = if_not_exists(version, :zero) + :one',
+                ExpressionAttributeValues: {
+                    ':increment': 1,
+                    ':updatedAt': new Date().toISOString(),
+                    ':zero': 0,
+                    ':one': 1
+                },
+                ReturnValues: 'ALL_NEW',
+            }));
+            
+            const voteCount = response.Attributes?.votes || 1;
+            console.log(`✅ Voto incrementado atómicamente: Sala ${roomId}, Película ${movieId}, Total: ${voteCount}`);
+            return voteCount;
+            
+        } catch (error) {
+            // If item doesn't exist, try to create it
+            if (error.name === 'ResourceNotFoundException' || !error.name) {
+                try {
+                    const newVote = {
+                        roomId,
+                        movieId,
+                        votes: 1,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        version: 1
+                    };
+                    
+                    await docClient.send(new lib_dynamodb_1.PutCommand({
+                        TableName: process.env.ROOM_MATCHES_TABLE,
+                        Item: newVote,
+                        ConditionExpression: 'attribute_not_exists(roomId) AND attribute_not_exists(movieId)',
+                    }));
+                    
+                    console.log(`✅ Nuevo voto creado atómicamente: Sala ${roomId}, Película ${movieId}, Total: 1`);
+                    return 1;
+                    
+                } catch (putError) {
+                    // If condition fails, another process created the item - retry UPDATE
+                    if (putError.name === 'ConditionalCheckFailedException') {
+                        attempt++;
+                        if (attempt >= maxRetries) {
+                            console.error('❌ Máximo de reintentos alcanzado para incrementar voto atómicamente');
+                            throw new Error('Error interno del sistema. Demasiados intentos concurrentes.');
+                        }
+                        console.log(`🔄 Reintentando incremento atómico de voto (intento ${attempt + 1}/${maxRetries})`);
+                        await new Promise(resolve => setTimeout(resolve, 100 * attempt));
+                        continue;
+                    }
+                    throw putError;
+                }
+            }
+            
+            // For other errors, retry if we haven't reached max attempts
+            attempt++;
+            if (attempt >= maxRetries) {
+                console.error('❌ Error incrementando voto atómicamente después de múltiples intentos:', error);
+                throw error;
+            }
+            console.log(`🔄 Reintentando incremento atómico debido a error (intento ${attempt + 1}/${maxRetries}):`, error.name);
+            await new Promise(resolve => setTimeout(resolve, 100 * attempt));
+        }
+    }
+    
+    throw new Error('Error interno del sistema. No se pudo procesar el voto atómicamente después de múltiples intentos.');
+}
+
+/**
+ * CRITICAL FIX: Check and update match atomically to prevent race conditions
+ */
+async function checkAndUpdateMatchAtomically(roomId, movieId) {
+    try {
+        // First, try to update room status to MATCHED with conditional write
+        await docClient.send(new lib_dynamodb_1.UpdateCommand({
+            TableName: process.env.ROOMS_TABLE,
+            Key: { PK: roomId, SK: 'ROOM' },
+            UpdateExpression: 'SET #status = :status, resultMovieId = :movieId, updatedAt = :updatedAt',
+            ConditionExpression: '#status IN (:waiting, :active)', // Only update if room is still available
+            ExpressionAttributeNames: {
+                '#status': 'status'
+            },
+            ExpressionAttributeValues: {
+                ':status': 'MATCHED',
+                ':movieId': movieId,
+                ':updatedAt': new Date().toISOString(),
+                ':waiting': 'WAITING',
+                ':active': 'ACTIVE'
+            }
+        }));
+        
+        // If we reach here, we successfully updated the room status
+        const movieDetails = await getCompleteMovieDetails(movieId);
+        const participants = await getRoomParticipants(roomId);
+        
+        // Notify all room members
+        await notifyAllRoomMembers(roomId, {
+            type: 'MATCH_FOUND',
+            movieId,
+            movieTitle: movieDetails.title,
+            message: `¡Match encontrado! Película: ${movieDetails.title}`
+        });
+        
+        const matchInfo = {
+            movieId,
+            movieTitle: movieDetails.title,
+            movieInfo: {
+                id: movieId,
+                title: movieDetails.title,
+                overview: movieDetails.overview || '',
+                poster: movieDetails.poster || '',
+                rating: movieDetails.rating || 0,
+                runtime: movieDetails.runtime || 0,
+                year: movieDetails.year || 0,
+                genres: movieDetails.genres || [] // CRITICAL: Always provide genres array
+            },
+            matchedAt: new Date().toISOString(),
+            participants,
+            roomId
+        };
+        
+        console.log(`✅ Match actualizado atómicamente: Sala ${roomId}, Película ${movieId}`);
+        
+        return {
+            success: true,
+            matchInfo
+        };
+        
+    } catch (error) {
+        if (error.name === 'ConditionalCheckFailedException') {
+            // Another user already triggered the match
+            console.log(`🎉 Otro usuario ya activó el match en sala ${roomId}`);
+            const existingMatch = await getExistingMatchInfo(roomId);
+            return {
+                success: false,
+                existingMatch
+            };
+        }
+        
+        console.error('❌ Error actualizando match atómicamente:', error);
+        throw error;
+    }
+}
+
 /**
  * Obtener y validar sala
  */

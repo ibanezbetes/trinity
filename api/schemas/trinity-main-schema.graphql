@@ -185,8 +185,8 @@ type Mutation {
   updateRoomFilters(input: UpdateRoomFiltersInput!, roomId: ID!): Room
   #  DataSource: AuthHandler
   updateUser(name: String, picture: String): User
-  #  DataSource: RoomHandler
-  vote(input: VoteInput!): Room
+  #  DataSource: VoteHandler - UPDATED: Now returns VoteResponse instead of Room
+  vote(input: VoteInput!): VoteResponse
 }
 
 #  Supporting Types for Enhanced Events
@@ -355,7 +355,9 @@ type Subscription {
   onRoomEvent(roomId: ID!): RoomEvent @aws_subscribe(mutations : ["publishRoomEvent"])
   onRoomStateSync(roomId: ID!): RoomStateEvent @aws_subscribe(mutations : ["publishRoomStateEvent"])
   #  Legacy subscription for backward compatibility
-  onRoomUpdated(roomId: ID!): Room @aws_subscribe(mutations : ["vote", "joinRoomByInvite"])
+  onRoomUpdated(roomId: ID!): Room @aws_subscribe(mutations : ["joinRoomByInvite"])
+  #  NEW: Enhanced vote subscription for new VoteResponse type
+  onVoteResponse(roomId: ID!): VoteResponse @aws_subscribe(mutations : ["vote"])
   onScheduleEvent(roomId: ID!): ScheduleEvent @aws_subscribe(mutations : ["publishScheduleEvent"])
   onSettingsChange(roomId: ID!): SettingsEvent @aws_subscribe(mutations : ["publishSettingsEvent"])
   onThemeChange(roomId: ID!): ThemeEvent @aws_subscribe(mutations : ["publishThemeEvent"])
@@ -481,6 +483,25 @@ type VoteUpdateEvent implements BaseEvent {
   votingDuration: Int
 }
 
+#  NEW: Vote Response Types for Bug Fix
+type VoteResponse {
+  success: Boolean!
+  responseType: VoteResponseType!
+  room: Room
+  matchInfo: MatchInfo
+  message: String
+  error: String
+}
+
+type MatchInfo {
+  movieId: ID!
+  movieTitle: String!
+  movieInfo: EnhancedMovieInfo!
+  matchedAt: AWSDateTime!
+  participants: [ID!]!
+  roomId: ID!
+}
+
 enum ChatAction {
   CREATED
   DELETED
@@ -580,6 +601,14 @@ enum VotingStatus {
   VOTED_DISLIKE
   VOTED_LIKE
   VOTED_SKIP
+}
+
+#  NEW: Vote Response Types for Race Condition Fix
+enum VoteResponseType {
+  VOTE_RECORDED
+  MATCH_FOUND
+  VOTE_IGNORED_MATCH_FOUND
+  ERROR
 }
 
 input CreateRoomInput {

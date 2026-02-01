@@ -94,11 +94,40 @@ export const GRAPHQL_OPERATIONS = {
   VOTE: `
     mutation Vote($input: VoteInput!) {
       vote(input: $input) {
-        id
-        status
-        resultMovieId
-        hostId
-        memberCount
+        success
+        responseType
+        room {
+          id
+          status
+          resultMovieId
+          hostId
+          memberCount
+          matchFound
+          userFinished
+          message
+          currentVotes
+          totalMembers
+          userProgress
+        }
+        matchInfo {
+          movieId
+          movieTitle
+          movieInfo {
+            id
+            title
+            overview
+            poster
+            rating
+            runtime
+            year
+            genres
+          }
+          matchedAt
+          participants
+          roomId
+        }
+        message
+        error
       }
     }
   `,

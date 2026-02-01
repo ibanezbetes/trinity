@@ -186,8 +186,19 @@ async function runTest() {
         const voteMutation = `
       mutation Vote($input: VoteInput!) {
         vote(input: $input) {
-          id
-          status
+          success
+          responseType
+          room {
+            id
+            status
+          }
+          matchInfo {
+            movieId
+            movieTitle
+            roomId
+          }
+          message
+          error
         }
       }
     `;
@@ -202,7 +213,11 @@ async function runTest() {
         if (hostVoteRes.errors) {
             console.error('❌ Error Host votando:', JSON.stringify(hostVoteRes.errors, null, 2));
         } else {
-            console.log('✅ Host voto registrado');
+            const voteResponse = hostVoteRes.data.vote;
+            console.log(`✅ Host voto registrado. Tipo: ${voteResponse.responseType}`);
+            if (voteResponse.matchInfo) {
+                console.log(`🎉 ¡MATCH ENCONTRADO! Película: ${voteResponse.matchInfo.movieTitle}`);
+            }
         }
 
         // 8. Votar (Guest)
@@ -222,12 +237,15 @@ async function runTest() {
             if (!guestVoteRes.data || !guestVoteRes.data.vote) {
                 console.log('⚠️ Respuesta inesperada de voto:', JSON.stringify(guestVoteRes));
             } else {
-                const roomStatus = guestVoteRes.data.vote.status;
-                console.log(`✅ Guest voto registrado. Estado sala: ${roomStatus}`);
-                if (roomStatus === 'MATCHED') {
-                    console.log('🎉 ¡MATCH CONFIRMADO!');
+                const voteResponse = guestVoteRes.data.vote;
+                console.log(`✅ Guest voto registrado. Tipo: ${voteResponse.responseType}`);
+                
+                if (voteResponse.matchInfo) {
+                    console.log(`🎉 ¡MATCH CONFIRMADO! Película: ${voteResponse.matchInfo.movieTitle}`);
+                } else if (voteResponse.room) {
+                    console.log(`⚠️ No hubo match. Estado sala: ${voteResponse.room.status}`);
                 } else {
-                    console.log('⚠️ No hubo match. Estado actual: ' + roomStatus);
+                    console.log('⚠️ Respuesta sin match ni información de sala');
                 }
             }
         }
