@@ -202,7 +202,7 @@ describe('FilterSummary Component', () => {
   });
 
   describe('Edge Cases', () => {
-    test('handles maximum number of genres (3)', () => {
+    test('handles maximum number of genres (2)', () => {
       const criteria = createFilterCriteria('MOVIE', mockGenres);
       const { getByText } = render(
         <FilterSummary criteria={criteria} />

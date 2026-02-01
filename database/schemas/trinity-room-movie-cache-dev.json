@@ -1,0 +1,84 @@
+{
+  "TableName": "trinity-room-movie-cache-dev",
+  "BillingMode": "PAY_PER_REQUEST",
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "roomId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "sequenceIndex",
+      "AttributeType": "N"
+    },
+    {
+      "AttributeName": "batchNumber",
+      "AttributeType": "N"
+    },
+    {
+      "AttributeName": "ttl",
+      "AttributeType": "N"
+    }
+  ],
+  "KeySchema": [
+    {
+      "AttributeName": "roomId",
+      "KeyType": "HASH"
+    },
+    {
+      "AttributeName": "sequenceIndex",
+      "KeyType": "RANGE"
+    }
+  ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "BatchIndex",
+      "KeySchema": [
+        {
+          "AttributeName": "roomId",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "batchNumber",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      }
+    },
+    {
+      "IndexName": "TTLIndex",
+      "KeySchema": [
+        {
+          "AttributeName": "ttl",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "KEYS_ONLY"
+      }
+    }
+  ],
+  "TimeToLiveSpecification": {
+    "AttributeName": "ttl",
+    "Enabled": true
+  },
+  "StreamSpecification": {
+    "StreamEnabled": true,
+    "StreamViewType": "NEW_AND_OLD_IMAGES"
+  },
+  "Tags": [
+    {
+      "Key": "Project",
+      "Value": "Trinity"
+    },
+    {
+      "Key": "Environment",
+      "Value": "dev"
+    },
+    {
+      "Key": "Purpose",
+      "Value": "RoomMovieCache"
+    }
+  ]
+}

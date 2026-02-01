@@ -252,8 +252,17 @@ async function getRoomAndValidate(roomId: string): Promise<any> {
 
       const room = response.Item;
 
-      console.log(`🔍 Room Status Check: ID=${room.id}, Status=${room.status}, Type=${typeof room.status}`);
+      console.log(`🔍 Room Status Check: ID=${room.id}, Status=${room.status}, Type=${typeof room.status}, ResultMovieId=${room.resultMovieId}`);
+      
+      // Prevent voting if room already has a match
+      if (room.status === 'MATCHED' || room.resultMovieId) {
+        console.log(`🚫 Sala ya tiene match: Estado=${room.status}, ResultMovieId=${room.resultMovieId}`);
+        throw new Error('Esta sala ya encontró una película perfecta. No se pueden realizar más votos.');
+      }
+      
+      // Only allow voting in ACTIVE or WAITING states
       if (room.status !== 'ACTIVE' && room.status !== 'WAITING') {
+        console.log(`🚫 Sala no disponible para votar: Estado=${room.status}, ResultMovieId=${room.resultMovieId}`);
         throw new Error(`La sala no está disponible para votar. Estado actual: ${room.status}`);
       }
 

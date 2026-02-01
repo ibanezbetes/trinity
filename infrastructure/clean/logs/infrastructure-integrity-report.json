@@ -1,0 +1,36 @@
+{
+  "summary": {
+    "timestamp": "2026-02-01T01:05:28.788Z",
+    "totalComponents": 5,
+    "passedComponents": 5,
+    "failedComponents": 0,
+    "overallStatus": "PASS"
+  },
+  "details": [
+    {
+      "component": "CloudFormation Stacks",
+      "status": "PASS",
+      "details": "All 4 expected stacks are deployed and in stable state"
+    },
+    {
+      "component": "DynamoDB Tables",
+      "status": "PASS",
+      "details": "All 12 tables are ACTIVE and accessible"
+    },
+    {
+      "component": "Lambda Functions",
+      "status": "PASS",
+      "details": "All 7 Lambda functions are deployed"
+    },
+    {
+      "component": "AppSync APIs",
+      "status": "PASS",
+      "details": "All 2 GraphQL APIs are deployed"
+    },
+    {
+      "component": "Cognito User Pools",
+      "status": "PASS",
+      "details": "Found 1 Trinity user pools: trinity-users-dev-v2"
+    }
+  ]
+}

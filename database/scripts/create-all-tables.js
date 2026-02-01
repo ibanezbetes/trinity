@@ -14,7 +14,10 @@ async function createAllTables() {
         'create-trinity-movies-cache-dev.json',
         'create-trinity-room-matches-dev.json',
         'create-trinity-connections-dev.json',
-        'create-trinity-chat-sessions-dev.json'
+        'create-trinity-room-movie-cache-dev.json',
+        'create-trinity-room-cache-metadata-dev.json',
+        'create-trinity-matchmaking-dev.json',
+        'create-trinity-filter-cache.json'
     ];
     
     for (const schemaFile of schemaFiles) {

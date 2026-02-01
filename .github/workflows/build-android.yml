@@ -1,0 +1,60 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: [ 'mobile/**' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: mobile/package-lock.json
+        
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Install dependencies
+      working-directory: mobile
+      run: npm ci
+      
+    - name: Setup Expo
+      uses: expo/expo-github-action@v8
+      with:
+        expo-version: latest
+        token: ${{ secrets.EXPO_TOKEN }}
+        
+    - name: Create local.properties
+      working-directory: mobile/android
+      run: |
+        echo "sdk.dir=$ANDROID_HOME" > local.properties
+        
+    - name: Build APK
+      working-directory: mobile
+      run: |
+        npx expo export --platform android
+        cd android
+        ./gradlew assembleRelease
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: trinity-app-release
+        path: mobile/android/app/build/outputs/apk/release/app-release.apk
+        retention-days: 30

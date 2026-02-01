@@ -262,7 +262,7 @@ describe('FilterSummary Property-Based Tests', () => {
           
           // Should never show more than 3 genres
           expect(limitedGenreIds.length).toBeLessThanOrEqual(3);
-          expect(limitedGenreNames.length).toBeLessThanOrEqual(3);
+          expect(limitedGenreNames.length).toBeLessThanOrEqual(2);
           
           // All displayed genre names should be from the limited set
           limitedGenreNames.forEach(name => {

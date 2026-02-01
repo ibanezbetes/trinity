@@ -1,5 +1,0 @@
-# Services directory for business logic
-# This directory will contain:
-# - aiService.js - ChatML prompt service and Hugging Face integration
-# - tmdbService.js - TMDB verification and movie enrichment service
-# - fallbackEngine.js - Fallback recommendation engine

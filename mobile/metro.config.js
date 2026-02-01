@@ -12,4 +12,25 @@ config.resolver.assetExts.push('plist', 'json');
 // Ensure TypeScript files are properly resolved
 config.resolver.sourceExts = [...config.resolver.sourceExts, 'ts', 'tsx'];
 
+// Production bundle configuration
+config.serializer = {
+  ...config.serializer,
+  getModulesRunBeforeMainModule: () => [
+    require.resolve('react-native/Libraries/Core/InitializeCore'),
+  ],
+};
+
+// Disable Metro server for production builds
+if (process.env.NODE_ENV === 'production') {
+  config.server = {
+    ...config.server,
+    enhanceMiddleware: (middleware) => {
+      return (req, res, next) => {
+        // Disable Metro server in production
+        res.status(404).end();
+      };
+    },
+  };
+}
+
 module.exports = config;

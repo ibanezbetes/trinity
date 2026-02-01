@@ -12,6 +12,7 @@
     "dotenv": "^17.2.3",
     "graphql-request": "^7.4.0",
     "node-fetch": "^3.3.2",
+    "react-dom": "^19.1.0",
     "react-native-crypto-js": "^1.0.0"
   },
   "name": "trinity_tfg",
@@ -19,7 +20,13 @@
   "description": "[![React Native](https://img.shields.io/badge/React%20Native-0.76-blue.svg)](https://reactnative.dev/)\r [![Expo](https://img.shields.io/badge/Expo-52.0-black.svg)](https://expo.dev/)\r [![AWS](https://img.shields.io/badge/AWS-Serverless-orange.svg)](https://aws.amazon.com/)\r [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)\r [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)",
   "main": "analyze-aws-infrastructure.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup:android": "node setup-android-build.js",
+    "build:apk": "node build-apk-simple.js",
+    "build:apk:debug": "node build-apk-debug.js",
+    "build:apk:full": "node build-apk-gradle.js",
+    "build:apk:release": "node build-apk-simple.js",
+    "android:clean": "cd mobile/android && (./gradlew clean || .\\gradlew.bat clean)"
   },
   "repository": {
     "type": "git",
@@ -34,6 +41,7 @@
   },
   "homepage": "https://github.com/danilazar06/trinity_tfg#readme",
   "devDependencies": {
+    "@react-native-community/cli": "^20.1.1",
     "adm-zip": "^0.5.16"
   }
 }

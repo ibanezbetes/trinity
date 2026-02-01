@@ -1,0 +1,880 @@
+{
+  "summary": {
+    "timestamp": "2026-02-01T01:07:13.963Z",
+    "totalTables": 12,
+    "accessibleTables": 12,
+    "failedTables": 0,
+    "totalItems": 2473,
+    "overallStatus": "PASS"
+  },
+  "details": [
+    {
+      "table": "trinity-users-dev",
+      "status": "PASS",
+      "itemCount": 0,
+      "sampleData": []
+    },
+    {
+      "table": "trinity-rooms-dev-v2",
+      "status": "PASS",
+      "itemCount": 41,
+      "sampleData": [
+        {
+          "mediaType": {
+            "S": "MOVIE"
+          },
+          "preloadedMovies": {
+            "L": []
+          },
+          "status": {
+            "S": "WAITING"
+          },
+          "excludedContentIds": {
+            "L": []
+          },
+          "genreNames": {
+            "L": []
+          },
+          "name": {
+            "S": "B�squeda: Comedia"
+          },
+          "matchCount": {
+            "N": "0"
+          },
+          "memberCount": {
+            "N": "1"
+          },
+          "inviteCode": {
+            "S": "NHI7DH"
+          },
+          "hostId": {
+            "S": "c2d53444-60a1-707a-e868-bec342995b51"
+          },
+          "SK": {
+            "S": "ROOM"
+          },
+          "id": {
+            "S": "949a1af1-9d8b-4349-83b6-4ce58289ac05"
+          },
+          "totalMovies": {
+            "N": "0"
+          },
+          "currentMovieIndex": {
+            "N": "1"
+          },
+          "isPrivate": {
+            "BOOL": false
+          },
+          "contentIds": {
+            "L": []
+          },
+          "createdAt": {
+            "S": "2026-01-31T12:47:19.039Z"
+          },
+          "roomId": {
+            "S": "949a1af1-9d8b-4349-83b6-4ce58289ac05"
+          },
+          "genreIds": {
+            "L": [
+              {
+                "N": "35"
+              },
+              {
+                "N": "16"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "moviesExhausted": {
+            "BOOL": false
+          },
+          "shownContentIds": {
+            "L": []
+          },
+          "updatedAt": {
+            "S": "2026-01-31T12:48:18.236Z"
+          },
+          "maxMembers": {
+            "N": "2"
+          },
+          "PK": {
+            "S": "949a1af1-9d8b-4349-83b6-4ce58289ac05"
+          },
+          "currentContentIndex": {
+            "N": "0"
+          },
+          "inviteUrl": {
+            "S": "https://trinity-app.com/invite/NHI7DH"
+          }
+        },
+        {
+          "mediaType": {
+            "S": "MOVIE"
+          },
+          "preloadedMovies": {
+            "L": []
+          },
+          "status": {
+            "S": "WAITING"
+          },
+          "excludedContentIds": {
+            "L": []
+          },
+          "genreNames": {
+            "L": []
+          },
+          "name": {
+            "S": "B�squeda: Animaci�n"
+          },
+          "matchCount": {
+            "N": "0"
+          },
+          "memberCount": {
+            "N": "1"
+          },
+          "inviteCode": {
+            "S": "PDA1OO"
+          },
+          "hostId": {
+            "S": "324514d4-10b1-7059-4261-94d95c988e80"
+          },
+          "SK": {
+            "S": "ROOM"
+          },
+          "id": {
+            "S": "20c7cb86-7a29-4a8c-b030-dde4a96c159b"
+          },
+          "totalMovies": {
+            "N": "0"
+          },
+          "currentMovieIndex": {
+            "N": "0"
+          },
+          "isPrivate": {
+            "BOOL": false
+          },
+          "roomId": {
+            "S": "20c7cb86-7a29-4a8c-b030-dde4a96c159b"
+          },
+          "createdAt": {
+            "S": "2026-01-31T14:24:39.027Z"
+          },
+          "contentIds": {
+            "L": []
+          },
+          "genreIds": {
+            "L": [
+              {
+                "N": "16"
+              },
+              {
+                "N": "27"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "moviesExhausted": {
+            "BOOL": false
+          },
+          "shownContentIds": {
+            "L": []
+          },
+          "updatedAt": {
+            "S": "2026-01-31T14:24:39.027Z"
+          },
+          "maxMembers": {
+            "N": "2"
+          },
+          "PK": {
+            "S": "20c7cb86-7a29-4a8c-b030-dde4a96c159b"
+          },
+          "currentContentIndex": {
+            "N": "0"
+          },
+          "inviteUrl": {
+            "S": "https://trinity-app.com/invite/PDA1OO"
+          }
+        },
+        {
+          "mediaType": {
+            "S": "MOVIE"
+          },
+          "hostId": {
+            "S": "test-user"
+          },
+          "status": {
+            "S": "ACTIVE"
+          },
+          "createdAt": {
+            "S": "2026-01-31T11:23:52.255Z"
+          },
+          "SK": {
+            "S": "ROOM"
+          },
+          "genreIds": {
+            "L": [
+              {
+                "N": "16"
+              },
+              {
+                "N": "35"
+              }
+            ]
+          },
+          "PK": {
+            "S": "test-genre-room-1769858632255"
+          },
+          "id": {
+            "S": "test-genre-room-1769858632255"
+          },
+          "name": {
+            "S": "Test Genre Room"
+          }
+        }
+      ]
+    },
+    {
+      "table": "trinity-room-members-dev",
+      "status": "PASS",
+      "itemCount": 138,
+      "sampleData": [
+        {
+          "isActive": {
+            "BOOL": true
+          },
+          "roomId": {
+            "S": "63407658-af6b-4463-a75a-345ef09c1de9"
+          },
+          "joinedAt": {
+            "S": "2026-01-26T23:36:59.355Z"
+          },
+          "role": {
+            "S": "HOST"
+          },
+          "userId": {
+            "S": "22c53444-20b1-7095-0706-8f68d93726b6"
+          }
+        },
+        {
+          "isActive": {
+            "BOOL": true
+          },
+          "roomId": {
+            "S": "949a1af1-9d8b-4349-83b6-4ce58289ac05"
+          },
+          "joinedAt": {
+            "S": "2026-01-31T12:48:18.216Z"
+          },
+          "role": {
+            "S": "MEMBER"
+          },
+          "userId": {
+            "S": "324514d4-10b1-7059-4261-94d95c988e80"
+          }
+        },
+        {
+          "isActive": {
+            "BOOL": true
+          },
+          "roomId": {
+            "S": "949a1af1-9d8b-4349-83b6-4ce58289ac05"
+          },
+          "joinedAt": {
+            "S": "2026-01-31T12:47:19.039Z"
+          },
+          "role": {
+            "S": "HOST"
+          },
+          "userId": {
+            "S": "c2d53444-60a1-707a-e868-bec342995b51"
+          }
+        }
+      ]
+    },
+    {
+      "table": "trinity-room-invites-dev-v2",
+      "status": "PASS",
+      "itemCount": 62,
+      "sampleData": [
+        {
+          "isActive": {
+            "BOOL": true
+          },
+          "code": {
+            "S": "1K4GV8"
+          },
+          "expiresAt": {
+            "S": "2026-02-01T23:23:45.125Z"
+          },
+          "createdAt": {
+            "S": "2026-01-25T23:23:45.125Z"
+          },
+          "roomId": {
+            "S": "d81cfd5c-a1ff-4675-964a-ecda0f3eafbf"
+          },
+          "SK": {
+            "S": "INVITE"
+          },
+          "usageCount": {
+            "N": "0"
+          },
+          "PK": {
+            "S": "1K4GV8"
+          },
+          "url": {
+            "S": "https://trinity.app/room/1K4GV8"
+          },
+          "createdBy": {
+            "S": "22c53444-20b1-7095-0706-8f68d93726b6"
+          }
+        },
+        {
+          "createdAt": {
+            "S": "2026-01-25T22:36:30.743Z"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "inviteCode": {
+            "S": "XQ6ZSA"
+          },
+          "SK": {
+            "S": "INVITE#XQ6ZSA"
+          },
+          "PK": {
+            "S": "ac7a04ba-75bd-4650-821e-b99a4e33ffe5"
+          },
+          "expiresAt": {
+            "S": "2026-02-01T22:36:30.743Z"
+          }
+        },
+        {
+          "createdAt": {
+            "S": "2026-01-25T23:49:49.370Z"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "inviteCode": {
+            "S": "KRM6QG"
+          },
+          "SK": {
+            "S": "INVITE#KRM6QG"
+          },
+          "PK": {
+            "S": "eb65fc4f-de4b-42b5-a696-d546f35b6a2e"
+          },
+          "expiresAt": {
+            "S": "2026-02-01T23:49:49.370Z"
+          }
+        }
+      ]
+    },
+    {
+      "table": "trinity-votes-dev",
+      "status": "PASS",
+      "itemCount": 614,
+      "sampleData": [
+        {
+          "movieId": {
+            "S": "1168190"
+          },
+          "votedAt": {
+            "S": "2026-01-31T12:49:06.489Z"
+          },
+          "voteType": {
+            "S": "LIKE"
+          },
+          "roomId": {
+            "S": "949a1af1-9d8b-4349-83b6-4ce58289ac05"
+          },
+          "userId": {
+            "S": "324514d4-10b1-7059-4261-94d95c988e80"
+          },
+          "userId#movieId": {
+            "S": "324514d4-10b1-7059-4261-94d95c988e80#1168190"
+          }
+        },
+        {
+          "movieId": {
+            "S": "13"
+          },
+          "votedAt": {
+            "S": "2026-01-26T23:02:39.143Z"
+          },
+          "voteType": {
+            "S": "LIKE"
+          },
+          "roomId": {
+            "S": "934235b4-33cf-4154-9ec9-bc15b5f8ee23"
+          },
+          "userId": {
+            "S": "22c53444-20b1-7095-0706-8f68d93726b6"
+          },
+          "userId#movieId": {
+            "S": "22c53444-20b1-7095-0706-8f68d93726b6#13"
+          }
+        },
+        {
+          "movieId": {
+            "S": "12345"
+          },
+          "votedAt": {
+            "S": "2026-01-31T15:18:19.625Z"
+          },
+          "voteType": {
+            "S": "LIKE"
+          },
+          "roomId": {
+            "S": "test-room-1769872696461"
+          },
+          "userId": {
+            "S": "test-user-1-1769872696461"
+          },
+          "userId#movieId": {
+            "S": "test-user-1-1769872696461#12345"
+          }
+        }
+      ]
+    },
+    {
+      "table": "trinity-movies-cache-dev",
+      "status": "PASS",
+      "itemCount": 0,
+      "sampleData": []
+    },
+    {
+      "table": "trinity-room-matches-dev",
+      "status": "PASS",
+      "itemCount": 547,
+      "sampleData": [
+        {
+          "movieId": {
+            "S": "1168190"
+          },
+          "roomId": {
+            "S": "949a1af1-9d8b-4349-83b6-4ce58289ac05"
+          },
+          "updatedAt": {
+            "S": "2026-01-31T12:49:06.514Z"
+          },
+          "votes": {
+            "N": "1"
+          }
+        },
+        {
+          "movieId": {
+            "S": "13"
+          },
+          "roomId": {
+            "S": "934235b4-33cf-4154-9ec9-bc15b5f8ee23"
+          },
+          "updatedAt": {
+            "S": "2026-01-26T23:02:39.166Z"
+          },
+          "votes": {
+            "N": "1"
+          }
+        },
+        {
+          "movieId": {
+            "S": "12345"
+          },
+          "roomId": {
+            "S": "test-room-1769872696461"
+          },
+          "updatedAt": {
+            "S": "2026-01-31T15:18:19.638Z"
+          },
+          "votes": {
+            "N": "1"
+          }
+        }
+      ]
+    },
+    {
+      "table": "trinity-connections-dev",
+      "status": "PASS",
+      "itemCount": 0,
+      "sampleData": []
+    },
+    {
+      "table": "trinity-room-movie-cache-dev",
+      "status": "PASS",
+      "itemCount": 1050,
+      "sampleData": [
+        {
+          "addedAt": {
+            "S": "2026-01-31T11:23:54.231Z"
+          },
+          "posterPath": {
+            "S": "https://image.tmdb.org/t/p/w500/hhksXOBVJ6Mu2BwAFgPJwZxNisd.jpg"
+          },
+          "mediaType": {
+            "S": "MOVIE"
+          },
+          "overview": {
+            "S": "La pel�cula de animaci�n de los estudios Universal, giraba en torno a una apacible y colorida poblaci�n en la que viv�a el malvado Gru. Ayudado por su batall�n de Minions, unos peque�os seres de color amarillo, intentaron robar la Luna, aunque no todo acab� como esperaban. Tres ni�as curiosas y algo traviesas se cruzaron en su camino, entorpeci�ndole todos sus planes y conviertiendo su objetivo en una alocada haza�a interestelar.  Ahora, 'Gru, mi villano favorito 2', narra una nueva aventura en la que Gru volver� a estar acompa�ado de simp�ticos humanoides."
+          },
+          "movieId": {
+            "S": "93456"
+          },
+          "priority": {
+            "N": "3"
+          },
+          "ttl": {
+            "N": "1770463434"
+          },
+          "roomId": {
+            "S": "test-genre-room-1769858632255"
+          },
+          "genreIds": {
+            "L": [
+              {
+                "N": "16"
+              },
+              {
+                "N": "35"
+              },
+              {
+                "N": "10751"
+              }
+            ]
+          },
+          "batchNumber": {
+            "N": "1"
+          },
+          "voteAverage": {
+            "N": "6.94"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "releaseDate": {
+            "S": "2013-06-26"
+          },
+          "title": {
+            "S": "Gru 2. Mi villano favorito"
+          },
+          "sequenceIndex": {
+            "N": "0"
+          }
+        },
+        {
+          "addedAt": {
+            "S": "2026-01-31T11:23:54.231Z"
+          },
+          "posterPath": {
+            "S": "https://image.tmdb.org/t/p/w500/b6JX0fBne5yPFNBtdp4Imi3CpiE.jpg"
+          },
+          "mediaType": {
+            "S": "MOVIE"
+          },
+          "overview": {
+            "S": "Gru, Lucy y las ni�as -Margo, Edith y Agnes- dan la bienvenida a un nuevo miembro en la familia: Gru Junior, que parece llegar con el prop�sito de ser un suplicio para su padre. Gru tendr� que enfrentarse en esta ocasi�n a su nueva n�mesis Maxime Le Mal y su sofisticada y mal�vola novia Valentina, lo que obligar� a la familia a tener que darse a la fuga. Cuarta entrega de 'Gru, mi villano favorito'."
+          },
+          "movieId": {
+            "S": "519182"
+          },
+          "priority": {
+            "N": "3"
+          },
+          "ttl": {
+            "N": "1770463434"
+          },
+          "roomId": {
+            "S": "test-genre-room-1769858632255"
+          },
+          "genreIds": {
+            "L": [
+              {
+                "N": "10751"
+              },
+              {
+                "N": "35"
+              },
+              {
+                "N": "16"
+              },
+              {
+                "N": "878"
+              },
+              {
+                "N": "28"
+              }
+            ]
+          },
+          "batchNumber": {
+            "N": "1"
+          },
+          "voteAverage": {
+            "N": "6.994"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "releaseDate": {
+            "S": "2024-06-20"
+          },
+          "title": {
+            "S": "Gru 4. Mi villano favorito"
+          },
+          "sequenceIndex": {
+            "N": "1"
+          }
+        },
+        {
+          "addedAt": {
+            "S": "2026-01-31T11:23:54.231Z"
+          },
+          "posterPath": {
+            "S": "https://image.tmdb.org/t/p/w500/8OTDKkJv2jXg5ZHKazFxBAttKkR.jpg"
+          },
+          "mediaType": {
+            "S": "MOVIE"
+          },
+          "overview": {
+            "S": "Cuando Andy se va de campamento dejando solos a los juguetes, Al McWhiggin, un compulsivo coleccionista de juguetes valiosos, secuestra a Woody. Buzz Lightyear y el resto de los juguetes de Andy deber�n actuar con rapidez para rescatarlo, poni�ndose al frente de una operaci�n de rescate durante la cual se enfrentar�n a m�ltiples peligros y divertidas situaciones."
+          },
+          "movieId": {
+            "S": "863"
+          },
+          "priority": {
+            "N": "3"
+          },
+          "ttl": {
+            "N": "1770463434"
+          },
+          "roomId": {
+            "S": "test-genre-room-1769858632255"
+          },
+          "genreIds": {
+            "L": [
+              {
+                "N": "16"
+              },
+              {
+                "N": "35"
+              },
+              {
+                "N": "10751"
+              }
+            ]
+          },
+          "batchNumber": {
+            "N": "1"
+          },
+          "voteAverage": {
+            "N": "7.603"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "releaseDate": {
+            "S": "1999-10-30"
+          },
+          "title": {
+            "S": "Toy Story 2"
+          },
+          "sequenceIndex": {
+            "N": "2"
+          }
+        }
+      ]
+    },
+    {
+      "table": "trinity-room-cache-metadata-dev",
+      "status": "PASS",
+      "itemCount": 21,
+      "sampleData": [
+        {
+          "currentIndex": {
+            "N": "3"
+          },
+          "nextBatchThreshold": {
+            "N": "50"
+          },
+          "batchesLoaded": {
+            "N": "1"
+          },
+          "maxMovies": {
+            "N": "50"
+          },
+          "updatedAt": {
+            "S": "2026-01-31T11:23:54.759Z"
+          },
+          "status": {
+            "S": "ACTIVE"
+          },
+          "roomId": {
+            "S": "test-genre-room-1769858632255"
+          },
+          "ttl": {
+            "N": "1770463434"
+          },
+          "createdAt": {
+            "S": "2026-01-31T11:23:54.285Z"
+          },
+          "filterCriteria": {
+            "M": {
+              "genreIds": {
+                "L": [
+                  {
+                    "N": "16"
+                  },
+                  {
+                    "N": "35"
+                  }
+                ]
+              },
+              "mediaType": {
+                "S": "MOVIE"
+              },
+              "roomId": {
+                "S": "test-genre-room-1769858632255"
+              }
+            }
+          },
+          "lastBatchLoadedAt": {
+            "S": "2026-01-31T11:23:54.285Z"
+          },
+          "totalMovies": {
+            "N": "50"
+          }
+        },
+        {
+          "roomCapacity": {
+            "N": "2"
+          },
+          "businessLogicApplied": {
+            "M": {
+              "descriptionRequired": {
+                "BOOL": true
+              },
+              "westernLanguagesOnly": {
+                "BOOL": true
+              },
+              "exactlyFiftyMovies": {
+                "BOOL": true
+              },
+              "genrePrioritization": {
+                "BOOL": true
+              }
+            }
+          },
+          "cacheComplete": {
+            "BOOL": true
+          },
+          "updatedAt": {
+            "S": "2026-01-31T17:45:48.306Z"
+          },
+          "currentMembers": {
+            "N": "0"
+          },
+          "status": {
+            "S": "ACTIVE"
+          },
+          "filterCriteria": {
+            "M": {
+              "mediaType": {
+                "S": "MOVIE"
+              },
+              "roomCapacity": {
+                "N": "2"
+              },
+              "genreIds": {
+                "L": [
+                  {
+                    "N": "16"
+                  },
+                  {
+                    "N": "35"
+                  }
+                ]
+              },
+              "roomId": {
+                "S": "1dd27e5f-19dc-4c44-8098-d987d34d58fe"
+              }
+            }
+          },
+          "createdAt": {
+            "S": "2026-01-31T17:45:48.306Z"
+          },
+          "ttl": {
+            "N": "1770486348"
+          },
+          "roomId": {
+            "S": "1dd27e5f-19dc-4c44-8098-d987d34d58fe"
+          },
+          "totalMovies": {
+            "N": "50"
+          }
+        },
+        {
+          "currentIndex": {
+            "N": "18"
+          },
+          "nextBatchThreshold": {
+            "N": "50"
+          },
+          "batchesLoaded": {
+            "N": "1"
+          },
+          "maxMovies": {
+            "N": "50"
+          },
+          "updatedAt": {
+            "S": "2026-01-31T11:49:06.147Z"
+          },
+          "status": {
+            "S": "ACTIVE"
+          },
+          "filterCriteria": {
+            "M": {
+              "mediaType": {
+                "S": "MOVIE"
+              },
+              "genres": {
+                "L": []
+              },
+              "roomId": {
+                "S": "182350e4-acf2-4e0f-8980-8ae2fe5abcdc"
+              }
+            }
+          },
+          "createdAt": {
+            "S": "2026-01-31T11:48:04.926Z"
+          },
+          "roomId": {
+            "S": "182350e4-acf2-4e0f-8980-8ae2fe5abcdc"
+          },
+          "ttl": {
+            "N": "1770464884"
+          },
+          "lastBatchLoadedAt": {
+            "S": "2026-01-31T11:48:04.926Z"
+          },
+          "totalMovies": {
+            "N": "50"
+          }
+        }
+      ]
+    },
+    {
+      "table": "trinity-matchmaking-dev",
+      "status": "PASS",
+      "itemCount": 0,
+      "sampleData": []
+    },
+    {
+      "table": "trinity-filter-cache",
+      "status": "PASS",
+      "itemCount": 0,
+      "sampleData": []
+    }
+  ]
+}

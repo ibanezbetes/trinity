@@ -1,131 +1,25 @@
-# Dependencies
+# ==============================================================================
+# DEPENDENCIAS Y LOGS (CRÍTICO)
+# ==============================================================================
 node_modules/
-*/node_modules/
 **/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
 
-# Environment variables
+# ==============================================================================
+# CONFIGURACIÓN Y SECRETOS (CRÍTICO)
+# ==============================================================================
 .env
 .env.local
 .env.production
 .env.development
 .env.staging
-
-# Build outputs
-dist/
-build/
-*.zip
-*.tgz
-*.tar.gz
-
-# AWS
-.aws/
-cdk.out/
-cdk-outputs.json
-deployment-info.json
-stack-output.json
-
-# CDK specific
-infrastructure/*/cdk.out/
-infrastructure/*/node_modules/
-infrastructure/clean/lib/
-infrastructure/clean/*.js
-infrastructure/clean/*.d.ts
-infrastructure/clean/bin/*.js
-infrastructure/clean/bin/*.d.ts
-
-# Lambda packages and builds
-lambdas/*/function.zip
-lambdas/*/node_modules/
-lambdas/*/*.zip
-lambdas/*/dist/
-lambdas/*/build/
-
-# Logs
-*.log
-logs/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*.sublime-*
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Mobile specific (React Native + Expo)
-mobile/android/app/build/
-mobile/ios/build/
-mobile/.expo/
-mobile/android/.gradle/
-mobile/android/build/
-mobile/android/gradle/
-mobile/android/local.properties
-mobile/ios/Pods/
-mobile/ios/*.xcworkspace/xcuserdata/
-mobile/ios/*.xcodeproj/xcuserdata/
-mobile/android/app/src/main/assets/
-mobile/android/app/src/main/res/drawable-*/
-mobile/web-build/
-mobile/dist/
-
-# Gradle files (anywhere in the project)
-**/.gradle/
-**/build/
-gradle-wrapper.jar
-gradle-wrapper.properties
-gradlew
-gradlew.bat
-local.properties
-
-# React Native Gradle Plugin builds
-**/node_modules/@react-native/gradle-plugin/.gradle/
-**/node_modules/@react-native/gradle-plugin/settings-plugin/build/
-**/node_modules/@react-native/gradle-plugin/shared/build/
-**/node_modules/@react-native/gradle-plugin/**/build/
-
-# Expo
-.expo/
-.expo-shared/
-expo-env.d.ts
-
-# React Native
-metro.config.js.bak
-
-# Temporary files
-temp-*
-*.tmp
-.temp/
-tmp/
-
-# Test files
-coverage/
-*.test.js.snap
-.nyc_output/
-junit.xml
-
-# Database backups and exports
-database/backups/
-database/exports/
-*.sql
-*.db
-*.sqlite
-
-# Documentation builds
-docs/build/
-*.md.bak
-
-# Secrets and credentials
+aws-exports.js
+aws-configuration.json
+aws_exports.ts
 secrets/
 credentials/
 *.pem
@@ -134,97 +28,132 @@ credentials/
 *.p12
 *.jks
 
-# Python cache directories (anywhere in the project)
-**/__pycache__/
-**/.pytest_cache/
-**/.hypothesis/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+# ==============================================================================
+# SISTEMA OPERATIVO E IDE
+# ==============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Cache directories
-.cache/
-.parcel-cache/
-.next/
-.nuxt/
+# ==============================================================================
+# MOBILE: REACT NATIVE / ANDROID / IOS
+# ==============================================================================
+# Builds y Assets generados
+mobile/android/app/build/
+mobile/android/app/src/main/assets/index.android.bundle
+mobile/android/app/src/main/assets/index.android.bundle.meta
+mobile/ios/build/
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
 
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
+# Gradle
+.gradle/
+**/build/
+mobile/android/.gradle/
+mobile/android/build/
 
-# Optional npm cache directory
-.npm
+# CocoaPods
+mobile/ios/Pods/
+mobile/ios/*.xcworkspace/xcuserdata/
+mobile/ios/*.xcodeproj/xcuserdata/
 
-# Optional eslint cache
-.eslintcache
+# Metro & React Native
+metro.config.js.bak
+mobile/react-native.config.backup.js
 
-# Yarn
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
+# ==============================================================================
+# AWS & CDK (INFRAESTRUCTURA)
+# ==============================================================================
+.aws/
+cdk.out/
+**/cdk.out/
+cdk-outputs.json
+deployment-info.json
+stack-output.json
 
-# Archive and legacy files
-archive/
-lambda-package-final/
-old/
-backup/
-legacy/
+# Infrastructure specific
+infrastructure/*/node_modules/
+infrastructure/clean/lib/
+infrastructure/clean/*.js
+infrastructure/clean/*.d.ts
 
-# Generated files
-REORGANIZATION_COMPLETE.md
-*-COMPLETE.md
-*-SUMMARY.md
-*-STATUS.md
-*-FIXES*.md
-*BUILD*.md
-*FINAL*.md
+# ==============================================================================
+# LAMBDAS Y BACKEND
+# ==============================================================================
+# Builds y Zips
+lambdas/*/function.zip
+lambdas/*/*.zip
+lambdas/*/dist/
+lambdas/*/build/
+lambdas/*/node_modules/
 
-# Script temporary files
-scripts/*/temp-*
-scripts/*/*.tmp
-scripts/*/debug-*
-scripts/*/test-output-*
-
-# Mobile temporary files
-mobile/test-*.js
-mobile/debug-*.js
-mobile/*BUILD*.md
-mobile/*SUMMARY*.md
-mobile/*FIXES*.md
-mobile/*FINAL*.md
-mobile/ICON_CREATION_GUIDE.txt
-
-# Icon creation scripts (keep only essential ones)
-mobile/scripts/create-*-icon*.js
-mobile/scripts/create-*-png*.js
-mobile/scripts/create-*-square*.js
-
-# Lambda temporary files
+# Archivos temporales de Lambdas
 lambdas/*/test-*.js
 lambdas/*/debug-*.js
 lambdas/*/temp-*.js
-lambdas/*/*.zip
 lambdas/*/deployment-*.json
 
-# Infrastructure temporary files
-infrastructure/*/temp-*
-infrastructure/*/debug-*
-infrastructure/clean/cdk.out/asset.*/.hypothesis/
+# ==============================================================================
+# BASES DE DATOS Y BACKUPS
+# ==============================================================================
+database/backups/
+database/exports/
+*.sql
+*.db
+*.sqlite
 
-# Infrastructure deployment scripts (legacy)
+# ==============================================================================
+# TRINITY: ARCHIVOS TEMPORALES Y DE MIGRACIÓN
+# ==============================================================================
+# Scripts de deployment antiguos
 infrastructure/src/deploy-*.bat
 infrastructure/src/deploy-*.js
 infrastructure/src/fix-and-deploy.js
 
-# Database test scripts (temporary)
-database/scripts/test-*.js
+# Archivos temporales de documentación y estado
+*-SUMMARY-*.md
+*-FIXES-*.md
+*BUILD*.md
+*FINAL*.md
+*STATUS*.md
+CACHE-SYSTEM-DEPLOYMENT-COMPLETE.md
+DEPLOYMENT-SUCCESS.md
+MATCHMAKING_IMPLEMENTATION.md
+AWS-LOCAL-COMPARISON-*.md
+CLEANUP-REPORT-*.md
+REORGANIZATION_COMPLETE.md
+
+# Scripts temporales varios
+scripts/*/temp-*
+scripts/*/*.tmp
+scripts/*/debug-*
+scripts/*/test-output-*
+deploy-cache-*.js
+create_zip.py
+temp-lambda.js
+setup-android-*.js
+
+# ==============================================================================
+# BUILD OUTPUTS GLOBALES
+# ==============================================================================
+dist/
+build/
+*.zip
+*.tgz
+*.tar.gz
+
+# ==============================================================================
+# APKs (Ignorar todos excepto producción si se desea)
+# ==============================================================================
+*.apk
+!trinity-production.apk
+!trinity-simple.apk

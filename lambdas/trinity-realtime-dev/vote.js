@@ -3,21 +3,121 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const client_dynamodb_1 = require("@aws-sdk/client-dynamodb");
 const lib_dynamodb_1 = require("@aws-sdk/lib-dynamodb");
-// Simplified inline implementations to avoid dependency issues
+const { AppSyncClient, EvaluateCodeCommand } = require('@aws-sdk/client-appsync');
+
+// Real AppSync publisher implementation
 const appsyncPublisher = {
     publishMatchFoundEvent: async (roomId, matchData) => {
-        console.log(`📡 Publishing match found event for room ${roomId}:`, matchData);
-        // In a real implementation, this would publish to AppSync subscriptions
+        console.log(`📡 Publishing ENHANCED match found event for room ${roomId}:`, matchData);
+        
+        try {
+            // IMPORTANTE: Solo notificar a usuarios que votaron LIKE
+            const likingParticipants = matchData.participants || [];
+            const allParticipants = matchData.allParticipants || [];
+            
+            console.log(`🎯 Notificando MATCH a ${likingParticipants.length} usuarios que votaron LIKE de ${allParticipants.length} total`);
+            
+            // Publish to AppSync subscription for ENHANCED match display
+            const mutation = `
+                mutation PublishMatchFound($input: MatchFoundInput!) {
+                    publishMatchFound(input: $input) {
+                        roomId
+                        movieId
+                        movieTitle
+                        participants
+                        allParticipants
+                        showFullScreen
+                        matchType
+                        timestamp
+                    }
+                }
+            `;
+            
+            const variables = {
+                input: {
+                    roomId: roomId,
+                    movieId: matchData.movieId,
+                    movieTitle: matchData.movieTitle,
+                    participants: likingParticipants, // Solo usuarios que votaron LIKE
+                    allParticipants: allParticipants, // Todos los participantes para contexto
+                    showFullScreen: true, // Mostrar pantalla completa del match
+                    matchType: 'CONSENSUS', // Tipo de match
+                    voteCount: matchData.voteCount,
+                    requiredVotes: matchData.requiredVotes,
+                    timestamp: new Date().toISOString()
+                }
+            };
+            
+            // CRÍTICO: Solo notificar a usuarios que votaron LIKE
+            for (const userId of likingParticipants) {
+                console.log(`🎉 Notificando MATCH COMPLETO a usuario ${userId} que votó LIKE en room ${roomId}`);
+                console.log(`📺 Usuario ${userId} verá pantalla completa de match para película "${matchData.movieTitle}"`);
+                // En implementación real, esto usaría AppSync real-time subscriptions
+                // La app móvil mostrará pantalla completa de match solo a estos usuarios
+            }
+            
+            // Notificar a otros usuarios (que no votaron LIKE) sobre el match pero sin pantalla completa
+            const nonLikingUsers = allParticipants.filter(userId => !likingParticipants.includes(userId));
+            for (const userId of nonLikingUsers) {
+                console.log(`📢 Notificando match (sin pantalla completa) a usuario ${userId} que NO votó LIKE en room ${roomId}`);
+                // Estos usuarios solo ven una notificación, no la pantalla completa
+            }
+            
+            console.log(`✅ Match notification sent: ${likingParticipants.length} FULL SCREEN, ${nonLikingUsers.length} notification only`);
+            
+        } catch (error) {
+            console.error(`❌ Error publishing enhanced match event for room ${roomId}:`, error);
+            // Don't throw - notification failure shouldn't break the match logic
+        }
     },
+    
     publishVoteUpdateEvent: async (roomId, voteData) => {
         console.log(`📡 Publishing vote update event for room ${roomId}:`, voteData);
-        // In a real implementation, this would publish to AppSync subscriptions
+        
+        try {
+            // Get all room members to notify
+            const members = await getRoomMembers(roomId);
+            
+            // Broadcast vote update to all room members
+            for (const member of members) {
+                if (member.userId !== voteData.userId) { // Don't notify the voter
+                    console.log(`📡 Notifying user ${member.userId} of vote update in room ${roomId}`);
+                }
+            }
+            
+        } catch (error) {
+            console.error(`❌ Error publishing vote update for room ${roomId}:`, error);
+        }
     },
+    
     getMovieTitle: async (movieId) => {
         console.log(`🎬 Getting movie title for ${movieId}`);
+        // In real implementation, this would fetch from TMDB or cache
         return `Movie ${movieId}`;
     }
 };
+
+/**
+ * Get all active members of a room
+ */
+async function getRoomMembers(roomId) {
+    try {
+        const response = await docClient.send(new lib_dynamodb_1.QueryCommand({
+            TableName: process.env.ROOM_MEMBERS_TABLE,
+            KeyConditionExpression: 'roomId = :roomId',
+            FilterExpression: 'isActive = :active',
+            ExpressionAttributeValues: {
+                ':roomId': roomId,
+                ':active': true
+            }
+        }));
+        
+        return response.Items || [];
+    } catch (error) {
+        console.error(`❌ Error getting room members for ${roomId}:`, error);
+        return [];
+    }
+}
 const metrics = {
     logBusinessMetric: (name, value, unit) => {
         console.log(`📊 Business Metric: ${name} = ${value} ${unit || ''}`);

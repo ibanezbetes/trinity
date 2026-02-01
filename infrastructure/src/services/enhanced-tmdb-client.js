@@ -46,7 +46,6 @@ class EnhancedTMDBClient {
         console.log(`🔍 TMDB: Discovering ${params.mediaType} content`, {
             withGenres: params.withGenres,
             sortBy: params.sortBy,
-            page: params.page || 1,
             excludeCount: params.excludeIds?.length || 0
         });
         try {
@@ -63,7 +62,7 @@ class EnhancedTMDBClient {
                 queryParams.append('with_genres', params.withGenres);
             }
             const url = `${this.baseUrl}${endpoint}?${queryParams}`;
-            console.log(`🌐 TMDB: Making request to ${endpoint} (page ${params.page || 1})`);
+            console.log(`🌐 TMDB: Making request to ${endpoint}`);
             const response = await fetch(url, {
                 headers: {
                     'Accept': 'application/json',
@@ -82,7 +81,7 @@ class EnhancedTMDBClient {
             }
             // Validate required fields (Requirements: 4.5)
             results = results.filter(item => this.validateContentFields(item));
-            console.log(`✅ TMDB: Retrieved ${results.length} valid ${params.mediaType} items (page ${params.page || 1})`);
+            console.log(`✅ TMDB: Retrieved ${results.length} valid ${params.mediaType} items`);
             return results;
         }
         catch (error) {

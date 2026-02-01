@@ -94,77 +94,37 @@ class ContentFilterService {
         const results = [];
         const now = new Date();
         try {
-            // Priority 1: All genres (AND logic) - try to get up to 30 items
+            // Priority 1: All genres (AND logic) - up to 15 items
             if (criteria.genres.length > 0) {
                 console.log(`🥇 Priority 1: Fetching content with ALL genres [${criteria.genres.join(',')}]`);
-                
-                // Fetch multiple pages to get more Priority 1 content
-                let allGenresContent = [];
-                const maxPages = 10; // Increased to 10 pages to get more AND logic content
-                
-                for (let page = 1; page <= maxPages; page++) {
-                    const pageContent = await this.tmdbClient.discoverContent({
-                        mediaType: criteria.mediaType,
-                        withGenres: criteria.genres.join(','), // Comma-separated for AND logic
-                        sortBy: 'vote_average.desc',
-                        excludeIds,
-                        page
-                    });
-                    
-                    if (pageContent.length === 0) break; // No more content available
-                    allGenresContent.push(...pageContent);
-                    
-                    // Stop if we have enough content for randomization (at least 50 items for good randomization)
-                    if (allGenresContent.length >= 50) break;
-                }
-                
+                const allGenresContent = await this.tmdbClient.discoverContent({
+                    mediaType: criteria.mediaType,
+                    withGenres: criteria.genres.join(','), // Comma-separated for AND logic
+                    sortBy: 'vote_average.desc',
+                    excludeIds
+                });
                 const priority1Items = this.priorityAlgorithm.randomizeContent(allGenresContent)
-                    .slice(0, 30) // Try to get up to 30 items from Priority 1
+                    .slice(0, 15)
                     .map(item => this.mapToContentPoolEntry(item, 1, now));
                 results.push(...priority1Items);
-                console.log(`✅ Priority 1: Added ${priority1Items.length} items from ${allGenresContent.length} total found`);
+                console.log(`✅ Priority 1: Added ${priority1Items.length} items`);
             }
-            // Priority 2: Any genre (OR logic) - only if Priority 1 didn't get enough content
+            // Priority 2: Any genre (OR logic) - fill up to 30 items
             if (criteria.genres.length > 0 && results.length < 30) {
-                console.log(`🥈 Priority 2: Priority 1 only got ${results.length} items, fetching content with ANY genre (individual genre searches)`);
+                console.log(`🥈 Priority 2: Fetching content with ANY genre [${criteria.genres.join('|')}]`);
                 const currentExcludeIds = [...excludeIds, ...results.map(r => r.tmdbId)];
-                
-                // Since TMDB doesn't support pipe-separated OR logic, we need to make separate calls
-                let anyGenreContent = [];
-                const seenIds = new Set();
-                
-                for (const genreId of criteria.genres) {
-                    const genreContent = await this.tmdbClient.discoverContent({
-                        mediaType: criteria.mediaType,
-                        withGenres: genreId.toString(), // Single genre for OR logic
-                        sortBy: 'popularity.desc',
-                        excludeIds: currentExcludeIds
-                    });
-                    
-                    // Filter out content that already has all genres (Priority 1) and duplicates
-                    const filteredContent = genreContent.filter(item => {
-                        const itemId = item.id.toString();
-                        if (seenIds.has(itemId)) return false;
-                        
-                        const itemGenres = item.genre_ids || [];
-                        const hasAllGenres = criteria.genres.every(gId => itemGenres.includes(gId));
-                        
-                        if (!hasAllGenres) {
-                            seenIds.add(itemId);
-                            return true;
-                        }
-                        return false;
-                    });
-                    
-                    anyGenreContent.push(...filteredContent);
-                }
-                
+                const anyGenreContent = await this.tmdbClient.discoverContent({
+                    mediaType: criteria.mediaType,
+                    withGenres: criteria.genres.join('|'), // Pipe-separated for OR logic
+                    sortBy: 'popularity.desc',
+                    excludeIds: currentExcludeIds
+                });
                 const needed = 30 - results.length;
                 const priority2Items = this.priorityAlgorithm.randomizeContent(anyGenreContent)
                     .slice(0, needed)
                     .map(item => this.mapToContentPoolEntry(item, 2, now));
                 results.push(...priority2Items);
-                console.log(`✅ Priority 2: Added ${priority2Items.length} items from ${anyGenreContent.length} OR logic candidates`);
+                console.log(`✅ Priority 2: Added ${priority2Items.length} items`);
             }
             // Priority 3: Popular fallback - fill remaining slots
             if (results.length < 30) {

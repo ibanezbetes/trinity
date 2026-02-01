@@ -1,0 +1,436 @@
+{
+  "timestamp": "2026-02-01T00:36:37.600Z",
+  "environment": "dev",
+  "region": "eu-west-1",
+  "summary": {
+    "total": 45,
+    "compliant": 31,
+    "nonCompliant": 7,
+    "warnings": 7
+  },
+  "results": [
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-connections-dev",
+      "current": "trinity-connections-dev",
+      "expected": "trinity-connections-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-filter-cache",
+      "current": "trinity-filter-cache",
+      "expected": "trinity-filter-cache",
+      "status": "non-compliant",
+      "issues": [
+        "Resource name should include environment 'dev'"
+      ]
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-matchmaking-dev",
+      "current": "trinity-matchmaking-dev",
+      "expected": "trinity-matchmaking-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-movies-cache-dev",
+      "current": "trinity-movies-cache-dev",
+      "expected": "trinity-movies-cache-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-room-cache-metadata-dev",
+      "current": "trinity-room-cache-metadata-dev",
+      "expected": "trinity-room-cache-metadata-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-room-invites-dev-v2",
+      "current": "trinity-room-invites-dev-v2",
+      "expected": "trinity-room-invites-dev-v2",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-room-matches-dev",
+      "current": "trinity-room-matches-dev",
+      "expected": "trinity-room-matches-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-room-members-dev",
+      "current": "trinity-room-members-dev",
+      "expected": "trinity-room-members-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-room-movie-cache-dev",
+      "current": "trinity-room-movie-cache-dev",
+      "expected": "trinity-room-movie-cache-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-rooms-dev-v2",
+      "current": "trinity-rooms-dev-v2",
+      "expected": "trinity-rooms-dev-v2",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-users-dev",
+      "current": "trinity-users-dev",
+      "expected": "trinity-users-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "DynamoDB",
+      "resource": "trinity-votes-dev",
+      "current": "trinity-votes-dev",
+      "expected": "trinity-votes-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "Lambda",
+      "resource": "trinity-cache-dev",
+      "current": "trinity-cache-dev",
+      "expected": "trinity-cache-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "Lambda",
+      "resource": "trinity-vote-consensus-dev",
+      "current": "trinity-vote-consensus-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "Lambda",
+      "resource": "trinity-room-dev",
+      "current": "trinity-room-dev",
+      "expected": "trinity-room-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "Lambda",
+      "resource": "trinity-realtime-dev",
+      "current": "trinity-realtime-dev",
+      "expected": "trinity-realtime-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "Lambda",
+      "resource": "trinity-movie-dev",
+      "current": "trinity-movie-dev",
+      "expected": "trinity-movie-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "Lambda",
+      "resource": "trinity-vote-dev",
+      "current": "trinity-vote-dev",
+      "expected": "trinity-vote-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "Lambda",
+      "resource": "trinity-auth-dev",
+      "current": "trinity-auth-dev",
+      "expected": "trinity-auth-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "Lambda",
+      "resource": "matchmaker",
+      "current": "NOT_FOUND",
+      "expected": "trinity-matchmaker-dev",
+      "status": "warning",
+      "issues": [
+        "Expected function not found"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "TrinityMainStack",
+      "current": "TrinityMainStack",
+      "status": "non-compliant",
+      "issues": [
+        "Resource name should start with 'trinity'",
+        "Resource name should include environment 'dev'",
+        "Resource name should only contain lowercase letters, numbers, and hyphens"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "TrinityApiStack",
+      "current": "TrinityApiStack",
+      "status": "non-compliant",
+      "issues": [
+        "Resource name should start with 'trinity'",
+        "Resource name should include environment 'dev'",
+        "Resource name should only contain lowercase letters, numbers, and hyphens"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "TrinityMatchmakingStack",
+      "current": "TrinityMatchmakingStack",
+      "status": "non-compliant",
+      "issues": [
+        "Resource name should start with 'trinity'",
+        "Resource name should include environment 'dev'",
+        "Resource name should only contain lowercase letters, numbers, and hyphens"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "TrinityDatabaseStack",
+      "current": "TrinityDatabaseStack",
+      "status": "non-compliant",
+      "issues": [
+        "Resource name should start with 'trinity'",
+        "Resource name should include environment 'dev'",
+        "Resource name should only contain lowercase letters, numbers, and hyphens"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "TrinityMvpStack",
+      "current": "TrinityMvpStack",
+      "status": "non-compliant",
+      "issues": [
+        "Resource name should start with 'trinity'",
+        "Resource name should include environment 'dev'",
+        "Resource name should only contain lowercase letters, numbers, and hyphens"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "config",
+      "current": "NOT_FOUND",
+      "expected": "TrinityDevConfigStack",
+      "status": "warning",
+      "issues": [
+        "Expected stack not found"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "database",
+      "current": "NOT_FOUND",
+      "expected": "TrinityDevDatabaseStack",
+      "status": "warning",
+      "issues": [
+        "Expected stack not found"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "lambda",
+      "current": "NOT_FOUND",
+      "expected": "TrinityDevLambdaStack",
+      "status": "warning",
+      "issues": [
+        "Expected stack not found"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "api",
+      "current": "NOT_FOUND",
+      "expected": "TrinityDevApiStack",
+      "status": "warning",
+      "issues": [
+        "Expected stack not found"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "cognito",
+      "current": "NOT_FOUND",
+      "expected": "TrinityDevCognitoStack",
+      "status": "warning",
+      "issues": [
+        "Expected stack not found"
+      ]
+    },
+    {
+      "category": "CloudFormation",
+      "resource": "main",
+      "current": "NOT_FOUND",
+      "expected": "TrinityDevMainStack",
+      "status": "warning",
+      "issues": [
+        "Expected stack not found"
+      ]
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-users-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-rooms-dev-v2",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-room-members-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-room-invites-dev-v2",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-votes-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-movies-cache-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-room-matches-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-connections-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-chat-sessions-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-room-movie-cache-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-room-cache-metadata-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-matchmaking-dev",
+      "status": "compliant",
+      "issues": []
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-database-stack.ts",
+      "current": "trinity-filter-cache",
+      "status": "non-compliant",
+      "issues": [
+        "Resource name should include environment 'dev'"
+      ]
+    },
+    {
+      "category": "CDK Source",
+      "resource": "trinity-matchmaking-stack.ts",
+      "current": "trinity-matchmaking-dev",
+      "status": "compliant",
+      "issues": []
+    }
+  ],
+  "recommendations": [
+    "🔧 Fix non-compliant resource names:",
+    "   - Rename trinity-filter-cache to trinity-filter-cache",
+    "   - Fix naming issues in TrinityMainStack: Resource name should start with 'trinity', Resource name should include environment 'dev', Resource name should only contain lowercase letters, numbers, and hyphens",
+    "   - Fix naming issues in TrinityApiStack: Resource name should start with 'trinity', Resource name should include environment 'dev', Resource name should only contain lowercase letters, numbers, and hyphens",
+    "   - Fix naming issues in TrinityMatchmakingStack: Resource name should start with 'trinity', Resource name should include environment 'dev', Resource name should only contain lowercase letters, numbers, and hyphens",
+    "   - Fix naming issues in TrinityDatabaseStack: Resource name should start with 'trinity', Resource name should include environment 'dev', Resource name should only contain lowercase letters, numbers, and hyphens",
+    "   - Fix naming issues in TrinityMvpStack: Resource name should start with 'trinity', Resource name should include environment 'dev', Resource name should only contain lowercase letters, numbers, and hyphens",
+    "   - Fix naming issues in trinity-filter-cache: Resource name should include environment 'dev'",
+    "⚠️ Address missing resources:",
+    "   - Create missing resource: trinity-matchmaker-dev",
+    "   - Create missing resource: TrinityDevConfigStack",
+    "   - Create missing resource: TrinityDevDatabaseStack",
+    "   - Create missing resource: TrinityDevLambdaStack",
+    "   - Create missing resource: TrinityDevApiStack",
+    "   - Create missing resource: TrinityDevCognitoStack",
+    "   - Create missing resource: TrinityDevMainStack",
+    "",
+    "📋 Naming Convention Rules:",
+    "   GENERAL:",
+    "     - Use lowercase letters, numbers, and hyphens only",
+    "     - Start with project name (trinity)",
+    "     - Include environment (dev, staging, production)",
+    "     - Use descriptive, consistent naming",
+    "     - Avoid abbreviations unless widely understood",
+    "   DYNAMODB:",
+    "     - Format: trinity-[purpose]-[environment][-version]",
+    "     - Examples: trinity-users-dev, trinity-rooms-dev-v2",
+    "     - Use singular nouns for entity tables",
+    "     - Use descriptive names for cache and metadata tables",
+    "   LAMBDA:",
+    "     - Format: trinity-[purpose]-[environment]",
+    "     - Examples: trinity-auth-dev, trinity-movie-dev",
+    "     - Use verb-based names for action functions",
+    "     - Keep names concise but descriptive",
+    "   CLOUDFORMATION:",
+    "     - Format: Trinity[Environment][Purpose]Stack",
+    "     - Examples: TrinityDevDatabaseStack, TrinityProdApiStack",
+    "     - Use PascalCase for stack names",
+    "     - Include environment and purpose clearly",
+    "   CLOUDWATCH:",
+    "     - Dashboards: trinity-[env]-[purpose]-metrics",
+    "     - Alarms: [resource-name]-[metric-type]",
+    "     - Log groups: Follow AWS conventions (/aws/lambda/[function-name])"
+  ]
+}

@@ -143,8 +143,13 @@ class EnhancedTMDBClient {
         }
     }
     /**
-     * Validates that content has all required fields
+     * Validates that content has all required fields and quality standards
      * Requirements: 4.5
+     * 
+     * Quality filters:
+     * - Must have meaningful description (overview)
+     * - Title must be in western/latin characters (not Asian scripts)
+     * - Must have minimum rating and vote count
      */
     validateContentFields(item) {
         const requiredFields = [
@@ -153,16 +158,81 @@ class EnhancedTMDBClient {
             'genre_ids',
             'vote_average'
         ];
+        
         // Check for title/name
-        const hasTitle = item.title || item.name;
-        if (!hasTitle)
+        const title = item.title || item.name;
+        if (!title) return false;
+        
+        // QUALITY FILTER 1: Title must be in western/latin characters
+        // Reject titles that are primarily in Asian scripts (Chinese, Japanese, Korean, Arabic, etc.)
+        const hasWesternTitle = this.isWesternTitle(title);
+        if (!hasWesternTitle) {
+            console.log(`🚫 Rejected non-western title: "${title}"`);
             return false;
+        }
+        
+        // QUALITY FILTER 2: Must have meaningful description
+        const overview = item.overview || '';
+        if (overview.length < 20) {
+            console.log(`🚫 Rejected insufficient description: "${title}" (${overview.length} chars)`);
+            return false;
+        }
+        
+        // QUALITY FILTER 3: Must have minimum quality rating
+        const rating = item.vote_average || 0;
+        const voteCount = item.vote_count || 0;
+        if (rating < 5.0 || voteCount < 10) {
+            console.log(`🚫 Rejected low quality: "${title}" (rating: ${rating}, votes: ${voteCount})`);
+            return false;
+        }
+        
         // Check for release date
         const hasReleaseDate = item.release_date || item.first_air_date;
-        if (!hasReleaseDate)
-            return false;
+        if (!hasReleaseDate) return false;
+        
         // Check other required fields
-        return requiredFields.every(field => item[field] !== undefined && item[field] !== null);
+        const hasRequiredFields = requiredFields.every(field => 
+            item[field] !== undefined && item[field] !== null
+        );
+        
+        if (hasRequiredFields) {
+            console.log(`✅ Quality approved: "${title}" (rating: ${rating}, votes: ${voteCount})`);
+        }
+        
+        return hasRequiredFields;
+    }
+    
+    /**
+     * Checks if a title is primarily in western/latin characters
+     * Rejects titles in Asian scripts (Chinese, Japanese, Korean, Arabic, etc.)
+     */
+    isWesternTitle(title) {
+        // Remove common punctuation and numbers
+        const cleanTitle = title.replace(/[0-9\s\-\.\,\!\?\:\;\(\)\[\]\"\']/g, '');
+        
+        if (cleanTitle.length === 0) return true; // If only punctuation, allow it
+        
+        let westernChars = 0;
+        let totalChars = cleanTitle.length;
+        
+        for (let char of cleanTitle) {
+            const code = char.charCodeAt(0);
+            
+            // Latin characters (including accented)
+            if ((code >= 65 && code <= 90) ||     // A-Z
+                (code >= 97 && code <= 122) ||    // a-z
+                (code >= 192 && code <= 687)) {   // Extended Latin (À-ʯ)
+                westernChars++;
+            }
+            // Cyrillic (Russian, etc.) - also considered "western" for our purposes
+            else if (code >= 1024 && code <= 1279) {
+                westernChars++;
+            }
+        }
+        
+        // Require at least 70% western characters
+        const westernRatio = westernChars / totalChars;
+        return westernRatio >= 0.7;
     }
     /**
      * Enforces rate limiting to respect TMDB API limits

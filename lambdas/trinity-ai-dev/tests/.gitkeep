@@ -1,6 +1,0 @@
-# Tests directory for unit and property-based tests
-# This directory will contain:
-# - unit/ - Unit tests for individual components
-# - property/ - Property-based tests using fast-check
-# - fixtures/ - Test data and mock responses
-# - integration/ - Integration tests

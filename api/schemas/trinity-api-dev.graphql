@@ -187,10 +187,6 @@ type Mutation {
   updateUser(name: String, picture: String): User
   #  DataSource: RoomHandler
   vote(input: VoteInput!): Room
-  #  DataSource: TriniHandler
-  # Trini AI mutations
-  askTrini(input: TriniQuery!): TriniResponse!
-  addTriniRecommendationToRoom(roomId: ID!, movieId: ID!): AddToRoomResponse!
 }
 
 #  Supporting Types for Enhanced Events
@@ -223,10 +219,14 @@ type Query {
   getUser(id: ID): User
   #  DataSource: RoomHandler
   getUserRooms: [Room]
-  #  DataSource: TriniHandler
-  # Trini AI queries
-  getChatHistory(userId: ID!, limit: Int = 10): [ChatSession!]!
-  getTriniRecommendations(sessionId: ID!): [MovieRecommendation!]!
+  
+  #  NEW: Individual voting system queries
+  #  DataSource: MovieHandler
+  getNextMovieForUser(roomId: ID!): NextMovieResult
+  #  DataSource: VoteHandler  
+  getUserVotingProgress(roomId: ID!): UserVotingProgress
+  #  DataSource: CacheHandler
+  checkMatchBeforeAction(roomId: ID!, action: ActionInput!): MatchCheckResult
 }
 
 type RoleEvent implements BaseEvent {
@@ -244,7 +244,7 @@ type RoleEvent implements BaseEvent {
 #  Main Types
 type Room {
   #  Nombres de géneros (nullable)
-  contentIds: [String!]
+  contentIds: [String]
   #  Criterios de filtrado aplicados (nullable por compatibilidad)
   contentPool: [ContentPoolEntry!]
   createdAt: AWSDateTime!
@@ -278,6 +278,15 @@ type Room {
   resultMovieId: String
   status: String!
   updatedAt: AWSDateTime
+  
+  #  NEW: Individual voting system fields
+  matchFound: Boolean
+  userFinished: Boolean
+  endOfMovies: Boolean
+  message: String
+  currentVotes: Int
+  totalMembers: Int
+  userProgress: Int
 }
 
 type RoomEvent implements BaseEvent {
@@ -381,66 +390,37 @@ type ThemeEvent implements BaseEvent {
   timestamp: AWSDateTime!
 }
 
-#  Trini AI Types
-type TriniQuery {
-  query: String!
-  userId: ID!
-  sessionId: ID
+#  NEW: Individual voting system types
+type UserVotingProgress {
+  votedCount: Int!
+  totalMovies: Int!
+  remainingMovies: Int!
+  isFinished: Boolean!
 }
 
-type TriniResponse {
-  sessionId: ID!
-  message: String!
-  recommendations: [MovieRecommendation!]!
-  extractedFilters: ExtractedFilters
-  confidence: Float!
-}
-
-type MovieRecommendation {
-  movie: Movie!
-  relevanceScore: Float!
-  reasoning: String
-}
-
-type ExtractedFilters {
-  genres: [String!]
-  yearRange: YearRange
-  rating: RatingRange
-  keywords: [String!]
-}
-
-type YearRange {
-  min: Int
-  max: Int
-}
-
-type RatingRange {
-  min: Float
-  max: Float
-}
-
-type ChatSession {
-  sessionId: ID!
-  userId: ID!
-  messages: [ChatMessage!]!
-  createdAt: AWSDateTime!
-  updatedAt: AWSDateTime!
-}
-
-type ChatMessage {
-  messageId: ID!
-  type: ChatMessageType!
-  content: String!
-  extractedFilters: ExtractedFilters
-  recommendations: [String!]
-  timestamp: AWSDateTime!
-}
-
-type AddToRoomResponse {
-  success: Boolean!
+type NextMovieResult {
+  id: ID
+  title: String
+  overview: String
+  poster: String
+  release_date: String
+  runtime: Int
+  vote_average: Float
+  genres: [Genre]
+  isUserFinished: Boolean!
+  endOfMovies: Boolean
   message: String
+  progress: UserVotingProgress
+}
+
+type MatchCheckResult {
+  isMatch: Boolean!
+  matchedMovie: Movie
+  message: String
+  canClose: Boolean
   roomId: ID
-  movieId: ID
+  roomStatus: String
+  error: String
 }
 
 type User {
@@ -637,4 +617,11 @@ input VoteInput {
   movieId: ID!
   roomId: ID!
   voteType: VoteType!
+}
+
+input ActionInput {
+  type: String!
+  movieId: String
+  voteType: String
+  destination: String
 }

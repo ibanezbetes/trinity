@@ -39,7 +39,7 @@ jest.mock('../hooks/useGenres', () => ({
 describe('GenreSelector Property-Based Tests', () => {
   
   const mediaTypeArb = fc.constantFrom('MOVIE' as MediaType, 'TV' as MediaType);
-  const genreIdsArb = fc.array(fc.integer({ min: 1, max: 5 }), { maxLength: 3 });
+  const genreIdsArb = fc.array(fc.integer({ min: 1, max: 5 }), { maxLength: 2 });
   const maxGenresArb = fc.integer({ min: 1, max: 5 });
   
   test('Property 15: UI State Management - Component renders without crashing', () => {

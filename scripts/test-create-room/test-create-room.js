@@ -2,9 +2,9 @@
 const https = require('https');
 
 const CONFIG = {
-    APPSYNC_ENDPOINT: 'https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql',
+    APPSYNC_ENDPOINT: 'https://yeirvhh7tbasposxcefngulg6i.appsync-api.eu-west-1.amazonaws.com/graphql',
     COGNITO_REGION: 'eu-west-1',
-    COGNITO_CLIENT_ID: '59dpqsm580j14ulkcha19shl64'
+    COGNITO_CLIENT_ID: 'l08ofv6tef7dp8eorn022fqpj'
 };
 
 // Primero autenticamos

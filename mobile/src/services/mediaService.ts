@@ -303,6 +303,69 @@ class MediaService {
     };
   }
 
+  /**
+   * Obtener detalles de media (película o serie) usando el ID remoto
+   * Maneja IDs de TMDB con prefijos movie- o tv-
+   */
+  async getMediaDetails(mediaId: string): Promise<MediaItemDetails | null> {
+    try {
+      console.log(`🎬 Getting media details for ID: ${mediaId}`);
+
+      // Extraer el ID numérico del formato movie-123 o tv-456
+      const tmdbId = parseInt(mediaId.replace('movie-', '').replace('tv-', ''));
+      
+      if (isNaN(tmdbId)) {
+        console.error(`❌ Invalid media ID format: ${mediaId}`);
+        return this.getFallbackMediaDetails(mediaId);
+      }
+
+      // Determinar si es película o serie basado en el prefijo
+      if (mediaId.startsWith('movie-')) {
+        console.log(`🎬 Getting movie details for TMDB ID: ${tmdbId}`);
+        return await this.getMovieDetails(tmdbId);
+      } else if (mediaId.startsWith('tv-')) {
+        console.log(`📺 Getting TV details for TMDB ID: ${tmdbId}`);
+        return await this.getTVDetails(tmdbId);
+      } else {
+        // Por defecto, intentar como película
+        console.log(`🎬 No prefix detected, trying as movie: ${tmdbId}`);
+        return await this.getMovieDetails(tmdbId);
+      }
+
+    } catch (error) {
+      console.error('❌ Error getting media details:', error);
+      return this.getFallbackMediaDetails(mediaId);
+    }
+  }
+
+  /**
+   * Datos de fallback genéricos para cualquier media
+   */
+  private getFallbackMediaDetails(mediaId: string): MediaItemDetails {
+    console.log(`🔄 Using fallback data for media ID: ${mediaId}`);
+
+    return {
+      id: mediaId,
+      remoteId: mediaId,
+      title: 'Contenido no disponible',
+      overview: 'Los detalles de este contenido no están disponibles temporalmente debido a problemas de conectividad. Por favor, inténtalo más tarde.',
+      poster: null,
+      release_date: '',
+      runtime: 0,
+      vote_average: 0,
+      genres: [{ id: 0, name: 'No disponible' }],
+      rating: 0,
+      voteCount: 0,
+      mediaType: 'movie' as const,
+      // Properties expected by room screen
+      mediaTitle: 'Contenido no disponible',
+      mediaYear: '',
+      mediaOverview: 'Los detalles de este contenido no están disponibles temporalmente.',
+      mediaRating: null,
+      mediaPosterPath: null,
+    };
+  }
+
   // Métodos legacy mantenidos para compatibilidad (ahora usan fallback local)
   async getPopularMovies(page = 1): Promise<MediaResponse> {
     console.warn('⚠️ getPopularMovies: Using legacy fallback data');
@@ -400,134 +463,74 @@ class MediaService {
 
   /**
    * Get current media for a room (required by room screen)
-   * Now uses the advanced content filtering system when available
+   * Now uses the CACHE SYSTEM for guaranteed consistent movie order with proper genre filtering
    */
   async getCurrentMedia(roomId: string, excludeIds: string[] = []): Promise<MediaItemDetails | null> {
     try {
-      console.log(`🎬 Getting current media for room: ${roomId}, excluding ${excludeIds.length} items`);
+      console.log(`🚀 CACHE SYSTEM: Getting current media for room: ${roomId} - GUARANTEED ORDER`);
 
-      // First, get room details to check if it has filter criteria
-      let useFilteredContent = false;
-      let mediaType: 'MOVIE' | 'TV' = 'MOVIE';
-      let genreIds: number[] = [];
-
+      // First, get room details to extract genre filters for cache system
+      let genreParam = 'popular'; // Default
       try {
-        console.log('🔍 Checking if room uses advanced filtering...');
+        console.log(`🔍 Getting room details to apply genre filters...`);
+        const roomResult = await appSyncService.getRoom(roomId);
+        const room = roomResult?.getRoom;
         
-        // Get room details to extract filter criteria with retry logic
-        let room = null;
-        let attempts = 0;
-        const maxAttempts = 3;
-        
-        while (attempts < maxAttempts && (!room || !room.mediaType)) {
-          attempts++;
-          console.log(`🔍 Attempt ${attempts}/${maxAttempts} - Getting room details...`);
-          
-          const roomResult = await appSyncService.getRoom(roomId);
-          room = roomResult?.getRoom;
-          
-          // DEBUG: Log the actual room response to see what we're getting
-          console.log('🔍 DEBUG - Room response from getRoom:', JSON.stringify(room, null, 2));
-          console.log('🔍 DEBUG - Room mediaType:', room?.mediaType);
-          console.log('🔍 DEBUG - Room genreIds:', room?.genreIds);
-          console.log('🔍 DEBUG - Room genreIds length:', room?.genreIds?.length);
-          
-          if (room && room.mediaType && room.genreIds && room.genreIds.length > 0) {
-            break; // Success, exit retry loop
-          }
-          
-          if (attempts < maxAttempts) {
-            console.log(`⏳ Room data incomplete, waiting 1s before retry...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
-        
-        if (room && room.mediaType && room.genreIds && room.genreIds.length > 0) {
-          mediaType = room.mediaType;
-          genreIds = room.genreIds;
-          useFilteredContent = true;
-          console.log(`🎯 Room has filtering: ${mediaType}, genres: [${genreIds.join(', ')}]`);
+        if (room && room.genreIds && room.genreIds.length > 0) {
+          // Convert genre IDs to genre names for cache system
+          const genreNames = this.convertGenreIdsToNames(room.genreIds);
+          genreParam = genreNames.length > 0 ? genreNames[0] : 'popular';
+          console.log(`🎯 Room has genre filters: ${room.genreIds} -> ${genreParam}`);
         } else {
-          console.log('🔄 Room has no filtering criteria, using legacy system');
+          console.log(`🔄 Room has no genre filters, using popular movies`);
         }
-        
-        // Try the new filtered content approach if room has filters
-        if (useFilteredContent) {
-          const filteredResult = await appSyncService.getFilteredContent(
-            mediaType,
-            genreIds,
-            30,
-            excludeIds
-          );
-
-          if (filteredResult.getFilteredContent && filteredResult.getFilteredContent.length > 0) {
-            console.log(`✅ Using advanced filtering system: ${filteredResult.getFilteredContent.length} items available`);
-            
-            // Get a random movie from filtered results
-            const randomIndex = Math.floor(Math.random() * filteredResult.getFilteredContent.length);
-            const movie = filteredResult.getFilteredContent[randomIndex];
-
-            const currentMedia: MediaItemDetails = {
-              id: movie.id || `movie-unknown`,
-              remoteId: movie.id || 'unknown',
-              title: movie.title || 'Título no disponible',
-              overview: movie.overview || '',
-              poster: movie.poster || null,
-              release_date: movie.release_date || '',
-              runtime: movie.runtime || 0,
-              vote_average: movie.vote_average || 0,
-              genres: movie.genres || [],
-              // Add properties expected by room screen
-              mediaPosterPath: movie.poster || null,
-              mediaTitle: movie.title || 'Título no disponible',
-              mediaYear: movie.release_date ? movie.release_date.split('-')[0] : '',
-              mediaOverview: movie.overview || '',
-              mediaRating: movie.vote_average || null,
-            };
-
-            console.log(`✅ Current media loaded via filtering: ${currentMedia.title}`);
-            return currentMedia;
-          } else {
-            console.log('🔄 No filtered content available, falling back to legacy system');
-          }
-        }
-      } catch (filterError) {
-        console.warn('⚠️ Advanced filtering not available, falling back to legacy system:', filterError);
+      } catch (roomError) {
+        console.warn(`⚠️ Could not get room details, using popular movies:`, roomError);
       }
 
-      // Fallback to legacy system if filtering fails or is not available
-      console.log('🔄 Using legacy content loading system...');
-      const result = await appSyncService.getMovies(undefined, undefined, undefined, roomId);
+      // ALWAYS use cache system by calling getMovies with roomId and genre filters
+      console.log(`⚡ Using CACHE SYSTEM for room ${roomId} with genre: ${genreParam} - VELOCIDAD MÁXIMA`);
+      const result = await appSyncService.getMovies(genreParam, 1, 1, roomId);
 
       if (!result.getMovies || result.getMovies.length === 0) {
         console.warn(`⚠️ No movies found for room: ${roomId}`);
         return null;
       }
 
-      // Filter out excluded movies
-      let availableMovies = result.getMovies;
-      if (excludeIds.length > 0) {
-        availableMovies = result.getMovies.filter(movie =>
-          !excludeIds.includes(movie.id) && !excludeIds.includes(movie.id.toString())
-        );
+      const movie = result.getMovies[0]; // Cache system returns single movie
 
-        if (availableMovies.length === 0) {
-          console.warn(`⚠️ All movies filtered out by exclusion list for room: ${roomId}`);
-          return null;
-        }
+      // Check if it's end of suggestions
+      if (movie.isEndOfSuggestions) {
+        console.log(`🏁 End of suggestions for room ${roomId}`);
+        return {
+          id: 'end-of-suggestions',
+          remoteId: 'end-of-suggestions',
+          title: 'Esa era mi última sugerencia',
+          overview: 'Puedes crear otra sala para continuar descubriendo películas.',
+          poster: null,
+          release_date: '',
+          runtime: 0,
+          vote_average: 0,
+          genres: [],
+          rating: 0,
+          voteCount: 0,
+          mediaType: 'movie' as const,
+          mediaPosterPath: null,
+          mediaTitle: 'Esa era mi última sugerencia',
+          mediaYear: '',
+          mediaOverview: 'Puedes crear otra sala para continuar descubriendo películas.',
+          mediaRating: null,
+          isEndOfSuggestions: true,
+        };
       }
-
-      // Get a random movie from available ones
-      const randomIndex = Math.floor(Math.random() * availableMovies.length);
-      const movie = availableMovies[randomIndex];
 
       const currentMedia: MediaItemDetails = {
         id: `movie-${movie.id}`,
-        remoteId: movie.id, // Ensure remoteId is preserved
+        remoteId: movie.id,
         title: movie.title,
         overview: movie.overview || '',
-        poster: movie.poster
-          ? `${TMDB_IMAGE_BASE}/w500${movie.poster}`
+        poster: movie.poster 
+          ? (movie.poster.startsWith('http') ? movie.poster : `${TMDB_IMAGE_BASE}/w500${movie.poster}`)
           : null,
         release_date: movie.release_date || '',
         runtime: movie.runtime || 0,
@@ -537,18 +540,20 @@ class MediaService {
         voteCount: 0,
         mediaType: 'movie' as const,
         // Add properties expected by room screen
-        mediaPosterPath: movie.poster,
+        mediaPosterPath: movie.poster 
+          ? (movie.poster.startsWith('http') ? movie.poster : `${TMDB_IMAGE_BASE}/w500${movie.poster}`)
+          : null,
         mediaTitle: movie.title,
         mediaYear: movie.release_date ? movie.release_date.split('-')[0] : '',
         mediaOverview: movie.overview || '',
         mediaRating: movie.vote_average ? Math.round(movie.vote_average * 10) / 10 : null,
       };
 
-      console.log(`✅ Current media loaded via legacy: ${currentMedia.title}`);
+      console.log(`⚡ CACHE SYSTEM: Current media loaded - ${currentMedia.title} - ORDEN GARANTIZADO CON FILTROS`);
       return currentMedia;
 
     } catch (error: any) {
-      console.error('❌ Error getting current media:', error);
+      console.error('❌ Error getting current media from CACHE SYSTEM:', error);
 
       // Return fallback media to prevent crashes
       return this.getFallbackCurrentMedia(roomId);
@@ -557,133 +562,74 @@ class MediaService {
 
   /**
    * Get next media for a room (required by room screen)
-   * Now uses the advanced content filtering system when available
+   * Now uses the CACHE SYSTEM for guaranteed consistent movie order with proper genre filtering
    */
   async getNextMedia(roomId: string, excludeIds: string[] = []): Promise<MediaItemDetails | null> {
     try {
-      console.log(`🎬 Getting next media for room: ${roomId}, excluding ${excludeIds.length} items`);
+      console.log(`🚀 CACHE SYSTEM: Getting next media for room: ${roomId} - GUARANTEED ORDER`);
 
-      // Get room details to check if it has filter criteria
-      let useFilteredContent = false;
-      let mediaType: 'MOVIE' | 'TV' = 'MOVIE';
-      let genreIds: number[] = [];
-
+      // First, get room details to extract genre filters for cache system
+      let genreParam = 'popular'; // Default
       try {
-        console.log('🔍 Attempting to use advanced filtering for next media...');
+        console.log(`🔍 Getting room details to apply genre filters...`);
+        const roomResult = await appSyncService.getRoom(roomId);
+        const room = roomResult?.getRoom;
         
-        // Get room details to extract filter criteria with retry logic
-        let room = null;
-        let attempts = 0;
-        const maxAttempts = 3;
-        
-        while (attempts < maxAttempts && (!room || !room.mediaType)) {
-          attempts++;
-          console.log(`🔍 Next media attempt ${attempts}/${maxAttempts} - Getting room details...`);
-          
-          const roomResult = await appSyncService.getRoom(roomId);
-          room = roomResult?.getRoom;
-          
-          // DEBUG: Log the actual room response to see what we're getting
-          console.log('🔍 DEBUG - Next media room response:', JSON.stringify(room, null, 2));
-          console.log('🔍 DEBUG - Next media room mediaType:', room?.mediaType);
-          console.log('🔍 DEBUG - Next media room genreIds:', room?.genreIds);
-          
-          if (room && room.mediaType && room.genreIds && room.genreIds.length > 0) {
-            break; // Success, exit retry loop
-          }
-          
-          if (attempts < maxAttempts) {
-            console.log(`⏳ Next media room data incomplete, waiting 1s before retry...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
-        
-        if (room && room.mediaType && room.genreIds && room.genreIds.length > 0) {
-          mediaType = room.mediaType;
-          genreIds = room.genreIds;
-          useFilteredContent = true;
-          console.log(`🎯 Room has filtering: ${mediaType}, genres: [${genreIds.join(', ')}]`);
+        if (room && room.genreIds && room.genreIds.length > 0) {
+          // Convert genre IDs to genre names for cache system
+          const genreNames = this.convertGenreIdsToNames(room.genreIds);
+          genreParam = genreNames.length > 0 ? genreNames[0] : 'popular';
+          console.log(`🎯 Room has genre filters: ${room.genreIds} -> ${genreParam}`);
         } else {
-          console.log('🔄 Room has no filtering criteria, using legacy system');
+          console.log(`🔄 Room has no genre filters, using popular movies`);
         }
-        
-        // Try the new filtered content approach if room has filters
-        if (useFilteredContent) {
-          const filteredResult = await appSyncService.getFilteredContent(
-            mediaType,
-            genreIds,
-            30,
-            excludeIds
-          );
-
-          if (filteredResult.getFilteredContent && filteredResult.getFilteredContent.length > 0) {
-            console.log(`✅ Using advanced filtering for next media: ${filteredResult.getFilteredContent.length} items available`);
-            
-            // Get a random movie from filtered results
-            const randomIndex = Math.floor(Math.random() * filteredResult.getFilteredContent.length);
-            const movie = filteredResult.getFilteredContent[randomIndex];
-
-            const nextMedia: MediaItemDetails = {
-              id: movie.id || `movie-unknown`,
-              remoteId: movie.id || 'unknown',
-              title: movie.title || 'Título no disponible',
-              overview: movie.overview || '',
-              poster: movie.poster || null,
-              release_date: movie.release_date || '',
-              runtime: movie.runtime || 0,
-              vote_average: movie.vote_average || 0,
-              genres: movie.genres || [],
-              // Add properties expected by room screen
-              mediaPosterPath: movie.poster || null,
-              mediaTitle: movie.title || 'Título no disponible',
-              mediaYear: movie.release_date ? movie.release_date.split('-')[0] : '',
-              mediaOverview: movie.overview || '',
-              mediaRating: movie.vote_average || null,
-            };
-
-            console.log(`✅ Next media loaded via filtering: ${nextMedia.title}`);
-            return nextMedia;
-          } else {
-            console.log('🔄 No filtered content available, falling back to legacy system');
-          }
-        }
-      } catch (filterError) {
-        console.warn('⚠️ Advanced filtering not available for next media, falling back to legacy system:', filterError);
+      } catch (roomError) {
+        console.warn(`⚠️ Could not get room details, using popular movies:`, roomError);
       }
 
-      // Fallback to legacy system
-      console.log('🔄 Using legacy system for next media...');
-      const result = await appSyncService.getMovies(undefined, undefined, undefined, roomId);
+      // ALWAYS use cache system by calling getMovies with roomId and genre filters
+      console.log(`⚡ Using CACHE SYSTEM for room ${roomId} with genre: ${genreParam} - VELOCIDAD MÁXIMA`);
+      const result = await appSyncService.getMovies(genreParam, 1, 1, roomId);
 
       if (!result.getMovies || result.getMovies.length === 0) {
         console.warn(`⚠️ No more movies found for room: ${roomId}`);
         return null;
       }
 
-      // Filter out excluded movies
-      let availableMovies = result.getMovies;
-      if (excludeIds.length > 0) {
-        availableMovies = result.getMovies.filter(movie =>
-          !excludeIds.includes(movie.id) && !excludeIds.includes(movie.id.toString())
-        );
+      const movie = result.getMovies[0]; // Cache system returns single movie
 
-        if (availableMovies.length === 0) {
-          console.warn(`⚠️ All next movies filtered out for room: ${roomId}`);
-          return null;
-        }
+      // Check if it's end of suggestions
+      if (movie.isEndOfSuggestions) {
+        console.log(`🏁 End of suggestions for room ${roomId}`);
+        return {
+          id: 'end-of-suggestions',
+          remoteId: 'end-of-suggestions',
+          title: 'Esa era mi última sugerencia',
+          overview: 'Puedes crear otra sala para continuar descubriendo películas.',
+          poster: null,
+          release_date: '',
+          runtime: 0,
+          vote_average: 0,
+          genres: [],
+          rating: 0,
+          voteCount: 0,
+          mediaType: 'movie' as const,
+          mediaPosterPath: null,
+          mediaTitle: 'Esa era mi última sugerencia',
+          mediaYear: '',
+          mediaOverview: 'Puedes crear otra sala para continuar descubriendo películas.',
+          mediaRating: null,
+          isEndOfSuggestions: true,
+        };
       }
-
-      // Get a random movie from available ones
-      const randomIndex = Math.floor(Math.random() * availableMovies.length);
-      const movie = availableMovies[randomIndex];
 
       const nextMedia: MediaItemDetails = {
         id: `movie-${movie.id}`,
-        remoteId: movie.id, // Ensure remoteId is preserved
+        remoteId: movie.id,
         title: movie.title,
         overview: movie.overview || '',
-        poster: movie.poster
-          ? `${TMDB_IMAGE_BASE}/w500${movie.poster}`
+        poster: movie.poster 
+          ? (movie.poster.startsWith('http') ? movie.poster : `${TMDB_IMAGE_BASE}/w500${movie.poster}`)
           : null,
         release_date: movie.release_date || '',
         runtime: movie.runtime || 0,
@@ -693,22 +639,52 @@ class MediaService {
         voteCount: 0,
         mediaType: 'movie' as const,
         // Add properties expected by room screen
-        mediaPosterPath: movie.poster,
+        mediaPosterPath: movie.poster 
+          ? (movie.poster.startsWith('http') ? movie.poster : `${TMDB_IMAGE_BASE}/w500${movie.poster}`)
+          : null,
         mediaTitle: movie.title,
         mediaYear: movie.release_date ? movie.release_date.split('-')[0] : '',
         mediaOverview: movie.overview || '',
         mediaRating: movie.vote_average ? Math.round(movie.vote_average * 10) / 10 : null,
       };
 
-      console.log(`✅ Next media loaded via legacy: ${nextMedia.title}`);
+      console.log(`⚡ CACHE SYSTEM: Next media loaded - ${nextMedia.title} - ORDEN GARANTIZADO CON FILTROS`);
       return nextMedia;
 
     } catch (error: any) {
-      console.error('❌ Error getting next media:', error);
+      console.error('❌ Error getting next media from CACHE SYSTEM:', error);
 
       // Return fallback media to prevent crashes
       return this.getFallbackCurrentMedia(roomId);
     }
+  }
+
+  /**
+   * Convert genre IDs to genre names for cache system
+   */
+  private convertGenreIdsToNames(genreIds: number[]): string[] {
+    const genreMap: Record<number, string> = {
+      28: 'action',
+      12: 'adventure', 
+      16: 'animation',
+      35: 'comedy',
+      80: 'crime',
+      99: 'documentary',
+      18: 'drama',
+      10751: 'family',
+      14: 'fantasy',
+      36: 'history',
+      27: 'horror',
+      10402: 'music',
+      9648: 'mystery',
+      10749: 'romance',
+      878: 'science_fiction',
+      53: 'thriller',
+      10752: 'war',
+      37: 'western',
+    };
+
+    return genreIds.map(id => genreMap[id]).filter(name => name !== undefined);
   }
 
   /**

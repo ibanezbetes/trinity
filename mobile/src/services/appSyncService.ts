@@ -905,9 +905,9 @@ class AppSyncService {
   }
 
   /**
-   * Vote on content with enhanced error handling
+   * Vote on content with enhanced error handling - NEW INDIVIDUAL SYSTEM
    */
-  async vote(roomId: string, movieId: string): Promise<{ vote: any }> {
+  async vote(roomId: string, movieId: string, voteType: 'LIKE' | 'DISLIKE' = 'LIKE'): Promise<{ vote: any }> {
     const mutation = `
       mutation Vote($input: VoteInput!) {
         vote(input: $input) {
@@ -925,6 +925,9 @@ class AppSyncService {
           matchCount
           createdAt
           updatedAt
+          matchFound
+          userFinished
+          message
         }
       }
     `;
@@ -932,7 +935,7 @@ class AppSyncService {
     const input = {
       roomId,
       movieId,
-      voteType: 'LIKE' // Solo procesamos votos LIKE en Stop-on-Match
+      voteType
     };
 
     console.log('🗳️ AppSyncService.vote - Input:', JSON.stringify(input, null, 2));
@@ -959,6 +962,83 @@ class AppSyncService {
       } else {
         throw new Error(`Unable to register your vote: ${error.message}`);
       }
+    }
+  }
+
+  /**
+   * Get next movie for user - NEW INDIVIDUAL VOTING SYSTEM
+   */
+  async getNextMovieForUser(roomId: string): Promise<{ getNextMovieForUser: any }> {
+    const query = `
+      query GetNextMovieForUser($roomId: ID!) {
+        getNextMovieForUser(roomId: $roomId) {
+          id
+          title
+          overview
+          poster
+          vote_average
+          release_date
+          runtime
+          genres {
+            id
+            name
+          }
+        }
+      }
+    `;
+
+    console.log('🎬 AppSyncService.getNextMovieForUser - RoomId:', roomId);
+
+    try {
+      const result = await this.graphqlRequest<{ getNextMovieForUser: any }>({
+        query,
+        variables: { roomId }
+      });
+
+      console.log('🎬 AppSyncService.getNextMovieForUser - Result:', JSON.stringify(result, null, 2));
+      return result;
+    } catch (error: any) {
+      loggingService.error('AppSyncService', 'Get next movie failed', {
+        roomId,
+        error: error.message
+      });
+
+      throw new Error(`Unable to get next movie: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get user voting progress - NEW INDIVIDUAL VOTING SYSTEM
+   */
+  async getUserVotingProgress(roomId: string): Promise<{ getUserVotingProgress: any }> {
+    const query = `
+      query GetUserVotingProgress($roomId: ID!) {
+        getUserVotingProgress(roomId: $roomId) {
+          votedCount
+          totalMovies
+          remainingMovies
+          isFinished
+        }
+      }
+    `;
+
+    console.log('📊 AppSyncService.getUserVotingProgress - RoomId:', roomId);
+
+    try {
+      const result = await this.graphqlRequest<{ getUserVotingProgress: any }>({
+        query,
+        variables: { roomId }
+      });
+
+      console.log('📊 AppSyncService.getUserVotingProgress - Result:', JSON.stringify(result, null, 2));
+      return result;
+    } catch (error: any) {
+      loggingService.error('AppSyncService', 'Get user progress failed', {
+        roomId,
+        error: error.message
+      });
+
+      throw new Error(`Unable to get voting progress: ${error.message}`);
     }
   }
   /**
@@ -1023,7 +1103,8 @@ class AppSyncService {
 
     // Encode roomId in genre if provided (backend hack to avoid schema change)
     if (roomId) {
-      variables.genre = genre ? `${genre}|roomId:${roomId}` : `|roomId:${roomId}`;
+      variables.genre = genre ? `${genre}|roomId:${roomId}` : `popular|roomId:${roomId}`;
+      console.log(`🎯 Encoding roomId in genre parameter: ${variables.genre}`);
     } else if (genre) {
       variables.genre = genre;
     }
@@ -2158,6 +2239,60 @@ class AppSyncService {
         error: error.message
       });
       throw error;
+    }
+  }
+
+  /**
+   * Check for matches before any user action (CRITICAL BUSINESS LOGIC)
+   * Implements match detection on every user action as per requirements
+   */
+  async checkMatchBeforeAction(roomId: string, action: { type: string; movieId?: string; voteType?: string }): Promise<{ checkMatchBeforeAction: any }> {
+    const query = `
+      query CheckMatchBeforeAction($roomId: ID!, $action: ActionInput!) {
+        checkMatchBeforeAction(roomId: $roomId, action: $action) {
+          isMatch
+          matchedMovie {
+            id
+            title
+            overview
+            poster
+            vote_average
+            release_date
+          }
+          message
+          canClose
+          roomId
+          roomStatus
+        }
+      }
+    `;
+
+    console.log('🔍 AppSyncService.checkMatchBeforeAction - Input:', { roomId, action });
+
+    try {
+      const result = await this.graphqlRequest<{ checkMatchBeforeAction: any }>({
+        query,
+        variables: { roomId, action }
+      });
+
+      console.log('🔍 AppSyncService.checkMatchBeforeAction - Result:', JSON.stringify(result, null, 2));
+      return result;
+    } catch (error: any) {
+      console.error('❌ AppSyncService.checkMatchBeforeAction - Error:', error);
+      loggingService.error('AppSyncService', 'Match check failed', {
+        roomId,
+        action,
+        error: error.message
+      });
+      
+      // Return no match on error to allow action to continue
+      return {
+        checkMatchBeforeAction: {
+          isMatch: false,
+          error: error.message,
+          roomId: roomId
+        }
+      };
     }
   }
 }

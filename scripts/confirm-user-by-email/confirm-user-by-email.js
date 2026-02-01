@@ -3,11 +3,12 @@
  * Usage: node scripts/confirm-user-by-email.js <email>
  */
 
+require('dotenv').config();
 const AWS = require('aws-sdk');
 AWS.config.update({ region: 'eu-west-1' });
 
 const cognito = new AWS.CognitoIdentityServiceProvider();
-const UserPoolId = 'eu-west-1_EMnWISSRn';
+const UserPoolId = process.env.COGNITO_USER_POOL_ID;
 
 async function confirmUser(email) {
     try {

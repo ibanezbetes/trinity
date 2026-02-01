@@ -86,7 +86,7 @@ export interface CreateRoomFormData {
   maxMembers?: number;
 }
 
-export const MAX_GENRES = 3;
+export const MAX_GENRES = 2;
 
 export interface GenreSelectorProps {
   mediaType?: MediaType;

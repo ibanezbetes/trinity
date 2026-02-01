@@ -3,9 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 // Import content filtering services
 const content_filter_service_1 = require("./services/content-filter-service");
+// Import cache integration service
+const CacheIntegrationService = require('./services/CacheIntegrationService');
 // Use AWS SDK v3 from Lambda runtime
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, GetCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 // Use built-in fetch from Node.js 18+ runtime (no external dependency needed)
 const fetch = globalThis.fetch || require('node-fetch');
 // Simplified inline implementations to avoid dependency issues
@@ -32,11 +34,20 @@ const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 // Initialize content filtering service
 let contentFilterService = null;
+let cacheIntegrationService = null;
+
 function getContentFilterService() {
     if (!contentFilterService) {
         contentFilterService = new content_filter_service_1.ContentFilterService();
     }
     return contentFilterService;
+}
+
+function getCacheIntegrationService() {
+    if (!cacheIntegrationService) {
+        cacheIntegrationService = new CacheIntegrationService();
+    }
+    return cacheIntegrationService;
 }
 /**
  * MovieHandler: Circuit Breaker + Cache
@@ -56,6 +67,22 @@ const handler = async (event) => {
                 return await getFilteredContent(args.mediaType, args.genreIds, args.limit || 30, args.excludeIds || []);
             case 'getAvailableGenres':
                 return await getAvailableGenres(args.mediaType);
+            case 'getCurrentMovie':
+                return await getCurrentMovie(args.roomId);
+            case 'getNextMovieForUser':
+                const userId = event.identity?.sub || event.identity?.username;
+                if (!userId) {
+                    throw new Error('Usuario no autenticado');
+                }
+                return await getNextMovieForUser(args.roomId, userId);
+            case 'incrementRoomMovieIndex':
+                return await incrementRoomMovieIndex(args.roomId);
+            case 'checkMatchBeforeAction':
+                const actionUserId = event.identity?.sub || event.identity?.username;
+                if (!actionUserId) {
+                    throw new Error('Usuario no autenticado');
+                }
+                return await checkMatchBeforeAction(args.roomId, actionUserId, args.action);
             default:
                 throw new Error(`Operación no soportada: ${fieldName}`);
         }
@@ -66,11 +93,391 @@ const handler = async (event) => {
     }
 };
 exports.handler = handler;
+
 /**
- * Obtener películas - carga MÚLTIPLES PÁGINAS de TMDB para obtener todo el contenido
+ * NUEVA: Verificar matches antes de cualquier acción del usuario
+ * Implementa la detección de matches en tiempo real
  */
+async function checkMatchBeforeAction(roomId, userId, action) {
+    try {
+        console.log(`🔍 Verificando matches antes de acción ${action.type} por usuario ${userId} en sala ${roomId}`);
+        
+        // Usar el servicio de integración de cache para verificar matches
+        const cacheIntegration = getCacheIntegrationService();
+        const matchResult = await cacheIntegration.checkMatchBeforeAction(roomId, userId, action);
+        
+        if (matchResult && matchResult.isMatch) {
+            console.log(`🎉 MATCH DETECTADO: ${matchResult.matchedMovie.title}`);
+            return {
+                hasMatch: true,
+                matchedMovie: matchResult.matchedMovie,
+                message: matchResult.message,
+                canClose: matchResult.canClose,
+                roomId: roomId
+            };
+        }
+        
+        console.log(`✅ No hay matches, acción puede proceder`);
+        return {
+            hasMatch: false,
+            roomId: roomId
+        };
+        
+    } catch (error) {
+        console.error(`❌ Error verificando matches para sala ${roomId}:`, error);
+        // No bloquear acciones del usuario por errores de verificación de matches
+        return {
+            hasMatch: false,
+            roomId: roomId,
+            error: error.message
+        };
+    }
+}
+
 /**
- * Obtener películas - carga MÚLTIPLES PÁGINAS de TMDB para obtener todo el contenido
+ * Obtener información de la sala para filtros
+ */
+async function getRoomInfo(roomId) {
+    try {
+        // Try the actual table structure first (PK + SK)
+        const response = await docClient.send(new GetCommand({
+            TableName: process.env.ROOMS_TABLE || 'trinity-rooms-dev-v2',
+            Key: { PK: roomId, SK: 'ROOM' }
+        }));
+        
+        if (response.Item) {
+            console.log(`✅ Room info found for ${roomId}:`, JSON.stringify(response.Item, null, 2));
+            return response.Item;
+        }
+        
+        // Fallback: try simple id structure (if table structure changes)
+        const fallbackResponse = await docClient.send(new GetCommand({
+            TableName: process.env.ROOMS_TABLE || 'trinity-rooms-dev-v2',
+            Key: { id: roomId }
+        }));
+        
+        if (fallbackResponse.Item) {
+            console.log(`✅ Fallback room info found for ${roomId}:`, JSON.stringify(fallbackResponse.Item, null, 2));
+            return fallbackResponse.Item;
+        }
+        
+        console.warn(`⚠️ No room info found for ${roomId}`);
+        return null;
+    } catch (error) {
+        console.error(`❌ Error obteniendo info de sala ${roomId}:`, error);
+        return null;
+    }
+}
+
+/**
+ * Incrementar el índice de película en la sala (llamado desde vote lambda)
+ * Solo se incrementa cuando alguien vota (LIKE o DISLIKE)
+ */
+async function incrementRoomMovieIndex(roomId) {
+    try {
+        console.log(`🔄 Incrementando índice de película para sala ${roomId}`);
+        
+        // Primero obtener el índice actual para logging
+        const currentRoom = await docClient.send(new GetCommand({
+            TableName: process.env.ROOMS_TABLE || 'trinity-rooms-dev-v2',
+            Key: { PK: roomId, SK: 'ROOM' },
+            ProjectionExpression: 'currentMovieIndex, totalMovies'
+        }));
+        
+        const currentIndex = currentRoom.Item?.currentMovieIndex || 0;
+        const totalMovies = currentRoom.Item?.totalMovies || 0;
+        
+        console.log(`📊 Sala ${roomId}: Incrementando desde índice ${currentIndex} (${currentIndex + 1}/${totalMovies})`);
+        
+        const response = await docClient.send(new UpdateCommand({
+            TableName: process.env.ROOMS_TABLE || 'trinity-rooms-dev-v2',
+            Key: { PK: roomId, SK: 'ROOM' },
+            UpdateExpression: 'SET currentMovieIndex = currentMovieIndex + :inc',
+            ExpressionAttributeValues: {
+                ':inc': 1
+            },
+            ReturnValues: 'ALL_NEW'
+        }));
+        
+        const newIndex = response.Attributes?.currentMovieIndex || 0;
+        const newTotal = response.Attributes?.totalMovies || 0;
+        
+        console.log(`✅ Índice de película incrementado para sala ${roomId}: ${currentIndex} → ${newIndex} (${newIndex}/${newTotal})`);
+        
+        // Verificar si se agotaron las películas
+        if (newIndex >= newTotal && newTotal > 0) {
+            console.log(`🏁 ¡Todas las películas agotadas en sala ${roomId}! (${newIndex}/${newTotal})`);
+        }
+        
+        return newIndex;
+    } catch (error) {
+        console.error(`❌ Error incrementando índice de película para sala ${roomId}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * NUEVA: Obtener la siguiente película para un usuario específico
+ * Cada usuario avanza independientemente por los 50 títulos
+ * INCLUYE DETECCIÓN DE MATCHES EN CADA ACCIÓN
+ */
+async function getNextMovieForUser(roomId, userId) {
+    try {
+        console.log(`🎬 Obteniendo siguiente película para usuario ${userId} en sala ${roomId}`);
+        
+        // CRÍTICO: Verificar matches ANTES de cualquier acción
+        const cacheIntegration = getCacheIntegrationService();
+        const matchCheck = await cacheIntegration.checkMatchBeforeAction(roomId, userId, { type: 'NAVIGATE' });
+        
+        if (matchCheck && matchCheck.isMatch) {
+            console.log(`🎉 MATCH DETECTADO para usuario ${userId} en room ${roomId}: ${matchCheck.matchedMovie.title}`);
+            return {
+                ...matchCheck.matchedMovie,
+                isMatched: true,
+                roomStatus: 'MATCHED',
+                message: matchCheck.message,
+                canClose: matchCheck.canClose
+            };
+        }
+
+        // Obtener información de la sala
+        const roomInfo = await getRoomInfo(roomId);
+        
+        if (!roomInfo) {
+            throw new Error(`Sala ${roomId} no encontrada`);
+        }
+
+        // Verificar si ya hay match (doble verificación)
+        if (roomInfo.status === 'MATCHED') {
+            console.log(`🎉 SALA ${roomId} YA TIENE MATCH: película ${roomInfo.resultMovieId}`);
+            const matchedMovie = await getMovieDetails(roomInfo.resultMovieId);
+            return {
+                ...matchedMovie,
+                isMatched: true,
+                roomStatus: 'MATCHED',
+                message: `¡Match encontrado! Película: ${matchedMovie.title}`
+            };
+        }
+
+        // Usar el sistema de cache integrado para obtener la siguiente película
+        try {
+            const cacheMovies = await cacheIntegration.getMoviesForRoom(roomId, null, 1);
+            
+            if (cacheMovies && cacheMovies.length > 0) {
+                const movie = cacheMovies[0];
+                
+                // Verificar si es fin de sugerencias
+                if (movie.isEndOfSuggestions) {
+                    console.log(`🏁 Usuario ${userId} ha terminado todas las películas`);
+                    return {
+                        id: 'user-finished',
+                        title: 'Has votado todas las películas',
+                        overview: 'A ver si hay suerte y haceis un match',
+                        poster: null,
+                        vote_average: 0,
+                        release_date: '',
+                        isUserFinished: true,
+                        roomStatus: roomInfo.status,
+                        message: 'A ver si hay suerte y haceis un match'
+                    };
+                }
+                
+                console.log(`✅ Siguiente película para usuario ${userId}: "${movie.title}"`);
+                return {
+                    ...movie,
+                    roomStatus: roomInfo.status,
+                    isUserFinished: false
+                };
+            }
+        } catch (cacheError) {
+            console.error(`❌ Error en sistema de cache para usuario ${userId}:`, cacheError);
+        }
+
+        // Fallback al sistema legacy si el cache falla
+        console.log(`🔄 Fallback al sistema legacy para usuario ${userId}`);
+        
+        // Verificar si la sala tiene películas pre-cargadas (sistema legacy)
+        if (!roomInfo.preloadedMovies || roomInfo.preloadedMovies.length === 0) {
+            console.log(`⚠️ Sala ${roomId} no tiene películas pre-cargadas, aplicando fallback de emergencia`);
+            
+            // EMERGENCY FALLBACK: Use hardcoded popular movie IDs when room has no preloaded movies
+            const emergencyMovieIds = [
+                '550', '680', '13', '122', '155', '157', '238', '240', '278', '424',
+                '429', '539', '598', '637', '680', '769', '857', '862', '863', '914',
+                '1124', '1891', '1892', '1893', '1894', '1895', '2062', '2080', '2109', '2157',
+                '8587', '9806', '10020', '10138', '10193', '11036', '11324', '11778', '12445', '13475',
+                '14160', '15121', '16869', '18785', '19995', '20526', '22538', '24428', '27205', '49026'
+            ];
+            
+            // Get voted movies for this user
+            const votedMovies = await getUserVotedMovies(userId, roomId);
+            const votedMovieIds = new Set(votedMovies);
+            
+            console.log(`📊 Usuario ${userId}: Ha votado ${votedMovies.length}/50 películas (usando fallback de emergencia)`);
+            
+            // If already voted 50 movies, user is finished
+            if (votedMovies.length >= 50) {
+                console.log(`🏁 Usuario ${userId} ha terminado todas las películas (fallback de emergencia)`);
+                
+                return {
+                    id: 'user-finished',
+                    title: 'Has votado todas las películas',
+                    overview: 'A ver si hay suerte y haceis un match',
+                    poster: null,
+                    vote_average: 0,
+                    release_date: '',
+                    isUserFinished: true,
+                    roomStatus: roomInfo.status,
+                    votedCount: votedMovies.length,
+                    message: 'A ver si hay suerte y haceis un match'
+                };
+            }
+            
+            // Find next unvoted movie from emergency list
+            let nextMovieId = null;
+            for (const movieId of emergencyMovieIds) {
+                if (!votedMovieIds.has(movieId)) {
+                    nextMovieId = movieId;
+                    break;
+                }
+            }
+            
+            if (!nextMovieId) {
+                console.warn(`⚠️ No se encontró siguiente película en fallback de emergencia para usuario ${userId}`);
+                return {
+                    id: 'no-more-movies',
+                    title: 'No hay más películas',
+                    overview: 'A ver si hay suerte y haceis un match',
+                    poster: null,
+                    vote_average: 0,
+                    release_date: '',
+                    isUserFinished: true,
+                    roomStatus: roomInfo.status,
+                    votedCount: votedMovies.length,
+                    message: 'A ver si hay suerte y haceis un match'
+                };
+            }
+            
+            // Get movie details for the next emergency movie
+            const movieDetails = await getMovieDetails(nextMovieId);
+            
+            console.log(`✅ Siguiente película para usuario ${userId} (fallback de emergencia): "${movieDetails.title}" (${votedMovies.length + 1}/50)`);
+            
+            return {
+                ...movieDetails,
+                votedCount: votedMovies.length,
+                totalMovies: 50,
+                roomStatus: roomInfo.status,
+                isUserFinished: false,
+                progress: `${votedMovies.length + 1}/50`,
+                isEmergencyFallback: true
+            };
+        }
+
+        // Obtener películas ya votadas por este usuario
+        const votedMovies = await getUserVotedMovies(userId, roomId);
+        const votedMovieIds = new Set(votedMovies);
+        
+        console.log(`📊 Usuario ${userId}: Ha votado ${votedMovies.length}/50 películas`);
+        
+        // Si ya votó 50 películas, verificar estado final
+        if (votedMovies.length >= 50) {
+            console.log(`🏁 Usuario ${userId} ha terminado todas las películas`);
+            
+            return {
+                id: 'user-finished',
+                title: 'Has votado todas las películas',
+                overview: 'A ver si hay suerte y haceis un match',
+                poster: null,
+                vote_average: 0,
+                release_date: '',
+                isUserFinished: true,
+                roomStatus: roomInfo.status,
+                votedCount: votedMovies.length,
+                message: 'A ver si hay suerte y haceis un match'
+            };
+        }
+        
+        // Encontrar la siguiente película no votada
+        let nextMovieId = null;
+        for (const movieId of roomInfo.preloadedMovies) {
+            if (!votedMovieIds.has(movieId)) {
+                nextMovieId = movieId;
+                break;
+            }
+        }
+        
+        if (!nextMovieId) {
+            // Esto no debería pasar si la lógica anterior es correcta
+            console.warn(`⚠️ No se encontró siguiente película para usuario ${userId}`);
+            return {
+                id: 'no-more-movies',
+                title: 'No hay más películas',
+                overview: 'A ver si hay suerte y haceis un match',
+                poster: null,
+                vote_average: 0,
+                release_date: '',
+                isUserFinished: true,
+                roomStatus: roomInfo.status,
+                votedCount: votedMovies.length,
+                message: 'A ver si hay suerte y haceis un match'
+            };
+        }
+        
+        // Obtener detalles de la siguiente película
+        const movieDetails = await getMovieDetails(nextMovieId);
+        
+        console.log(`✅ Siguiente película para usuario ${userId}: "${movieDetails.title}" (${votedMovies.length + 1}/50)`);
+        
+        return {
+            ...movieDetails,
+            votedCount: votedMovies.length,
+            totalMovies: 50,
+            roomStatus: roomInfo.status,
+            isUserFinished: false,
+            progress: `${votedMovies.length + 1}/50`
+        };
+        
+    } catch (error) {
+        console.error(`❌ Error obteniendo siguiente película para usuario ${userId}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * NUEVA: Obtener lista de películas ya votadas por un usuario
+ */
+async function getUserVotedMovies(userId, roomId) {
+    try {
+        console.log(`🔍 Consultando votos para usuario ${userId} en sala ${roomId}`);
+        
+        const response = await docClient.send(new QueryCommand({
+            TableName: process.env.VOTES_TABLE || 'trinity-votes-dev',
+            KeyConditionExpression: 'roomId = :roomId AND begins_with(#userMovieId, :userIdPrefix)',
+            ExpressionAttributeNames: {
+                '#userMovieId': 'userId#movieId'
+            },
+            ExpressionAttributeValues: {
+                ':roomId': roomId,
+                ':userIdPrefix': `${userId}#`
+            },
+            ProjectionExpression: 'movieId'
+        }));
+        
+        const votedMovies = response.Items?.map(item => item.movieId) || [];
+        console.log(`📊 Usuario ${userId} ha votado por ${votedMovies.length} películas: [${votedMovies.join(', ')}]`);
+        
+        return votedMovies;
+    } catch (error) {
+        console.error(`❌ Error obteniendo películas votadas por usuario ${userId}:`, error);
+        return [];
+    }
+}
+
+/**
+ * Obtener películas - SISTEMA INTEGRADO CON CACHE Y MATCH DETECTION
+ * Prioriza el sistema de cache de 50 películas por sala
+ * Incluye detección de matches en cada acción del usuario
  */
 async function getMovies(genreParam, page = 1) {
     try {
@@ -83,14 +490,52 @@ async function getMovies(genreParam, page = 1) {
             roomId = parts[1];
             console.log(`🔍 RoomID detectado: ${roomId}, Género real: ${genre || 'popular'}`);
         }
-        // 2. Usar solo el género real para la cache global
+
+        // 2. Si hay roomId, usar el sistema integrado con cache y match detection
+        if (roomId) {
+            console.log(`🎯 Usando sistema INTEGRADO con cache y match detection para room ${roomId}`);
+            
+            try {
+                // CRÍTICO: Verificar matches ANTES de cualquier acción
+                const cacheIntegration = getCacheIntegrationService();
+                const matchCheck = await cacheIntegration.checkMatchBeforeAction(roomId, 'system', { type: 'NAVIGATE' });
+                
+                if (matchCheck && matchCheck.isMatch) {
+                    console.log(`🎉 MATCH DETECTADO en room ${roomId}: ${matchCheck.matchedMovie.title}`);
+                    return [{
+                        ...matchCheck.matchedMovie,
+                        isMatched: true,
+                        message: matchCheck.message,
+                        canClose: matchCheck.canClose
+                    }];
+                }
+
+                // Usar el sistema de cache integrado
+                const cacheMovies = await cacheIntegration.getMoviesForRoom(roomId, genre, page);
+                
+                if (cacheMovies && cacheMovies.length > 0) {
+                    console.log(`✅ Películas obtenidas desde sistema de cache integrado: ${cacheMovies.length}`);
+                    return cacheMovies;
+                }
+
+                console.log(`⚠️ Sistema de cache no disponible para room ${roomId}, usando sistema legacy`);
+                // Fall through to legacy system
+                
+            } catch (cacheError) {
+                console.error(`❌ Error en sistema integrado para room ${roomId}:`, cacheError);
+                console.log(`🔄 Fallback al sistema legacy para room ${roomId}`);
+                // Fall through to legacy system
+            }
+        }
+
+        // 3. Sistema legacy: usar cache global por género
         const cacheKey = `movies_all_${genre || 'popular'}`;
-        // 3. Obtener películas (cache o API)
         let movies = [];
-        // Intentar obtener desde cache
+
+        // Intentar obtener desde cache global
         const cachedMovies = await getCachedMovies(cacheKey);
         if (cachedMovies && cachedMovies.length > 100) {
-            console.log(`💾 Películas obtenidas desde cache: ${cachedMovies.length}`);
+            console.log(`💾 Películas obtenidas desde cache global: ${cachedMovies.length}`);
             movies = cachedMovies;
         }
         else {
@@ -102,7 +547,8 @@ async function getMovies(genreParam, page = 1) {
             console.log(`✅ Total películas cargadas: ${allMovies.length}`);
             movies = allMovies;
         }
-        // 4. Filtrar películas ya mostrada en la sala
+
+        // 4. Filtrar películas ya mostradas en la sala (solo para sistema legacy)
         if (roomId) {
             const shownMovieIds = await getShownMovies(roomId);
             if (shownMovieIds.size > 0) {
@@ -116,6 +562,7 @@ async function getMovies(genreParam, page = 1) {
                 }
             }
         }
+
         return movies;
     }
     catch (apiError) {

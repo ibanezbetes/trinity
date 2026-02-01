@@ -1,5 +1,0 @@
-# Utils directory for utility functions
-# This directory will contain:
-# - jsonParser.js - Resilient JSON parser for AI responses
-# - validators.js - Input validation utilities
-# - constants.js - Application constants
