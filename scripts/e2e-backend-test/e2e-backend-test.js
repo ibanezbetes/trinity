@@ -4,7 +4,7 @@ const AWS = require('aws-sdk');
 
 // Configuración
 const REGION = 'eu-west-1';
-const GRAPHQL_ENDPOINT = 'https://qdvhkkwneza2pkpaofehnvmubq.appsync-api.eu-west-1.amazonaws.com/graphql';
+const GRAPHQL_ENDPOINT = 'https://b7vef3wm6jhfddfazbpru5ngki.appsync-api.eu-west-1.amazonaws.com/graphql';
 const USER_POOL_ID = 'eu-west-1_TSlG71OQi';
 // Este script intentará obtener el Client ID dinámicamente
 

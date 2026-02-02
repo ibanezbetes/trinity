@@ -1,0 +1,272 @@
+{
+  "timestamp": "2026-02-02T08:23:56.116Z",
+  "environment": "dev",
+  "region": "eu-west-1",
+  "overallStatus": "fail",
+  "summary": {
+    "total": 43,
+    "passed": 37,
+    "failed": 3,
+    "warnings": 3
+  },
+  "results": [
+    {
+      "category": "Environment",
+      "test": "AWS Credentials",
+      "status": "pass",
+      "message": "AWS credentials are valid"
+    },
+    {
+      "category": "Environment",
+      "test": "CDK CLI",
+      "status": "pass",
+      "message": "CDK CLI available: 2.1100.1 (build db19110)"
+    },
+    {
+      "category": "Environment",
+      "test": "Node.js Version",
+      "status": "warn",
+      "message": "Node.js version v24.9.0 - recommended: v18.x"
+    },
+    {
+      "category": "Environment",
+      "test": "CDK Configuration",
+      "status": "pass",
+      "message": "CDK app configuration valid"
+    },
+    {
+      "category": "Environment",
+      "test": "TypeScript Build",
+      "status": "pass",
+      "message": "TypeScript compilation successful"
+    },
+    {
+      "category": "Environment",
+      "test": "Deployment Config",
+      "status": "pass",
+      "message": "Deployment configuration valid"
+    },
+    {
+      "category": "CloudFormation",
+      "test": "TrinityConfigStack",
+      "status": "warn",
+      "message": "Stack status: REVIEW_IN_PROGRESS"
+    },
+    {
+      "category": "CloudFormation",
+      "test": "TrinityConfigStack Outputs",
+      "status": "warn",
+      "message": "No stack outputs found"
+    },
+    {
+      "category": "CloudFormation",
+      "test": "TrinityDatabaseStack",
+      "status": "pass",
+      "message": "Stack status: CREATE_COMPLETE"
+    },
+    {
+      "category": "CloudFormation",
+      "test": "TrinityDatabaseStack Outputs",
+      "status": "pass",
+      "message": "13 outputs available"
+    },
+    {
+      "category": "CloudFormation",
+      "test": "TrinityLambdaStack",
+      "status": "pass",
+      "message": "Stack status: UPDATE_COMPLETE"
+    },
+    {
+      "category": "CloudFormation",
+      "test": "TrinityLambdaStack Outputs",
+      "status": "pass",
+      "message": "13 outputs available"
+    },
+    {
+      "category": "CloudFormation",
+      "test": "TrinityApiStack",
+      "status": "pass",
+      "message": "Stack status: CREATE_COMPLETE"
+    },
+    {
+      "category": "CloudFormation",
+      "test": "TrinityApiStack Outputs",
+      "status": "pass",
+      "message": "5 outputs available"
+    },
+    {
+      "category": "CloudFormation",
+      "test": "TrinityMainStack",
+      "status": "fail",
+      "message": "Stack validation failed: ValidationError: Stack with id TrinityMainStack does not exist"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-users-dev",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-rooms-dev-v2",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-room-members-dev",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-votes-dev",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-movies-cache-dev",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-room-matches-dev",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-room-invites-dev-v2",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-connections-dev",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-room-movie-cache-dev",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-room-cache-metadata-dev",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-matchmaking-dev",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "DynamoDB",
+      "test": "trinity-filter-cache",
+      "status": "pass",
+      "message": "Table active and accessible"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-auth-dev",
+      "status": "pass",
+      "message": "Function active and ready"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-auth-dev Runtime",
+      "status": "pass",
+      "message": "Runtime: nodejs18.x"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-cache-dev",
+      "status": "pass",
+      "message": "Function active and ready"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-cache-dev Runtime",
+      "status": "pass",
+      "message": "Runtime: nodejs18.x"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-vote-dev",
+      "status": "pass",
+      "message": "Function active and ready"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-vote-dev Runtime",
+      "status": "pass",
+      "message": "Runtime: nodejs18.x"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-room-dev",
+      "status": "pass",
+      "message": "Function active and ready"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-room-dev Runtime",
+      "status": "pass",
+      "message": "Runtime: nodejs18.x"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-movie-dev",
+      "status": "pass",
+      "message": "Function active and ready"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-movie-dev Runtime",
+      "status": "pass",
+      "message": "Runtime: nodejs18.x"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-realtime-dev",
+      "status": "pass",
+      "message": "Function active and ready"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-realtime-dev Runtime",
+      "status": "pass",
+      "message": "Runtime: nodejs18.x"
+    },
+    {
+      "category": "Lambda",
+      "test": "trinity-matchmaker-dev",
+      "status": "fail",
+      "message": "Function not found"
+    },
+    {
+      "category": "AppSync",
+      "test": "trinity-api-dev",
+      "status": "pass",
+      "message": "API active: https://b7vef3wm6jhfddfazbpru5ngki.appsync-api.eu-west-1.amazonaws.com/graphql"
+    },
+    {
+      "category": "AppSync",
+      "test": "trinity-realtime-api",
+      "status": "pass",
+      "message": "API active: https://z7d4ihtesjalriqahwcv5pbrru.appsync-api.eu-west-1.amazonaws.com/graphql"
+    },
+    {
+      "category": "CDK",
+      "test": "Outputs File",
+      "status": "fail",
+      "message": "CDK outputs file not found"
+    }
+  ]
+}
