@@ -2,9 +2,6 @@
  * Jest setup file for Trinity infrastructure tests
  */
 
-// Increase timeout for property-based tests
-jest.setTimeout(30000);
-
 // Mock console.log to reduce noise during tests
 const originalConsoleLog = console.log;
 console.log = (...args: any[]) => {

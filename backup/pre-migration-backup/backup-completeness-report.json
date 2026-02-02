@@ -1,0 +1,196 @@
+{
+  "timestamp": "2026-02-02T01:35:31.284Z",
+  "backupDirectory": "backup/pre-migration-backup",
+  "verification": {
+    "files": {
+      "found": [
+        {
+          "name": ".env.backup",
+          "size": "4.49 KB",
+          "modified": "2026-01-31T20:31:52.810Z"
+        },
+        {
+          "name": "MONOLITH-TRINITY-CACHE-FINAL.js",
+          "size": "27.11 KB",
+          "modified": "2026-02-01T23:53:11.801Z"
+        },
+        {
+          "name": "MONOLITH-TRINITY-ROOM-FINAL.js",
+          "size": "34.34 KB",
+          "modified": "2026-02-02T00:01:49.388Z"
+        },
+        {
+          "name": "package.json",
+          "size": "1.95 KB",
+          "modified": "2026-01-31T11:28:25.478Z"
+        },
+        {
+          "name": "package-lock.json",
+          "size": "223.8 KB",
+          "modified": "2026-01-30T21:40:31.410Z"
+        },
+        {
+          "name": "README.md",
+          "size": "3.87 KB",
+          "modified": "2026-02-02T00:55:01.107Z"
+        },
+        {
+          "name": "AWS-RESOURCE-INVENTORY.md",
+          "size": "8.55 KB",
+          "modified": "2026-02-02T01:33:46.343Z"
+        },
+        {
+          "name": "verify-aws-resources.js",
+          "size": "9.16 KB",
+          "modified": "2026-02-02T01:34:15.624Z"
+        }
+      ],
+      "missing": []
+    },
+    "directories": {
+      "found": [
+        {
+          "name": "lambdas",
+          "size": "135.79 MB"
+        },
+        {
+          "name": "infrastructure",
+          "size": "2.37 GB"
+        },
+        {
+          "name": "database",
+          "size": "26.56 KB"
+        }
+      ],
+      "missing": []
+    },
+    "lambdaFunctions": {
+      "found": [
+        {
+          "name": "trinity-auth-dev",
+          "size": "7.9 MB",
+          "hasPackageJson": true,
+          "hasHandler": true
+        },
+        {
+          "name": "trinity-cache-dev",
+          "size": "68.19 MB",
+          "hasPackageJson": true,
+          "hasHandler": true
+        },
+        {
+          "name": "trinity-matchmaker-dev",
+          "size": "32.76 MB",
+          "hasPackageJson": true,
+          "hasHandler": true
+        },
+        {
+          "name": "trinity-movie-dev",
+          "size": "640.08 KB",
+          "hasPackageJson": false,
+          "hasHandler": true
+        },
+        {
+          "name": "trinity-realtime-dev",
+          "size": "7.91 MB",
+          "hasPackageJson": true,
+          "hasHandler": true
+        },
+        {
+          "name": "trinity-room-dev",
+          "size": "7.83 MB",
+          "hasPackageJson": true,
+          "hasHandler": true
+        },
+        {
+          "name": "trinity-vote-dev",
+          "size": "10.57 MB",
+          "hasPackageJson": true,
+          "hasHandler": true
+        }
+      ],
+      "missing": []
+    },
+    "infrastructureComponents": {
+      "found": [
+        {
+          "name": "src/handlers",
+          "size": "601.47 KB"
+        },
+        {
+          "name": "src/services",
+          "size": "471.9 KB"
+        },
+        {
+          "name": "clean/src/handlers",
+          "size": "692.91 KB"
+        },
+        {
+          "name": "clean/src/shared",
+          "size": "368.78 KB"
+        },
+        {
+          "name": "clean/lib",
+          "size": "350.78 KB"
+        }
+      ],
+      "missing": []
+    },
+    "monolithFiles": {
+      "found": [
+        {
+          "name": "MONOLITH-TRINITY-CACHE-FINAL.js",
+          "size": "27.11 KB",
+          "hasEnhancedTMDBClient": true,
+          "hasContentFilterService": true,
+          "hasGenreMapping": true,
+          "hasJapaneseKorean": true
+        },
+        {
+          "name": "MONOLITH-TRINITY-ROOM-FINAL.js",
+          "size": "34.34 KB",
+          "hasEnhancedTMDBClient": true,
+          "hasContentFilterService": true,
+          "hasGenreMapping": true,
+          "hasJapaneseKorean": true
+        }
+      ],
+      "missing": []
+    },
+    "environmentConfiguration": {
+      "valid": true,
+      "found": [
+        "AWS_REGION",
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "GRAPHQL_API_URL",
+        "COGNITO_USER_POOL_ID",
+        "COGNITO_CLIENT_ID",
+        "TMDB_API_KEY",
+        "AUTH_HANDLER_NAME",
+        "ROOM_HANDLER_NAME",
+        "VOTE_HANDLER_NAME",
+        "MOVIE_HANDLER_NAME",
+        "CACHE_HANDLER_NAME",
+        "MATCHMAKER_HANDLER_NAME",
+        "REALTIME_HANDLER_NAME"
+      ],
+      "missing": [],
+      "size": "4.49 KB"
+    }
+  },
+  "summary": {
+    "totalFilesFound": 8,
+    "totalFilesMissing": 0,
+    "totalDirectoriesFound": 3,
+    "totalDirectoriesMissing": 0,
+    "lambdaFunctionsFound": 7,
+    "lambdaFunctionsMissing": 0,
+    "infrastructureComponentsFound": 5,
+    "infrastructureComponentsMissing": 0,
+    "monolithFilesFound": 2,
+    "monolithFilesMissing": 0,
+    "environmentConfigurationValid": true,
+    "totalBackupSize": "2.5 GB"
+  }
+}

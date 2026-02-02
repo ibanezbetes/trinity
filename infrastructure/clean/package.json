@@ -4,15 +4,17 @@
   "description": "Trinity MVP Infrastructure with AWS CDK - Serverless Microservices",
   "main": "lib/trinity-stack.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run bundle",
+    "bundle": "node scripts/bundle-handlers.js",
     "watch": "tsc -w",
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "cdk": "cdk",
     "validate": "npx ts-node scripts/validate-deployment.ts",
     "validate:pre": "npx ts-node scripts/validate-deployment.ts --pre",
+    "validate:env": "npx ts-node scripts/validate-env-config.ts",
     "rollback": "npx ts-node scripts/rollback-manager.ts",
     "rollback:list": "npx ts-node scripts/rollback-manager.ts list",
-    "deploy": "npm run validate:pre && npm run build && cdk deploy TrinityConfigStack TrinityDatabaseStack TrinityLambdaStack TrinityMainStack --require-approval never",
+    "deploy": "npm run validate:env && npm run validate:pre && npm run build && cdk deploy TrinityConfigStack TrinityDatabaseStack TrinityLambdaStack TrinityMainStack --require-approval never",
     "deploy:master": "npx ts-node scripts/deploy-master.ts",
     "deploy:config": "npm run build && cdk deploy TrinityConfigStack",
     "deploy:database": "npm run build && cdk deploy TrinityDatabaseStack",
@@ -36,7 +38,7 @@
     "monitoring:validate": "npx ts-node scripts/setup-monitoring.ts validate",
     "monitoring:setup": "npx ts-node scripts/setup-monitoring.ts setup",
     "test:integration": "npx ts-node scripts/integration-test.ts",
-    "test:property": "jest --testPathPatterns=property.test.ts --verbose",
+    "test:property": "node --experimental-vm-modules node_modules/.bin/jest --testPathPatterns=property.test.ts --verbose",
     "test:all": "npm run test:property && npm run test:integration",
     "validate:schema": "npx ts-node scripts/validate-schema-match.ts",
     "hydrate-ssm": "npx ts-node scripts/hydrate-ssm.ts",
@@ -71,6 +73,7 @@
     "aws-cdk-lib": "2.100.0",
     "constructs": "^10.0.0",
     "node-fetch": "^3.3.2",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "axios": "^1.6.0"
   }
 }

@@ -1,1 +1,0 @@
-{"statusCode":500,"body":"{\"success\":false,\"error\":\"Business logic error: Expected exactly 50 movies, got 48\",\"action\":\"createCache\",\"timestamp\":\"2026-02-01T22:34:48.881Z\"}"}

@@ -1,0 +1,22 @@
+{
+  "FunctionName": "trinity-vote-consensus-dev",
+  "Runtime": "nodejs20.x",
+  "Handler": "index.handler",
+  "Timeout": 30,
+  "MemorySize": 256,
+  "Environment": {
+    "Variables": {
+      "AWS_REGION": "eu-west-1",
+      "MATCHMAKING_TABLE_NAME": "trinity-matchmaking-dev",
+      "APPSYNC_API_URL": "${APPSYNC_API_URL}",
+      "NODE_ENV": "production"
+    }
+  },
+  "Description": "Trinity Vote Consensus Matchmaker - Detects unanimous YES votes and triggers match events",
+  "Tags": {
+    "Project": "Trinity",
+    "Environment": "dev",
+    "Purpose": "VoteConsensusMatchmaking",
+    "Runtime": "nodejs20.x"
+  }
+}

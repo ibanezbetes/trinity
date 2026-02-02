@@ -1,0 +1,324 @@
+{
+    "StackSummaries": [
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMainStack/77b7c660-fe40-11f0-a08e-0a378ed02015",
+            "StackName": "TrinityMainStack",
+            "TemplateDescription": "Trinity - Main Infrastructure and Shared Resources",
+            "CreationTime": "2026-01-31T01:02:09.077000+00:00",
+            "LastUpdatedTime": "2026-01-31T01:02:15.002000+00:00",
+            "DeletionTime": "2026-02-02T01:46:01.356000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "226f5779-3336-4bd3-a188-d3730094cb6b"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityApiStack/c993f2c0-fe3a-11f0-95ec-062df84e89b7",
+            "StackName": "TrinityApiStack",
+            "TemplateDescription": "Trinity - GraphQL APIs and Cognito (Imported Existing)",
+            "CreationTime": "2026-01-31T00:21:29.342000+00:00",
+            "LastUpdatedTime": "2026-01-31T00:21:35.314000+00:00",
+            "DeletionTime": "2026-02-02T01:46:07.166000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "c17a4473-b7f9-49f7-b3d8-cd80058a4ac7"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMatchmakingStack/86b2e980-fdb7-11f0-a69a-0a4236a08c5f",
+            "StackName": "TrinityMatchmakingStack",
+            "TemplateDescription": "Trinity - Vote Consensus Matchmaking (Independent)",
+            "CreationTime": "2026-01-30T08:41:53.111000+00:00",
+            "LastUpdatedTime": "2026-01-30T08:41:59.076000+00:00",
+            "DeletionTime": "2026-02-02T01:46:13.064000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "c4d286bf-6b37-4853-bf37-03b8ce4e21a8"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMatchmakingStack/b78cf970-fdb6-11f0-8a1c-0a3553e34845",
+            "StackName": "TrinityMatchmakingStack",
+            "TemplateDescription": "Trinity - Vote Consensus Matchmaking (Independent)",
+            "CreationTime": "2026-01-30T08:36:05.545000+00:00",
+            "LastUpdatedTime": "2026-01-30T08:36:11.521000+00:00",
+            "DeletionTime": "2026-01-30T08:41:46.682000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "b0409b15-67ca-4cae-bed8-1942f4c52e24"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityLambdaStack/65f953c0-fd38-11f0-b7c7-0a33986f1c17",
+            "StackName": "TrinityLambdaStack",
+            "CreationTime": "2026-01-29T17:31:52.182000+00:00",
+            "DeletionTime": "2026-02-02T01:46:19.088000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "7a61240b-cc48-4f02-9350-feaecff3df28"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityDatabaseStack/2fe0dde0-fd37-11f0-874c-0a1a6f68bbd5",
+            "StackName": "TrinityDatabaseStack",
+            "TemplateDescription": "Trinity - DynamoDB Tables and Database Resources",
+            "CreationTime": "2026-01-29T17:23:11.887000+00:00",
+            "LastUpdatedTime": "2026-01-31T00:17:10.304000+00:00",
+            "DeletionTime": "2026-02-02T01:46:24.850000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "1fcb298f-9b5b-4f90-9d3e-306dbaa5dba7"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/trini-ai-tcg-dev/c472e380-fcb1-11f0-9e33-0668253e3855",
+            "StackName": "trini-ai-tcg-dev",
+            "TemplateDescription": "The AWS CloudFormation template for this Serverless application",
+            "CreationTime": "2026-01-29T01:28:08.424000+00:00",
+            "LastUpdatedTime": "2026-01-29T01:37:02.047000+00:00",
+            "StackStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "UPDATE_STACK",
+                    "OperationId": "0a27192c-129d-4025-81bc-856981840c0e"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/trini-ai-tcg-dev/41067ac0-fcb1-11f0-9ad8-0a67b0a17f07",
+            "StackName": "trini-ai-tcg-dev",
+            "TemplateDescription": "The AWS CloudFormation template for this Serverless application",
+            "CreationTime": "2026-01-29T01:24:27.930000+00:00",
+            "LastUpdatedTime": "2026-01-29T01:24:33.925000+00:00",
+            "DeletionTime": "2026-01-29T01:26:44.341000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "7f2997a1-d754-49b4-8e8b-acb4f5fc33ff"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMvpStack/88dd62c0-fa16-11f0-8915-0aeb27a8cd07",
+            "StackName": "TrinityMvpStack",
+            "TemplateDescription": "Trinity MVP - Aplicaci?n para consensuar contenido multimedia en grupo",
+            "CreationTime": "2026-01-25T17:51:54.366000+00:00",
+            "LastUpdatedTime": "2026-01-26T23:33:54.591000+00:00",
+            "DeletionTime": "2026-02-02T01:47:10.982000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "cddf37ee-d980-4ef5-bf46-0bb585e9b920"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMvpStack/ff8e52e0-fa15-11f0-ba12-0622b43d50ef",
+            "StackName": "TrinityMvpStack",
+            "TemplateDescription": "Trinity MVP - Aplicaci?n para consensuar contenido multimedia en grupo",
+            "CreationTime": "2026-01-25T17:48:04.074000+00:00",
+            "LastUpdatedTime": "2026-01-25T17:48:10.122000+00:00",
+            "DeletionTime": "2026-01-25T17:50:46.075000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "b9232e91-aaad-457d-8e5b-f0132f6b5f84"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMvpStack/f3792c60-fa14-11f0-a826-02d44f1b7525",
+            "StackName": "TrinityMvpStack",
+            "TemplateDescription": "Trinity MVP - Aplicaci?n para consensuar contenido multimedia en grupo",
+            "CreationTime": "2026-01-25T17:40:34.251000+00:00",
+            "LastUpdatedTime": "2026-01-25T17:40:40.272000+00:00",
+            "DeletionTime": "2026-01-25T17:43:14.394000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "38f3a7e5-30b0-47e2-ad33-e730d2bfe493"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMvpStack/2f719c30-fa14-11f0-bfb4-023743bbc815",
+            "StackName": "TrinityMvpStack",
+            "TemplateDescription": "Trinity MVP - Aplicaci?n para consensuar contenido multimedia en grupo",
+            "CreationTime": "2026-01-25T17:35:05.367000+00:00",
+            "LastUpdatedTime": "2026-01-25T17:36:34.066000+00:00",
+            "DeletionTime": "2026-01-25T17:39:38.392000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "cd100594-3233-4913-be24-beca328c842b"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMvpStack/4dddf5c0-fa13-11f0-a9e7-06f5b9995c7f",
+            "StackName": "TrinityMvpStack",
+            "TemplateDescription": "Trinity MVP - Aplicaci?n para consensuar contenido multimedia en grupo",
+            "CreationTime": "2026-01-25T17:28:46.856000+00:00",
+            "LastUpdatedTime": "2026-01-25T17:31:21.400000+00:00",
+            "DeletionTime": "2026-01-25T17:34:38.860000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "9b95a67b-0794-4744-8d30-3eb32b13ea1f"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMvpStack/a6f6e8c0-fa12-11f0-b4df-06d01b439147",
+            "StackName": "TrinityMvpStack",
+            "TemplateDescription": "Trinity MVP - Aplicaci?n para consensuar contenido multimedia en grupo",
+            "CreationTime": "2026-01-25T17:24:06.858000+00:00",
+            "LastUpdatedTime": "2026-01-25T17:25:49.500000+00:00",
+            "DeletionTime": "2026-01-25T17:28:22.356000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "0af3412f-e654-4ab3-b6f6-e1e1fd1bc67c"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMvpStack/4d7c6a40-fa12-11f0-b241-0a593cbf63d7",
+            "StackName": "TrinityMvpStack",
+            "TemplateDescription": "Trinity MVP - Aplicaci?n para consensuar contenido multimedia en grupo",
+            "CreationTime": "2026-01-25T17:21:36.721000+00:00",
+            "LastUpdatedTime": "2026-01-25T17:21:48.103000+00:00",
+            "DeletionTime": "2026-01-25T17:24:00.065000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "addd6bb5-6a56-45b3-8a93-c15e8db223ad"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/ProtexWearInfraStack/f18562a0-e800-11f0-a25f-02e2e9f1da23",
+            "StackName": "ProtexWearInfraStack",
+            "TemplateDescription": "AWS CDK Infrastructure for Protex Wear E-commerce Platform",
+            "CreationTime": "2026-01-02T17:32:00.009000+00:00",
+            "LastUpdatedTime": "2026-01-02T17:32:11.211000+00:00",
+            "DeletionTime": "2026-01-02T18:30:42.627000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "a260a0e6-8fbc-4d5a-a2d4-0a31e22b9fcb"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/TrinityMvpStack/b603d450-e05d-11f0-9dfb-0254e8e87319",
+            "StackName": "TrinityMvpStack",
+            "TemplateDescription": "Trinity MVP - Aplicaci?n para consensuar contenido multimedia en grupo",
+            "CreationTime": "2025-12-24T00:15:54.233000+00:00",
+            "LastUpdatedTime": "2026-01-01T18:40:00.130000+00:00",
+            "DeletionTime": "2026-01-25T17:20:54.538000+00:00",
+            "StackStatus": "DELETE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "DELETE_STACK",
+                    "OperationId": "2901a3c7-bd81-4e8b-ba51-02b6834a932b"
+                }
+            ]
+        },
+        {
+            "StackId": "arn:aws:cloudformation:eu-west-1:847850007406:stack/CDKToolkit/8a9fbc70-e05d-11f0-8e17-0ac046046c43",
+            "StackName": "CDKToolkit",
+            "TemplateDescription": "This stack includes resources needed to deploy AWS CDK apps into this environment",
+            "CreationTime": "2025-12-24T00:14:41.199000+00:00",
+            "LastUpdatedTime": "2026-01-02T17:30:57.581000+00:00",
+            "StackStatus": "UPDATE_COMPLETE",
+            "DriftInformation": {
+                "StackDriftStatus": "NOT_CHECKED"
+            },
+            "LastOperations": [
+                {
+                    "OperationType": "UPDATE_STACK",
+                    "OperationId": "b6e4a968-0b89-4d99-9900-e51c970cd903"
+                }
+            ]
+        }
+    ]
+}

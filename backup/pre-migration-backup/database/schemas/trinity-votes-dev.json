@@ -1,0 +1,32 @@
+{
+  "tableName": "trinity-votes-dev",
+  "keySchema": [
+    {
+      "AttributeName": "roomId",
+      "KeyType": "HASH"
+    },
+    {
+      "AttributeName": "userId#movieId",
+      "KeyType": "RANGE"
+    }
+  ],
+  "attributeDefinitions": [
+    {
+      "AttributeName": "roomId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "userId#movieId",
+      "AttributeType": "S"
+    }
+  ],
+  "globalSecondaryIndexes": [],
+  "localSecondaryIndexes": [],
+  "billingMode": "PAY_PER_REQUEST",
+  "provisionedThroughput": {
+    "NumberOfDecreasesToday": 0,
+    "ReadCapacityUnits": 0,
+    "WriteCapacityUnits": 0
+  },
+  "tags": []
+}

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trinity - Join the Movie Voting Experience</title>
+    <meta name="description" content="Join your friends in Trinity to vote on movies and find the perfect match for your group!">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://trinity.app/">
+    <meta property="og:title" content="Trinity - Movie Voting Made Easy">
+    <meta property="og:description" content="Join your friends in Trinity to vote on movies and find the perfect match for your group!">
+    <meta property="og:image" content="https://trinity.app/assets/trinity-og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://trinity.app/">
+    <meta property="twitter:title" content="Trinity - Movie Voting Made Easy">
+    <meta property="twitter:description" content="Join your friends in Trinity to vote on movies and find the perfect match for your group!">
+    <meta property="twitter:image" content="https://trinity.app/assets/trinity-og-image.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 500px;
+            padding: 2rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .invite-status {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .invite-valid {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .invite-invalid {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .invite-loading {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .room-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .room-info h3 {
+            margin-bottom: 0.5rem;
+            color: #fbbf24;
+        }
+
+        .room-info p {
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .download-section {
+            margin-top: 2rem;
+        }
+
+        .download-title {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 160px;
+        }
+
+        .download-btn:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .download-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .footer {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-details {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .download-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .download-btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🎬</div>
+        <h1>Trinity</h1>
+        <p class="subtitle">Movie voting made easy</p>
+        
+        <div id="invite-status" class="invite-status invite-loading">
+            <div class="loading-spinner"></div>
+            Checking invite link...
+        </div>
+        
+        <div id="room-info" class="room-info" style="display: none;">
+            <h3>Room Details</h3>
+            <p><strong>Room:</strong> <span id="room-name">Loading...</span></p>
+            <p><strong>Host:</strong> <span id="room-host">Loading...</span></p>
+            <p><strong>Members:</strong> <span id="room-members">Loading...</span></p>
+            <p><strong>Status:</strong> <span id="room-status">Loading...</span></p>
+        </div>
+        
+        <div class="download-section">
+            <h2 class="download-title">Get Trinity App</h2>
+            <div class="download-buttons">
+                <a href="#" id="ios-download" class="download-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                    App Store
+                </a>
+                <a href="#" id="android-download" class="download-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1518-.5972.416.416 0 00-.5972.1518l-2.0223 3.503C15.5902 8.2439 13.8533 7.8508 12 7.8508s-3.5902.3931-5.1333 1.0989L4.8442 5.4467a.4161.4161 0 00-.5972-.1518.416.416 0 00-.1518.5972L6.0952 9.321C3.7155 10.8135 2.25 13.0043 2.25 15.5h19.5c0-2.4957-1.4655-4.6865-3.8455-6.1790M12 3.75c4.5563 0 8.25 3.6937 8.25 8.25H3.75c0-4.5563 3.6937-8.25 8.25-8.25"/>
+                    </svg>
+                    Google Play
+                </a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2026 Trinity. Made for movie lovers.</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'https://api.trinity.app'; // Replace with actual API URL
+        const IOS_APP_URL = 'https://apps.apple.com/app/trinity-movie-voting/id123456789'; // Replace with actual App Store URL
+        const ANDROID_APP_URL = 'https://play.google.com/store/apps/details?id=com.trinity.movievoting'; // Replace with actual Play Store URL
+        
+        // DOM elements
+        const inviteStatus = document.getElementById('invite-status');
+        const roomInfo = document.getElementById('room-info');
+        const roomName = document.getElementById('room-name');
+        const roomHost = document.getElementById('room-host');
+        const roomMembers = document.getElementById('room-members');
+        const roomStatus = document.getElementById('room-status');
+        const iosDownload = document.getElementById('ios-download');
+        const androidDownload = document.getElementById('android-download');
+        
+        // Set download URLs
+        iosDownload.href = IOS_APP_URL;
+        androidDownload.href = ANDROID_APP_URL;
+        
+        // Extract invite code from URL
+        function getInviteCodeFromUrl() {
+            const path = window.location.pathname;
+            const match = path.match(/\/room\/([A-Z0-9]{6})/i);
+            return match ? match[1].toUpperCase() : null;
+        }
+        
+        // Update invite status
+        function updateInviteStatus(type, message, details = null) {
+            inviteStatus.className = `invite-status invite-${type}`;
+            inviteStatus.innerHTML = message;
+            
+            if (details) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-details';
+                errorDiv.textContent = details;
+                inviteStatus.appendChild(errorDiv);
+            }
+        }
+        
+        // Show room information
+        function showRoomInfo(room) {
+            roomName.textContent = room.name || 'Unnamed Room';
+            roomHost.textContent = room.hostId || 'Unknown';
+            roomMembers.textContent = room.memberCount || '0';
+            roomStatus.textContent = room.status || 'Unknown';
+            roomInfo.style.display = 'block';
+        }
+        
+        // Validate invite code
+        async function validateInviteCode(code) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/validate-invite`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ inviteCode: code }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error validating invite code:', error);
+                throw error;
+            }
+        }
+        
+        // Handle deep link (try to open app)
+        function handleDeepLink(inviteCode) {
+            const deepLinkUrl = `trinity://room/${inviteCode}`;
+            const fallbackUrl = window.location.href;
+            
+            // Try to open the app
+            window.location.href = deepLinkUrl;
+            
+            // Fallback: if app doesn't open, stay on web page
+            setTimeout(() => {
+                // If we're still here after 2 seconds, the app probably didn't open
+                console.log('App did not open, staying on web page');
+            }, 2000);
+        }
+        
+        // Main initialization
+        async function init() {
+            const inviteCode = getInviteCodeFromUrl();
+            
+            if (!inviteCode) {
+                updateInviteStatus('invalid', '❌ Invalid invite link', 'No invite code found in URL');
+                return;
+            }
+            
+            try {
+                // Validate the invite code
+                const result = await validateInviteCode(inviteCode);
+                
+                if (result.valid && result.room) {
+                    updateInviteStatus('valid', `✅ Valid invite to "${result.room.name}"`);
+                    showRoomInfo(result.room);
+                    
+                    // Try to open the app automatically
+                    setTimeout(() => {
+                        handleDeepLink(inviteCode);
+                    }, 1000);
+                    
+                } else {
+                    updateInviteStatus('invalid', '❌ Invalid or expired invite link', 
+                        result.error || 'This invite link is no longer valid');
+                }
+                
+            } catch (error) {
+                updateInviteStatus('invalid', '❌ Unable to validate invite link', 
+                    'Please check your internet connection and try again');
+                console.error('Validation error:', error);
+            }
+        }
+        
+        // Handle app download clicks
+        iosDownload.addEventListener('click', (e) => {
+            // Track download click
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'download_click', {
+                    'platform': 'ios',
+                    'invite_code': getInviteCodeFromUrl()
+                });
+            }
+        });
+        
+        androidDownload.addEventListener('click', (e) => {
+            // Track download click
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'download_click', {
+                    'platform': 'android',
+                    'invite_code': getInviteCodeFromUrl()
+                });
+            }
+        });
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // Handle visibility change (when user returns to tab)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // User returned to tab, app probably didn't open
+                const inviteCode = getInviteCodeFromUrl();
+                if (inviteCode) {
+                    updateInviteStatus('valid', '📱 Open Trinity app to join the room', 
+                        'If you don\'t have the app yet, download it below');
+                }
+            }
+        });
+    </script>
+    
+    <!-- Google Analytics (optional) -->
+    <!-- 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+    -->
+</body>
+</html>

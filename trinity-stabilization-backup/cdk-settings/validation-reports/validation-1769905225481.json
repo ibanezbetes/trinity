@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-02-01T00:20:25.481Z",
+  "environment": "dev",
+  "region": "eu-west-1",
+  "overallStatus": "warn",
+  "summary": {
+    "total": 6,
+    "passed": 5,
+    "failed": 0,
+    "warnings": 1
+  },
+  "results": [
+    {
+      "category": "Environment",
+      "test": "AWS Credentials",
+      "status": "pass",
+      "message": "AWS credentials are valid"
+    },
+    {
+      "category": "Environment",
+      "test": "CDK CLI",
+      "status": "pass",
+      "message": "CDK CLI available: 2.1100.1 (build db19110)"
+    },
+    {
+      "category": "Environment",
+      "test": "Node.js Version",
+      "status": "warn",
+      "message": "Node.js version v24.9.0 - recommended: v18.x"
+    },
+    {
+      "category": "Environment",
+      "test": "CDK Configuration",
+      "status": "pass",
+      "message": "CDK app configuration valid"
+    },
+    {
+      "category": "Environment",
+      "test": "TypeScript Build",
+      "status": "pass",
+      "message": "TypeScript compilation successful"
+    },
+    {
+      "category": "Environment",
+      "test": "Deployment Config",
+      "status": "pass",
+      "message": "Deployment configuration valid"
+    }
+  ]
+}

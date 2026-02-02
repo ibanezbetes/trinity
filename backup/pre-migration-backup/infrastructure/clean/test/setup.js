@@ -1,0 +1,23 @@
+"use strict";
+/**
+ * Jest setup file for Trinity infrastructure tests
+ */
+// Increase timeout for property-based tests
+jest.setTimeout(30000);
+// Mock console.log to reduce noise during tests
+const originalConsoleLog = console.log;
+console.log = (...args) => {
+    // Only log if explicitly needed for debugging
+    if (process.env.JEST_VERBOSE === 'true') {
+        originalConsoleLog(...args);
+    }
+};
+// Mock console.warn to reduce noise during tests
+const originalConsoleWarn = console.warn;
+console.warn = (...args) => {
+    // Only log warnings if explicitly needed for debugging
+    if (process.env.JEST_VERBOSE === 'true') {
+        originalConsoleWarn(...args);
+    }
+};
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoic2V0dXAuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJzZXR1cC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUE7O0dBRUc7QUFFSCw0Q0FBNEM7QUFDNUMsSUFBSSxDQUFDLFVBQVUsQ0FBQyxLQUFLLENBQUMsQ0FBQztBQUV2QixnREFBZ0Q7QUFDaEQsTUFBTSxrQkFBa0IsR0FBRyxPQUFPLENBQUMsR0FBRyxDQUFDO0FBQ3ZDLE9BQU8sQ0FBQyxHQUFHLEdBQUcsQ0FBQyxHQUFHLElBQVcsRUFBRSxFQUFFO0lBQy9CLDhDQUE4QztJQUM5QyxJQUFJLE9BQU8sQ0FBQyxHQUFHLENBQUMsWUFBWSxLQUFLLE1BQU0sRUFBRSxDQUFDO1FBQ3hDLGtCQUFrQixDQUFDLEdBQUcsSUFBSSxDQUFDLENBQUM7SUFDOUIsQ0FBQztBQUNILENBQUMsQ0FBQztBQUVGLGlEQUFpRDtBQUNqRCxNQUFNLG1CQUFtQixHQUFHLE9BQU8sQ0FBQyxJQUFJLENBQUM7QUFDekMsT0FBTyxDQUFDLElBQUksR0FBRyxDQUFDLEdBQUcsSUFBVyxFQUFFLEVBQUU7SUFDaEMsdURBQXVEO0lBQ3ZELElBQUksT0FBTyxDQUFDLEdBQUcsQ0FBQyxZQUFZLEtBQUssTUFBTSxFQUFFLENBQUM7UUFDeEMsbUJBQW1CLENBQUMsR0FBRyxJQUFJLENBQUMsQ0FBQztJQUMvQixDQUFDO0FBQ0gsQ0FBQyxDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiLyoqXHJcbiAqIEplc3Qgc2V0dXAgZmlsZSBmb3IgVHJpbml0eSBpbmZyYXN0cnVjdHVyZSB0ZXN0c1xyXG4gKi9cclxuXHJcbi8vIEluY3JlYXNlIHRpbWVvdXQgZm9yIHByb3BlcnR5LWJhc2VkIHRlc3RzXHJcbmplc3Quc2V0VGltZW91dCgzMDAwMCk7XHJcblxyXG4vLyBNb2NrIGNvbnNvbGUubG9nIHRvIHJlZHVjZSBub2lzZSBkdXJpbmcgdGVzdHNcclxuY29uc3Qgb3JpZ2luYWxDb25zb2xlTG9nID0gY29uc29sZS5sb2c7XHJcbmNvbnNvbGUubG9nID0gKC4uLmFyZ3M6IGFueVtdKSA9PiB7XHJcbiAgLy8gT25seSBsb2cgaWYgZXhwbGljaXRseSBuZWVkZWQgZm9yIGRlYnVnZ2luZ1xyXG4gIGlmIChwcm9jZXNzLmVudi5KRVNUX1ZFUkJPU0UgPT09ICd0cnVlJykge1xyXG4gICAgb3JpZ2luYWxDb25zb2xlTG9nKC4uLmFyZ3MpO1xyXG4gIH1cclxufTtcclxuXHJcbi8vIE1vY2sgY29uc29sZS53YXJuIHRvIHJlZHVjZSBub2lzZSBkdXJpbmcgdGVzdHNcclxuY29uc3Qgb3JpZ2luYWxDb25zb2xlV2FybiA9IGNvbnNvbGUud2FybjtcclxuY29uc29sZS53YXJuID0gKC4uLmFyZ3M6IGFueVtdKSA9PiB7XHJcbiAgLy8gT25seSBsb2cgd2FybmluZ3MgaWYgZXhwbGljaXRseSBuZWVkZWQgZm9yIGRlYnVnZ2luZ1xyXG4gIGlmIChwcm9jZXNzLmVudi5KRVNUX1ZFUkJPU0UgPT09ICd0cnVlJykge1xyXG4gICAgb3JpZ2luYWxDb25zb2xlV2FybiguLi5hcmdzKTtcclxuICB9XHJcbn07Il19

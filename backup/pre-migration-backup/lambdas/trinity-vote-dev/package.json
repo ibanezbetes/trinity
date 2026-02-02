@@ -1,0 +1,6 @@
+{
+  "name": "trinity-vote-dev",
+  "version": "1.0.0",
+  "description": "Trinity Vote Lambda - Optimized",
+  "main": "vote.js"
+}

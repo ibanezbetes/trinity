@@ -1,0 +1,31 @@
+{
+  "TableName": "trinity-filter-cache",
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "cacheKey",
+      "AttributeType": "S"
+    }
+  ],
+  "KeySchema": [
+    {
+      "AttributeName": "cacheKey",
+      "KeyType": "HASH"
+    }
+  ],
+  "BillingMode": "PAY_PER_REQUEST",
+  "DeletionProtectionEnabled": false,
+  "Tags": [
+    {
+      "Key": "Project",
+      "Value": "Trinity"
+    },
+    {
+      "Key": "Environment",
+      "Value": "dev"
+    },
+    {
+      "Key": "Purpose",
+      "Value": "Movie filter cache for performance optimization"
+    }
+  ]
+}

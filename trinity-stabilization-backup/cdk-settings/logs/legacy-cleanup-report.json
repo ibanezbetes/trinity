@@ -1,0 +1,72 @@
+{
+  "summary": {
+    "timestamp": "2026-02-01T01:08:24.961Z",
+    "totalActions": 10,
+    "successfulActions": 9,
+    "skippedActions": 1,
+    "failedActions": 0,
+    "overallStatus": "SUCCESS"
+  },
+  "details": [
+    {
+      "action": "IDENTIFY",
+      "target": "deploy-all-lambdas",
+      "status": "SUCCESS",
+      "details": "Found legacy deployment script: C:\\Users\\daniz\\Documents\\GitHub\\trinity\\scripts\\deploy-all-lambdas"
+    },
+    {
+      "action": "IDENTIFY",
+      "target": "deploy-cache-system",
+      "status": "SUCCESS",
+      "details": "Found legacy deployment script: C:\\Users\\daniz\\Documents\\GitHub\\trinity\\scripts\\deploy-cache-system"
+    },
+    {
+      "action": "IDENTIFY",
+      "target": "deploy-matchmaking",
+      "status": "SUCCESS",
+      "details": "Found legacy deployment script: C:\\Users\\daniz\\Documents\\GitHub\\trinity\\scripts\\deploy-matchmaking"
+    },
+    {
+      "action": "IDENTIFY",
+      "target": "update-lambda-and-deploy",
+      "status": "SUCCESS",
+      "details": "Found legacy deployment script: C:\\Users\\daniz\\Documents\\GitHub\\trinity\\scripts\\update-lambda-and-deploy"
+    },
+    {
+      "action": "CREATE_ARCHIVE",
+      "target": "C:\\Users\\daniz\\Documents\\GitHub\\trinity\\scripts\\legacy-archived",
+      "status": "SKIPPED",
+      "details": "Archive directory already exists"
+    },
+    {
+      "action": "ARCHIVE",
+      "target": "deploy-all-lambdas",
+      "status": "SUCCESS",
+      "details": "Archived to legacy-archived/deploy-all-lambdas"
+    },
+    {
+      "action": "ARCHIVE",
+      "target": "deploy-cache-system",
+      "status": "SUCCESS",
+      "details": "Archived to legacy-archived/deploy-cache-system"
+    },
+    {
+      "action": "ARCHIVE",
+      "target": "deploy-matchmaking",
+      "status": "SUCCESS",
+      "details": "Archived to legacy-archived/deploy-matchmaking"
+    },
+    {
+      "action": "ARCHIVE",
+      "target": "update-lambda-and-deploy",
+      "status": "SUCCESS",
+      "details": "Archived to legacy-archived/update-lambda-and-deploy"
+    },
+    {
+      "action": "UPDATE_DOCS",
+      "target": "README.md",
+      "status": "SUCCESS",
+      "details": "Added CDK migration completion notice"
+    }
+  ]
+}

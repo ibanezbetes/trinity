@@ -1,0 +1,96 @@
+{
+    "Functions": [
+        {
+            "FunctionName": "trini-ai-tcg-health-check-dev",
+            "FunctionArn": "arn:aws:lambda:eu-west-1:847850007406:function:trini-ai-tcg-health-check-dev",
+            "Runtime": "python3.10",
+            "Role": "arn:aws:iam::847850007406:role/trini-ai-tcg-dev-eu-west-1-lambdaRole",
+            "Handler": "lambda_orchestrator.health_check_handler",
+            "CodeSize": 79142901,
+            "Description": "Health check endpoint",
+            "Timeout": 10,
+            "MemorySize": 256,
+            "LastModified": "2026-01-29T01:37:11.000+0000",
+            "CodeSha256": "lmPIOHE0urvZvFpqY6RyxqwFkxv/HKFNbe0uRJOIPco=",
+            "Version": "$LATEST",
+            "Environment": {
+                "Variables": {
+                    "CARDS_PER_PACK": "5",
+                    "MAX_RETRIES": "3",
+                    "STAGE": "dev",
+                    "TMDB_API_KEY": "dc4dbcd2404c1ca852f8eb964add267d",
+                    "DYNAMODB_TABLE_NAME": "trinity-movies-cache-dev",
+                    "INFERENCE_ENDPOINT_URL": "https://api-inference.huggingface.co/models/BSC-LT/salamandra-7b-instruct",
+                    "TIMEOUT_SECONDS": "30",
+                    "HUGGINGFACE_TOKEN": "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",
+                    "LOG_LEVEL": "INFO"
+                }
+            },
+            "TracingConfig": {
+                "Mode": "PassThrough"
+            },
+            "RevisionId": "5408d3ca-9c65-4032-bfa3-6aa3fc15a36d",
+            "PackageType": "Zip",
+            "Architectures": [
+                "x86_64"
+            ],
+            "EphemeralStorage": {
+                "Size": 512
+            },
+            "SnapStart": {
+                "ApplyOn": "None",
+                "OptimizationStatus": "Off"
+            },
+            "LoggingConfig": {
+                "LogFormat": "Text",
+                "LogGroup": "/aws/lambda/trini-ai-tcg-health-check-dev"
+            }
+        },
+        {
+            "FunctionName": "trini-ai-tcg-generate-pack-dev",
+            "FunctionArn": "arn:aws:lambda:eu-west-1:847850007406:function:trini-ai-tcg-generate-pack-dev",
+            "Runtime": "python3.10",
+            "Role": "arn:aws:iam::847850007406:role/trini-ai-tcg-dev-eu-west-1-lambdaRole",
+            "Handler": "lambda_orchestrator.lambda_handler",
+            "CodeSize": 79142901,
+            "Description": "Generate AI-powered movie card packs",
+            "Timeout": 30,
+            "MemorySize": 1024,
+            "LastModified": "2026-01-29T01:37:10.000+0000",
+            "CodeSha256": "lmPIOHE0urvZvFpqY6RyxqwFkxv/HKFNbe0uRJOIPco=",
+            "Version": "$LATEST",
+            "Environment": {
+                "Variables": {
+                    "CARDS_PER_PACK": "5",
+                    "MAX_RETRIES": "3",
+                    "STAGE": "dev",
+                    "TMDB_API_KEY": "dc4dbcd2404c1ca852f8eb964add267d",
+                    "DYNAMODB_TABLE_NAME": "trinity-movies-cache-dev",
+                    "INFERENCE_ENDPOINT_URL": "https://api-inference.huggingface.co/models/BSC-LT/salamandra-7b-instruct",
+                    "TIMEOUT_SECONDS": "30",
+                    "HUGGINGFACE_TOKEN": "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",
+                    "LOG_LEVEL": "INFO"
+                }
+            },
+            "TracingConfig": {
+                "Mode": "PassThrough"
+            },
+            "RevisionId": "74df44be-0f22-4dd0-9f6e-ab6f54ff0f5e",
+            "PackageType": "Zip",
+            "Architectures": [
+                "x86_64"
+            ],
+            "EphemeralStorage": {
+                "Size": 512
+            },
+            "SnapStart": {
+                "ApplyOn": "None",
+                "OptimizationStatus": "Off"
+            },
+            "LoggingConfig": {
+                "LogFormat": "Text",
+                "LogGroup": "/aws/lambda/trini-ai-tcg-generate-pack-dev"
+            }
+        }
+    ]
+}

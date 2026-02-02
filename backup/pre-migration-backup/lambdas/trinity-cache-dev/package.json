@@ -1,0 +1,9 @@
+{
+  "name": "trinity-cache-dev",
+  "version": "1.0.0",
+  "description": "Trinity Room Movie Cache Service - IMMUTABLE BUSINESS LOGIC",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "^1.13.4"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "tableName": "trinity-room-matches-dev",
+  "keySchema": [
+    {
+      "AttributeName": "roomId",
+      "KeyType": "HASH"
+    },
+    {
+      "AttributeName": "movieId",
+      "KeyType": "RANGE"
+    }
+  ],
+  "attributeDefinitions": [
+    {
+      "AttributeName": "movieId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "roomId",
+      "AttributeType": "S"
+    }
+  ],
+  "globalSecondaryIndexes": [],
+  "localSecondaryIndexes": [],
+  "billingMode": "PAY_PER_REQUEST",
+  "provisionedThroughput": {
+    "NumberOfDecreasesToday": 0,
+    "ReadCapacityUnits": 0,
+    "WriteCapacityUnits": 0
+  },
+  "tags": []
+}

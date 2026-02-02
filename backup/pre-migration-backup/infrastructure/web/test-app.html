@@ -1,0 +1,2167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trinity - Testing App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(255,255,255,0.05);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #8b5cf6; }
+        .user-info {
+            padding: 15px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .user-email { font-size: 14px; color: #a0a0a0; }
+        .user-id { font-size: 11px; color: #666; margin-top: 4px; word-break: break-all; }
+        .rooms-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .room-item {
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.05);
+            transition: all 0.2s;
+        }
+        .room-item:hover { background: rgba(139, 92, 246, 0.2); }
+        .room-item.active { background: rgba(139, 92, 246, 0.3); border: 1px solid #8b5cf6; }
+        .room-name { font-weight: 600; margin-bottom: 4px; }
+        .room-meta { font-size: 12px; color: #888; }
+        .sidebar-actions {
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #8b5cf6; color: #fff; }
+        .btn-primary:hover { background: #7c3aed; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+        .btn-danger { background: #ef4444; color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .room-title { font-size: 20px; font-weight: bold; }
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .status-connected { background: #22c55e; }
+        .status-disconnected { background: #ef4444; }
+        .status-connecting { background: #eab308; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Voting Section */
+        .voting-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .movie-card {
+            width: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .movie-poster {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            background: #333;
+        }
+        .movie-info {
+            padding: 20px;
+        }
+        .movie-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+        .movie-year { color: #888; font-size: 14px; margin-bottom: 8px; }
+        .movie-rating {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,215,0,0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .movie-overview {
+            font-size: 13px;
+            color: #aaa;
+            margin-top: 12px;
+            line-height: 1.5;
+            max-height: 60px;
+            overflow: hidden;
+        }
+        .vote-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .vote-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid;
+            background: transparent;
+            cursor: pointer;
+            font-size: 28px;
+            transition: all 0.2s;
+        }
+        .vote-btn-dislike { border-color: #ef4444; color: #ef4444; }
+        .vote-btn-dislike:hover { background: #ef4444; color: #fff; }
+        .vote-btn-like { border-color: #22c55e; color: #22c55e; }
+        .vote-btn-like:hover { background: #22c55e; color: #fff; }
+        
+        /* Room Details Section */
+        .room-details-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #fff;
+        }
+        .room-details-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 15px;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .room-info-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        .room-info-main h3 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .room-description {
+            color: #aaa;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .room-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #888;
+        }
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+        
+        /* Loading States */
+        .room-details-loading {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            height: 20px;
+            margin-bottom: 12px;
+            animation: skeleton-loading 1.5s ease-in-out infinite alternate;
+        }
+        .room-details-loading.wide {
+            width: 80%;
+        }
+        .room-details-loading.medium {
+            width: 60%;
+        }
+        .room-details-loading.narrow {
+            width: 40%;
+        }
+        @keyframes skeleton-loading {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+        
+        /* Enhanced Animations */
+        .room-info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+        }
+        .member-item-details {
+            transition: all 0.2s ease;
+        }
+        .member-item-details:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(4px);
+        }
+        .invite-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .invite-section h4 {
+            margin-bottom: 16px;
+            font-size: 16px;
+            color: #fff;
+        }
+        .invite-code-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .invite-code-display {
+            display: flex;
+            align-items: center;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            gap: 12px;
+        }
+        .invite-code {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            font-weight: bold;
+            color: #8b5cf6;
+            letter-spacing: 2px;
+        }
+        .copy-btn, .copy-link-btn {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: #8b5cf6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover, .copy-link-btn:hover {
+            background: rgba(139, 92, 246, 0.3);
+        }
+        .share-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .share-link small {
+            flex: 1;
+            color: #888;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .members-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .members-section h4 {
+            margin-bottom: 16px;
+            font-size: 16px;
+            color: #fff;
+        }
+        .members-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .member-item-details {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            gap: 12px;
+        }
+        .member-avatar-details {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #fff;
+        }
+        .member-info-details {
+            flex: 1;
+        }
+        .member-name-details {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+        .member-role-details {
+            font-size: 12px;
+            color: #8b5cf6;
+        }
+        .member-status-details {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+        .member-status-details.connected {
+            background: #22c55e;
+        }
+        .member-status-details.disconnected {
+            background: #ef4444;
+        }
+        .empty-members-message {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-style: italic;
+        }
+        .config-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .config-section h4 {
+            margin-bottom: 16px;
+            font-size: 16px;
+            color: #fff;
+        }
+        .config-grid {
+            display: grid;
+            gap: 12px;
+        }
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+        .config-label {
+            color: #888;
+            font-size: 14px;
+        }
+        .config-value {
+            color: #fff;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .room-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .btn-large {
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+        .waiting-message {
+            text-align: center;
+            padding: 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            color: #888;
+            font-style: italic;
+        }
+        
+        /* Chat Section */
+        .chat-section {
+            width: 350px;
+            border-left: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-weight: 600;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .chat-message {
+            margin-bottom: 15px;
+        }
+        .message-header {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .message-user { font-weight: 600; font-size: 13px; color: #8b5cf6; }
+        .message-time { font-size: 11px; color: #666; }
+        .message-content {
+            background: rgba(255,255,255,0.05);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .message-system {
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+            padding: 8px;
+        }
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+        }
+        .chat-input:focus { outline: none; border-color: #8b5cf6; }
+        .chat-send {
+            padding: 12px 20px;
+            background: #8b5cf6;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+        }
+        
+        /* Members Panel */
+        .members-panel {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .members-title { font-size: 12px; color: #888; margin-bottom: 10px; }
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+        }
+        .member-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .member-name { font-size: 14px; }
+        .member-status {
+            margin-left: auto;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .member-voting { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+        .member-voted { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        
+        /* Matches Panel */
+        .matches-panel {
+            padding: 15px;
+        }
+        .matches-title { font-size: 12px; color: #888; margin-bottom: 10px; }
+        .match-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .match-poster {
+            width: 40px;
+            height: 60px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+        .match-info { flex: 1; }
+        .match-name { font-size: 13px; font-weight: 600; }
+        .match-date { font-size: 11px; color: #888; }
+        
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .login-box {
+            background: rgba(255,255,255,0.05);
+            padding: 40px;
+            border-radius: 16px;
+            width: 400px;
+        }
+        .login-title { font-size: 24px; font-weight: bold; margin-bottom: 8px; text-align: center; }
+        .login-subtitle { color: #888; text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-size: 14px; color: #aaa; }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+        }
+        .form-input:focus { outline: none; border-color: #8b5cf6; }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal {
+            background: #1a1a2e;
+            padding: 30px;
+            border-radius: 16px;
+            width: 400px;
+            max-width: 90%;
+        }
+        .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        /* Progress */
+        .progress-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin: 15px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #8b5cf6;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+        .progress-text { font-size: 12px; color: #888; }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+        .empty-icon { font-size: 48px; margin-bottom: 20px; }
+        .empty-title { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+        .empty-text { font-size: 14px; }
+        
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background: #22c55e;
+            color: #fff;
+            font-weight: 500;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        .notification-error { background: #ef4444; }
+        .notification-info { background: #3b82f6; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Hidden */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <div class="login-title">🎬 Trinity Testing</div>
+            <div class="login-subtitle">Inicia sesión para probar el sistema</div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="loginEmail" class="form-input" placeholder="usuario@ejemplo.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <input type="password" id="loginPassword" class="form-input" placeholder="••••••••">
+            </div>
+            <button class="btn btn-primary" onclick="login()">Iniciar Sesión</button>
+            <div style="text-align: center; margin-top: 15px; color: #888; font-size: 13px;">
+                Usuarios de prueba en Cognito
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="app-container hidden">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">🎬 Trinity</div>
+            </div>
+            <div class="user-info">
+                <div class="user-email" id="userEmail">usuario@ejemplo.com</div>
+                <div class="user-id" id="userId">ID: xxx</div>
+            </div>
+            <div class="rooms-list" id="roomsList">
+                <!-- Rooms will be loaded here -->
+            </div>
+            <div class="sidebar-actions">
+                <button class="btn btn-primary" onclick="showCreateRoomModal()">+ Crear Sala</button>
+                <button class="btn btn-secondary" onclick="showJoinRoomModal()">Unirse con Código</button>
+                <button class="btn btn-danger" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="main-header">
+                <div>
+                    <div class="room-title" id="currentRoomTitle">Selecciona una sala</div>
+                    <div id="roomInviteCode" style="font-size: 12px; color: #888;"></div>
+                </div>
+                <div class="connection-status">
+                    <div class="status-dot" id="connectionDot"></div>
+                    <span id="connectionText">Desconectado</span>
+                </div>
+            </div>
+            
+            <div class="content-area">
+                <!-- Voting Section -->
+                <div class="voting-section" id="votingSection">
+                    <div class="empty-state" id="noRoomSelected">
+                        <div class="empty-icon">🎬</div>
+                        <div class="empty-title">Selecciona una sala</div>
+                        <div class="empty-text">Elige una sala de la lista o crea una nueva</div>
+                    </div>
+                    
+                    <!-- Room Details Section -->
+                    <div id="roomDetailsArea" class="hidden">
+                        <div class="room-details-container">
+                            <!-- Room Header -->
+                            <div class="room-details-header">
+                                <button class="back-btn" onclick="backToRoomList()">
+                                    <span>←</span> Volver a salas
+                                </button>
+                                <h2 id="roomDetailsTitle">Detalles de la Sala</h2>
+                            </div>
+                            
+                            <!-- Room Info Card -->
+                            <div class="room-info-card">
+                                <div class="room-info-main">
+                                    <h3 id="roomDetailsName">Nombre de la Sala</h3>
+                                    <p id="roomDetailsDescription" class="room-description">Descripción de la sala</p>
+                                    <div class="room-status">
+                                        <div class="status-indicator active"></div>
+                                        <span>Esperando participantes</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Invite Code Section -->
+                            <div class="invite-section">
+                                <h4>📋 Código de Invitación</h4>
+                                <div class="invite-code-container">
+                                    <div class="invite-code-display">
+                                        <span id="roomDetailsInviteCode" class="invite-code">ABC123</span>
+                                        <button class="copy-btn" onclick="copyInviteCode()" title="Copiar código">
+                                            📋
+                                        </button>
+                                    </div>
+                                    <div class="share-link">
+                                        <small id="roomDetailsShareLink">Comparte: http://localhost:3000/room/ABC123</small>
+                                        <button class="copy-link-btn" onclick="copyShareLink()" title="Copiar enlace">
+                                            🔗
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Members Section -->
+                            <div class="members-section">
+                                <h4>👥 Miembros (<span id="roomDetailsMemberCount">1</span>)</h4>
+                                <div id="roomDetailsMembersList" class="members-list">
+                                    <!-- Members will be populated here -->
+                                </div>
+                            </div>
+                            
+                            <!-- Configuration Section -->
+                            <div class="config-section">
+                                <h4>🎭 Configuración</h4>
+                                <div class="config-grid">
+                                    <div class="config-item">
+                                        <span class="config-label">Géneros:</span>
+                                        <span id="roomDetailsGenres" class="config-value">Todos los géneros</span>
+                                    </div>
+                                    <div class="config-item">
+                                        <span class="config-label">Películas:</span>
+                                        <span id="roomDetailsMovieCount" class="config-value">~50 películas</span>
+                                    </div>
+                                    <div class="config-item">
+                                        <span class="config-label">Votación:</span>
+                                        <span class="config-value">Sistema Like/Dislike</span>
+                                    </div>
+                                    <div class="config-item">
+                                        <span class="config-label">Tipo:</span>
+                                        <span id="roomDetailsType" class="config-value">Sala pública</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="room-actions">
+                                <button id="startVotingBtn" class="btn btn-primary btn-large" onclick="startVotingFromDetails()" style="display: none;">
+                                    🚀 Empezar Votación
+                                </button>
+                                <div id="waitingForHost" class="waiting-message" style="display: none;">
+                                    <span>⏳ Esperando al host...</span>
+                                </div>
+                                <button class="btn btn-secondary btn-large" onclick="leaveRoomFromDetails()">
+                                    Salir de la Sala
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="votingArea" class="hidden">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">0/0 películas</div>
+                        
+                        <div class="movie-card" id="movieCard">
+                            <img class="movie-poster" id="moviePoster" src="" alt="Poster">
+                            <div class="movie-info">
+                                <div class="movie-title" id="movieTitle">Cargando...</div>
+                                <div class="movie-year" id="movieYear"></div>
+                                <div class="movie-rating" id="movieRating">
+                                    ⭐ <span id="ratingValue">0</span>
+                                </div>
+                                <div class="movie-overview" id="movieOverview"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="vote-buttons">
+                            <button class="vote-btn vote-btn-dislike" onclick="vote('DISLIKE')">✕</button>
+                            <button class="vote-btn vote-btn-like" onclick="vote('LIKE')">♥</button>
+                        </div>
+                    </div>
+                    
+                    <div id="votingComplete" class="hidden">
+                        <div class="empty-state">
+                            <div class="empty-icon">✅</div>
+                            <div class="empty-title">¡Votación completada!</div>
+                            <div class="empty-text">Has votado todas las películas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Section -->
+                <div class="chat-section">
+                    <div class="members-panel" id="membersPanel">
+                        <div class="members-title">MIEMBROS (<span id="memberCount">0</span>)</div>
+                        <div id="membersList"></div>
+                    </div>
+                    
+                    <div class="matches-panel" id="matchesPanel">
+                        <div class="matches-title">MATCHES (<span id="matchCount">0</span>)</div>
+                        <div id="matchesList"></div>
+                    </div>
+                    
+                    <div class="chat-header">💬 Chat de la Sala</div>
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message-system">Selecciona una sala para ver el chat</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Escribe un mensaje..." onkeypress="handleChatKeypress(event)">
+                        <button class="chat-send" onclick="sendChatMessage()">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Room Modal -->
+    <div id="createRoomModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-title">Crear Nueva Sala</div>
+            <div class="form-group">
+                <label class="form-label">Nombre de la sala</label>
+                <input type="text" id="newRoomName" class="form-input" placeholder="Noche de películas">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Descripción (opcional)</label>
+                <input type="text" id="newRoomDesc" class="form-input" placeholder="Descripción...">
+            </div>
+            <button class="btn btn-primary" onclick="createRoom()">Crear Sala</button>
+            <button class="btn btn-secondary" onclick="hideCreateRoomModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Join Room Modal -->
+    <div id="joinRoomModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-title">Unirse a Sala</div>
+            <div class="form-group">
+                <label class="form-label">Código de invitación</label>
+                <input type="text" id="inviteCode" class="form-input" placeholder="ABC123" maxlength="6" style="text-transform: uppercase;">
+            </div>
+            <button class="btn btn-primary" onclick="joinRoom()">Unirse</button>
+            <button class="btn btn-secondary" onclick="hideJoinRoomModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Match Found Modal -->
+    <div id="matchModal" class="modal-overlay hidden">
+        <div class="modal" style="text-align: center;">
+            <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
+            <div class="modal-title">¡Es un Match!</div>
+            <div id="matchMovieTitle" style="font-size: 18px; margin-bottom: 20px;"></div>
+            <img id="matchMoviePoster" style="width: 150px; border-radius: 8px; margin-bottom: 20px;">
+            <button class="btn btn-primary" onclick="hideMatchModal()">¡Genial!</button>
+        </div>
+    </div>
+
+    <script>
+
+        // ============ CONFIGURATION ============
+        const CONFIG = {
+            // AppSync GraphQL endpoint
+            APPSYNC_ENDPOINT: 'https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql',
+            APPSYNC_REALTIME: 'wss://imx6fos5lnd3xkdchl4rqtv4pi.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',
+            
+            // Cognito
+            COGNITO_USER_POOL_ID: 'eu-west-1_6UxioIj4z',
+            COGNITO_CLIENT_ID: '59dpqsm580j14ulkcha19shl64',
+            COGNITO_REGION: 'eu-west-1',
+            
+            // TMDB (for movie images)
+            TMDB_IMAGE_BASE: 'https://image.tmdb.org/t/p/w500'
+        };
+
+        // ============ STATE ============
+        let state = {
+            user: null,
+            tokens: null,
+            rooms: [],
+            currentRoom: null,
+            currentMovie: null,
+            movies: [],
+            movieIndex: 0,
+            members: [],
+            matches: [],
+            messages: [],
+            wsConnection: null,
+            reconnectTimer: null,
+            reconnectAttempts: 0,
+            lastMembersCacheKey: null,
+            viewMode: 'roomList' // 'roomList', 'roomDetails', 'voting'
+        };
+
+        // ============ ROOM DETAILS INTERFACES ============
+        // Room status enum
+        const RoomStatus = {
+            WAITING: 'waiting',
+            ACTIVE: 'active',
+            COMPLETED: 'completed'
+        };
+
+        // Room details interface structure
+        function createRoomDetails(room) {
+            return {
+                id: room.id,
+                name: room.name,
+                description: room.description || '',
+                status: room.status || RoomStatus.WAITING,
+                hostId: room.hostId,
+                inviteCode: room.inviteCode,
+                memberCount: room.memberCount || 1,
+                matchCount: room.matchCount || 0,
+                createdAt: room.createdAt,
+                genres: room.genres || ['Todos los géneros'],
+                movieCount: room.movieCount || 50,
+                votingType: 'like_dislike'
+            };
+        }
+
+        // Member interface structure
+        function createMember(memberData) {
+            return {
+                id: memberData.id,
+                userId: memberData.userId,
+                email: memberData.email,
+                displayName: memberData.displayName || memberData.email.split('@')[0],
+                isHost: memberData.isHost || false,
+                isConnected: memberData.isConnected || true,
+                joinedAt: memberData.joinedAt || new Date().toISOString()
+            };
+        }
+
+        // ============ AUTH ============
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showNotification('Por favor ingresa email y contraseña', 'error');
+                return;
+            }
+            
+            try {
+                showNotification('Iniciando sesión...', 'info');
+                
+                // Cognito SRP Auth
+                const authResult = await cognitoAuth(email, password);
+                
+                state.user = {
+                    email: email,
+                    sub: authResult.sub
+                };
+                state.tokens = {
+                    idToken: authResult.idToken,
+                    accessToken: authResult.accessToken,
+                    refreshToken: authResult.refreshToken
+                };
+                
+                // Save to localStorage
+                localStorage.setItem('trinity_tokens', JSON.stringify(state.tokens));
+                localStorage.setItem('trinity_user', JSON.stringify(state.user));
+                
+                showMainApp();
+                loadRooms();
+                showNotification('¡Bienvenido!', 'success');
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function cognitoAuth(email, password) {
+            // Using Cognito InitiateAuth with USER_PASSWORD_AUTH
+            const response = await fetch(`https://cognito-idp.${CONFIG.COGNITO_REGION}.amazonaws.com/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-amz-json-1.1',
+                    'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth'
+                },
+                body: JSON.stringify({
+                    AuthFlow: 'USER_PASSWORD_AUTH',
+                    ClientId: CONFIG.COGNITO_CLIENT_ID,
+                    AuthParameters: {
+                        USERNAME: email,
+                        PASSWORD: password
+                    }
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.__type) {
+                throw new Error(data.message || 'Error de autenticación');
+            }
+            
+            if (!data.AuthenticationResult) {
+                throw new Error('Respuesta de autenticación inválida');
+            }
+            
+            // Decode JWT to get user info
+            const idTokenPayload = JSON.parse(atob(data.AuthenticationResult.IdToken.split('.')[1]));
+            
+            return {
+                idToken: data.AuthenticationResult.IdToken,
+                accessToken: data.AuthenticationResult.AccessToken,
+                refreshToken: data.AuthenticationResult.RefreshToken,
+                sub: idTokenPayload.sub
+            };
+        }
+
+        function logout() {
+            state.user = null;
+            state.tokens = null;
+            state.rooms = [];
+            state.currentRoom = null;
+            
+            localStorage.removeItem('trinity_tokens');
+            localStorage.removeItem('trinity_user');
+            
+            if (state.wsConnection) {
+                state.wsConnection.close();
+            }
+            
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function checkStoredAuth() {
+            const tokens = localStorage.getItem('trinity_tokens');
+            const user = localStorage.getItem('trinity_user');
+            
+            if (tokens && user) {
+                state.tokens = JSON.parse(tokens);
+                state.user = JSON.parse(user);
+                showMainApp();
+                loadRooms();
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userEmail').textContent = state.user.email;
+            document.getElementById('userId').textContent = 'ID: ' + state.user.sub.substring(0, 20) + '...';
+        }
+
+        // ============ GRAPHQL ============
+        async function graphqlRequest(query, variables = {}) {
+            const response = await fetch(CONFIG.APPSYNC_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': state.tokens.idToken
+                },
+                body: JSON.stringify({ query, variables })
+            });
+            
+            const data = await response.json();
+            
+            if (data.errors) {
+                console.error('GraphQL errors:', data.errors);
+                throw new Error(data.errors[0].message);
+            }
+            
+            return data.data;
+        }
+
+        // ============ ROOMS ============
+        async function loadRooms() {
+            try {
+                const data = await graphqlRequest(`
+                    query GetUserRooms {
+                        getUserRooms {
+                            id
+                            name
+                            description
+                            status
+                            hostId
+                            inviteCode
+                            memberCount
+                            matchCount
+                            createdAt
+                        }
+                    }
+                `);
+                
+                state.rooms = data.getUserRooms || [];
+                renderRoomsList();
+                
+            } catch (error) {
+                console.error('Error loading rooms:', error);
+                showNotification('Error cargando salas', 'error');
+            }
+        }
+
+        function renderRoomsList() {
+            const container = document.getElementById('roomsList');
+            
+            if (state.rooms.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 20px;">
+                        <div class="empty-text">No tienes salas</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = state.rooms.map(room => `
+                <div class="room-item ${state.currentRoom?.id === room.id ? 'active' : ''}" 
+                     onclick="selectRoom('${room.id}')">
+                    <div class="room-name">${room.name}</div>
+                    <div class="room-meta">
+                        ${room.memberCount || 1} miembros • ${room.matchCount || 0} matches
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function selectRoom(roomId) {
+            const room = state.rooms.find(r => r.id === roomId);
+            if (!room) {
+                console.error('Room not found:', roomId);
+                showNotification('Sala no encontrada', 'error');
+                return;
+            }
+            
+            state.currentRoom = room;
+            renderRoomsList();
+            
+            // Show room details instead of going directly to voting
+            showRoomDetails(room);
+        }
+
+        function showRoomDetails(room) {
+            // Hide other sections
+            document.getElementById('noRoomSelected').classList.add('hidden');
+            document.getElementById('votingArea').classList.add('hidden');
+            
+            // Show room details
+            document.getElementById('roomDetailsArea').classList.remove('hidden');
+            
+            // Show loading state initially
+            showRoomDetailsLoading(true);
+            
+            // Update header
+            document.getElementById('currentRoomTitle').textContent = room.name;
+            document.getElementById('roomInviteCode').textContent = 'Código: ' + (room.inviteCode || 'N/A');
+            
+            // Populate room details
+            document.getElementById('roomDetailsName').textContent = room.name;
+            
+            const descElement = document.getElementById('roomDetailsDescription');
+            if (room.description && room.description.trim()) {
+                descElement.textContent = room.description;
+                descElement.style.display = 'block';
+            } else {
+                descElement.style.display = 'none';
+            }
+            
+            // Update invite code section
+            const inviteCode = room.inviteCode || 'N/A';
+            document.getElementById('roomDetailsInviteCode').textContent = inviteCode;
+            
+            // Generate shareable link
+            const shareLink = inviteCode !== 'N/A' 
+                ? `http://localhost:3000/test?join=${inviteCode}`
+                : 'No disponible';
+            document.getElementById('roomDetailsShareLink').textContent = `Comparte: ${shareLink}`;
+            
+            // Update member count
+            document.getElementById('roomDetailsMemberCount').textContent = room.memberCount || 1;
+            
+            // Show genres with better formatting
+            const genresElement = document.getElementById('roomDetailsGenres');
+            if (room.genrePreferences && room.genrePreferences.length > 0) {
+                // Map genre IDs to names if possible
+                const genreNames = room.genrePreferences.map(genreId => {
+                    const genreMap = {
+                        '28': 'Acción', '12': 'Aventura', '16': 'Animación', '35': 'Comedia',
+                        '80': 'Crimen', '99': 'Documental', '18': 'Drama', '10751': 'Familiar',
+                        '14': 'Fantasía', '36': 'Historia', '27': 'Terror', '10402': 'Música',
+                        '9648': 'Misterio', '10749': 'Romance', '878': 'Ciencia Ficción',
+                        '10770': 'Película de TV', '53': 'Thriller', '10752': 'Guerra', '37': 'Western'
+                    };
+                    return genreMap[genreId] || `Género ${genreId}`;
+                });
+                genresElement.textContent = genreNames.join(', ');
+            } else {
+                genresElement.textContent = 'Todos los géneros';
+            }
+            
+            // Show movie count with better estimation
+            const movieCountElement = document.getElementById('roomDetailsMovieCount');
+            if (room.masterList && room.masterList.length > 0) {
+                movieCountElement.textContent = `${room.masterList.length} películas`;
+            } else {
+                movieCountElement.textContent = '~50 películas';
+            }
+            
+            // Show room type
+            document.getElementById('roomDetailsType').textContent = 
+                room.isPrivate ? 'Sala privada' : 'Sala pública';
+            
+            // Show appropriate buttons based on user role
+            const isHost = room.hostId === state.user?.sub;
+            const startBtn = document.getElementById('startVotingBtn');
+            const waitingMsg = document.getElementById('waitingForHost');
+            
+            if (isHost) {
+                startBtn.style.display = 'block';
+                waitingMsg.style.display = 'none';
+            } else {
+                startBtn.style.display = 'none';
+                waitingMsg.style.display = 'block';
+            }
+            
+            // Populate members list
+            populateRoomDetailsMembersList(room);
+            
+            // Connect to real-time updates
+            connectToRoom(room.id);
+            
+            // Hide loading state
+            showRoomDetailsLoading(false);
+        }
+
+        function showRoomDetailsLoading(isLoading) {
+            const loadingElements = document.querySelectorAll('.room-details-loading');
+            const contentElements = document.querySelectorAll('.room-details-content');
+            
+            if (isLoading) {
+                // Show loading skeletons
+                loadingElements.forEach(el => el.classList.remove('hidden'));
+                contentElements.forEach(el => el.style.opacity = '0.5');
+            } else {
+                // Hide loading skeletons
+                loadingElements.forEach(el => el.classList.add('hidden'));
+                contentElements.forEach(el => el.style.opacity = '1');
+            }
+        }
+
+        function populateRoomDetailsMembersList(room) {
+            const membersList = document.getElementById('roomDetailsMembersList');
+            
+            // Cache key for member list to avoid unnecessary re-renders
+            const cacheKey = `${room.id}_${room.memberCount}_${JSON.stringify(room.members || [])}`;
+            if (state.lastMembersCacheKey === cacheKey) {
+                return; // No changes, skip re-render
+            }
+            state.lastMembersCacheKey = cacheKey;
+            
+            // Try to get real member data from room or state
+            let members = [];
+            
+            if (room.members && room.members.length > 0) {
+                // Use real member data if available
+                members = room.members.map(member => ({
+                    id: member.userId || member.id,
+                    name: member.email || member.displayName || member.name || `Usuario ${member.id}`,
+                    role: member.role === 'creator' || member.isHost ? 'Host' : 'Miembro',
+                    isHost: member.role === 'creator' || member.isHost || member.userId === room.hostId,
+                    isConnected: member.status === 'active' || member.isConnected !== false,
+                    isCurrentUser: member.userId === state.user?.sub || member.id === state.user?.sub
+                }));
+            } else {
+                // Fallback: create member list based on available info
+                members = [
+                    {
+                        id: room.hostId || state.user?.sub,
+                        name: state.user?.email || 'Host',
+                        role: 'Host',
+                        isHost: true,
+                        isConnected: true,
+                        isCurrentUser: true
+                    }
+                ];
+                
+                // Add placeholder members if memberCount > 1
+                for (let i = 1; i < (room.memberCount || 1); i++) {
+                    members.push({
+                        id: `member_${i}`,
+                        name: `Miembro ${i + 1}`,
+                        role: 'Miembro',
+                        isHost: false,
+                        isConnected: true,
+                        isCurrentUser: false
+                    });
+                }
+            }
+            
+            // Render members list with improved performance
+            const fragment = document.createDocumentFragment();
+            
+            if (members.length === 0) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'empty-members-message';
+                emptyDiv.innerHTML = '<span>Solo tú por ahora</span>';
+                fragment.appendChild(emptyDiv);
+            } else {
+                members.forEach(member => {
+                    const memberDiv = document.createElement('div');
+                    memberDiv.className = 'member-item-details';
+                    memberDiv.setAttribute('data-member-id', member.id);
+                    memberDiv.innerHTML = `
+                        <div class="member-avatar-details">
+                            ${member.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="member-info-details">
+                            <div class="member-name-details">
+                                ${member.name}${member.isCurrentUser ? ' (Tú)' : ''}
+                            </div>
+                            <div class="member-role-details">${member.role}</div>
+                        </div>
+                        <div class="member-status-details ${member.isConnected ? 'connected' : 'disconnected'}" 
+                             title="${member.isConnected ? 'Conectado' : 'Desconectado'}">
+                        </div>
+                    `;
+                    fragment.appendChild(memberDiv);
+                });
+            }
+            
+            // Replace content efficiently
+            membersList.innerHTML = '';
+            membersList.appendChild(fragment);
+            
+            // Update member count in the header
+            document.getElementById('roomDetailsMemberCount').textContent = members.length;
+        }
+
+        // Function to update member list in real-time
+        function updateMemberInRealTime(memberData) {
+            if (!state.currentRoom) return;
+            
+            const membersList = document.getElementById('roomDetailsMembersList');
+            const memberElement = membersList.querySelector(`[data-member-id="${memberData.userId}"]`);
+            
+            if (memberData.action === 'joined') {
+                // Add new member if not exists
+                if (!memberElement) {
+                    const newMember = {
+                        id: memberData.userId,
+                        name: memberData.email || memberData.displayName || `Usuario ${memberData.userId}`,
+                        role: 'Miembro',
+                        isHost: false,
+                        isConnected: true,
+                        isCurrentUser: memberData.userId === state.user?.sub
+                    };
+                    
+                    const memberHTML = `
+                        <div class="member-item-details" data-member-id="${newMember.id}">
+                            <div class="member-avatar-details">
+                                ${newMember.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="member-info-details">
+                                <div class="member-name-details">
+                                    ${newMember.name}${newMember.isCurrentUser ? ' (Tú)' : ''}
+                                </div>
+                                <div class="member-role-details">${newMember.role}</div>
+                            </div>
+                            <div class="member-status-details connected" title="Conectado"></div>
+                        </div>
+                    `;
+                    
+                    membersList.insertAdjacentHTML('beforeend', memberHTML);
+                    
+                    // Update member count
+                    const currentCount = parseInt(document.getElementById('roomDetailsMemberCount').textContent);
+                    document.getElementById('roomDetailsMemberCount').textContent = currentCount + 1;
+                    
+                    // Show notification
+                    showNotification(`${newMember.name} se unió a la sala`, 'info');
+                }
+            } else if (memberData.action === 'left') {
+                // Remove member
+                if (memberElement) {
+                    const memberName = memberElement.querySelector('.member-name-details').textContent;
+                    memberElement.remove();
+                    
+                    // Update member count
+                    const currentCount = parseInt(document.getElementById('roomDetailsMemberCount').textContent);
+                    document.getElementById('roomDetailsMemberCount').textContent = Math.max(1, currentCount - 1);
+                    
+                    // Show notification
+                    showNotification(`${memberName} salió de la sala`, 'info');
+                }
+            } else if (memberData.action === 'status_changed') {
+                // Update member connection status
+                if (memberElement) {
+                    const statusElement = memberElement.querySelector('.member-status-details');
+                    const isConnected = memberData.status === 'active' || memberData.isConnected;
+                    
+                    statusElement.className = `member-status-details ${isConnected ? 'connected' : 'disconnected'}`;
+                    statusElement.title = isConnected ? 'Conectado' : 'Desconectado';
+                }
+            }
+        }
+
+        // Function to handle room status updates
+        function handleRoomStatusUpdate(statusUpdate) {
+            if (!state.currentRoom || statusUpdate.roomId !== state.currentRoom.id) return;
+            
+            if (statusUpdate.votingStarted) {
+                // Host started voting - transition all members to voting mode
+                addChatMessage({
+                    user: 'Sistema',
+                    content: '🚀 ¡El host ha iniciado la votación!',
+                    isSystem: true
+                });
+                
+                // Auto-transition to voting if we're in room details
+                if (!document.getElementById('roomDetailsArea').classList.contains('hidden')) {
+                    startVotingFromDetails();
+                }
+            }
+            
+            if (statusUpdate.hostAction) {
+                // Handle other host actions
+                addChatMessage({
+                    user: 'Sistema',
+                    content: `Host realizó acción: ${statusUpdate.hostAction}`,
+                    isSystem: true
+                });
+            }
+        }
+
+        function backToRoomList() {
+            // Hide room details
+            document.getElementById('roomDetailsArea').classList.add('hidden');
+            document.getElementById('votingArea').classList.add('hidden');
+            
+            // Show room selection
+            document.getElementById('noRoomSelected').classList.remove('hidden');
+            
+            // Reset header
+            document.getElementById('currentRoomTitle').textContent = 'Selecciona una sala';
+            document.getElementById('roomInviteCode').textContent = '';
+            
+            // Clear current room
+            state.currentRoom = null;
+            renderRoomsList();
+        }
+
+        async function startVotingFromDetails() {
+            if (!state.currentRoom) {
+                showNotification('No hay sala seleccionada', 'error');
+                return;
+            }
+            
+            try {
+                // Hide room details and show voting area
+                document.getElementById('roomDetailsArea').classList.add('hidden');
+                document.getElementById('votingArea').classList.remove('hidden');
+                
+                // Load movies for voting
+                await loadMovies();
+                
+                // Clear chat
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="message-system">Votación iniciada en ${state.currentRoom.name}</div>
+                `;
+                
+                showNotification('¡Votación iniciada!', 'success');
+                
+            } catch (error) {
+                console.error('Error starting voting:', error);
+                showNotification('Error al iniciar votación', 'error');
+            }
+        }
+
+        function leaveRoomFromDetails() {
+            if (confirm('¿Estás seguro de que quieres salir de esta sala?')) {
+                backToRoomList();
+                showNotification('Has salido de la sala', 'info');
+            }
+        }
+
+        async function copyInviteCode() {
+            if (!state.currentRoom?.inviteCode) {
+                showNotification('No hay código de invitación disponible', 'error');
+                return;
+            }
+            
+            try {
+                await navigator.clipboard.writeText(state.currentRoom.inviteCode);
+                showNotification('¡Código copiado al portapapeles!', 'success');
+            } catch (error) {
+                // Fallback for browsers without clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = state.currentRoom.inviteCode;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('¡Código copiado al portapapeles!', 'success');
+            }
+        }
+
+        async function copyShareLink() {
+            if (!state.currentRoom?.inviteCode) {
+                showNotification('No hay enlace disponible', 'error');
+                return;
+            }
+            
+            const shareLink = `http://localhost:3000/test?join=${state.currentRoom.inviteCode}`;
+            
+            try {
+                await navigator.clipboard.writeText(shareLink);
+                showNotification('¡Enlace copiado al portapapeles!', 'success');
+            } catch (error) {
+                // Fallback for browsers without clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = shareLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('¡Enlace copiado al portapapeles!', 'success');
+            }
+        }
+
+        // Function to handle joining via URL parameter
+        function handleJoinFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const joinCode = urlParams.get('join');
+            
+            if (joinCode) {
+                // Auto-fill the join modal and show it
+                document.getElementById('inviteCode').value = joinCode;
+                showJoinRoomModal();
+                
+                // Clear the URL parameter
+                const newURL = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({path: newURL}, '', newURL);
+            }
+        }
+
+        async function createRoom() {
+            const name = document.getElementById('newRoomName').value;
+            const description = document.getElementById('newRoomDesc').value;
+            
+            if (!name) {
+                showNotification('Ingresa un nombre para la sala', 'error');
+                return;
+            }
+            
+            try {
+                const data = await graphqlRequest(`
+                    mutation CreateRoom($input: CreateRoomInput!) {
+                        createRoom(input: $input) {
+                            id
+                            name
+                            description
+                            status
+                            hostId
+                            inviteCode
+                            memberCount
+                            createdAt
+                        }
+                    }
+                `, {
+                    input: { name, description }
+                });
+                
+                hideCreateRoomModal();
+                await loadRooms();
+                selectRoom(data.createRoom.id);
+                showNotification('Sala creada: ' + data.createRoom.inviteCode, 'success');
+                
+            } catch (error) {
+                console.error('Error creating room:', error);
+                showNotification('Error creando sala: ' + error.message, 'error');
+            }
+        }
+
+        async function joinRoom() {
+            const inviteCode = document.getElementById('inviteCode').value.toUpperCase();
+            
+            if (!inviteCode || inviteCode.length !== 6) {
+                showNotification('Ingresa un código válido de 6 caracteres', 'error');
+                return;
+            }
+            
+            try {
+                console.log('🔄 Attempting to join room with code:', inviteCode);
+                
+                const data = await graphqlRequest(`
+                    mutation JoinRoomByInvite($inviteCode: String!) {
+                        joinRoomByInvite(inviteCode: $inviteCode) {
+                            id
+                            name
+                            description
+                            status
+                            hostId
+                            inviteCode
+                            memberCount
+                            createdAt
+                        }
+                    }
+                `, { inviteCode });
+                
+                console.log('✅ GraphQL response:', data);
+                
+                const joinedRoom = data.joinRoomByInvite;
+                
+                if (!joinedRoom || !joinedRoom.id) {
+                    console.error('❌ Invalid room data:', joinedRoom);
+                    throw new Error('No se pudo unir a la sala - respuesta inválida');
+                }
+                
+                console.log('🎉 Successfully joined room:', joinedRoom);
+                
+                hideJoinRoomModal();
+                
+                // First reload rooms, then select the joined room
+                await loadRooms();
+                
+                // Now select the room (it should be in the list)
+                selectRoom(joinedRoom.id);
+                
+                showNotification('Te uniste a la sala: ' + (joinedRoom.name || 'Sala'), 'success');
+                
+            } catch (error) {
+                console.error('❌ Error joining room:', error);
+                console.error('❌ Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    inviteCode: inviteCode
+                });
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============ MOVIES & VOTING ============
+        async function loadMovies() {
+            try {
+                const data = await graphqlRequest(`
+                    query GetMovies {
+                        getMovies {
+                            id
+                            title
+                            overview
+                            poster
+                            vote_average
+                            release_date
+                        }
+                    }
+                `);
+                
+                state.movies = data.getMovies || [];
+                state.movieIndex = 0;
+                
+                if (state.movies.length > 0) {
+                    showCurrentMovie();
+                } else {
+                    document.getElementById('votingArea').classList.add('hidden');
+                    document.getElementById('votingComplete').classList.remove('hidden');
+                }
+                
+                updateProgress();
+                
+            } catch (error) {
+                console.error('Error loading movies:', error);
+                showNotification('Error cargando películas', 'error');
+            }
+        }
+
+        function showCurrentMovie() {
+            if (state.movieIndex >= state.movies.length) {
+                document.getElementById('votingArea').classList.add('hidden');
+                document.getElementById('votingComplete').classList.remove('hidden');
+                return;
+            }
+            
+            const movie = state.movies[state.movieIndex];
+            state.currentMovie = movie;
+            
+            document.getElementById('moviePoster').src = movie.poster 
+                ? CONFIG.TMDB_IMAGE_BASE + movie.poster 
+                : 'https://via.placeholder.com/300x450?text=No+Image';
+            document.getElementById('movieTitle').textContent = movie.title;
+            document.getElementById('movieYear').textContent = movie.release_date?.split('-')[0] || '';
+            document.getElementById('ratingValue').textContent = movie.vote_average?.toFixed(1) || 'N/A';
+            document.getElementById('movieOverview').textContent = movie.overview || 'Sin descripción';
+        }
+
+        function updateProgress() {
+            const total = state.movies.length;
+            const current = state.movieIndex;
+            const percentage = total > 0 ? (current / total) * 100 : 0;
+            
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${current}/${total} películas`;
+        }
+
+        async function vote(voteType) {
+            if (!state.currentRoom || !state.currentMovie) return;
+            
+            try {
+                await graphqlRequest(`
+                    mutation Vote($input: VoteInput!) {
+                        vote(input: $input) {
+                            id
+                            status
+                            resultMovieId
+                        }
+                    }
+                `, {
+                    input: {
+                        roomId: state.currentRoom.id,
+                        movieId: state.currentMovie.id,
+                        voteType: voteType
+                    }
+                });
+                
+                // Move to next movie
+                state.movieIndex++;
+                showCurrentMovie();
+                updateProgress();
+                
+                // Add to chat
+                addChatMessage({
+                    user: 'Sistema',
+                    content: `${state.user.email.split('@')[0]} votó ${voteType === 'LIKE' ? '❤️' : '✕'}`,
+                    isSystem: true
+                });
+                
+            } catch (error) {
+                console.error('Error voting:', error);
+                showNotification('Error al votar: ' + error.message, 'error');
+            }
+        }
+
+        // ============ REAL-TIME ============
+        function connectToRoom(roomId) {
+            updateConnectionStatus('connecting');
+            
+            // Close existing connection
+            if (state.wsConnection) {
+                state.wsConnection.close();
+            }
+            
+            // Clear any existing reconnection timer
+            if (state.reconnectTimer) {
+                clearTimeout(state.reconnectTimer);
+            }
+            
+            try {
+                const host = CONFIG.APPSYNC_REALTIME.replace('wss://', '').replace('/graphql', '');
+                
+                const header = {
+                    Authorization: state.tokens.idToken,
+                    host: host
+                };
+                
+                const b64Header = btoa(JSON.stringify(header));
+                const b64Payload = btoa(JSON.stringify({}));
+                
+                const wsUrl = `${CONFIG.APPSYNC_REALTIME}?header=${encodeURIComponent(b64Header)}&payload=${encodeURIComponent(b64Payload)}`;
+                
+                state.wsConnection = new WebSocket(wsUrl, 'graphql-ws');
+                
+                state.wsConnection.onopen = () => {
+                    console.log('WebSocket connected');
+                    state.wsConnection.send(JSON.stringify({ type: 'connection_init' }));
+                    state.reconnectAttempts = 0; // Reset reconnection attempts
+                };
+                
+                state.wsConnection.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    handleWebSocketMessage(message, roomId);
+                };
+                
+                state.wsConnection.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    updateConnectionStatus('disconnected');
+                    scheduleReconnection(roomId);
+                };
+                
+                state.wsConnection.onclose = (event) => {
+                    console.log('WebSocket closed:', event.code, event.reason);
+                    updateConnectionStatus('disconnected');
+                    
+                    // Only attempt reconnection if it wasn't a clean close
+                    if (event.code !== 1000) {
+                        scheduleReconnection(roomId);
+                    }
+                };
+                
+            } catch (error) {
+                console.error('Error connecting to WebSocket:', error);
+                updateConnectionStatus('disconnected');
+                scheduleReconnection(roomId);
+            }
+        }
+
+        function scheduleReconnection(roomId) {
+            if (!state.reconnectAttempts) {
+                state.reconnectAttempts = 0;
+            }
+            
+            if (state.reconnectAttempts >= 5) {
+                console.log('Max reconnection attempts reached');
+                showNotification('Conexión perdida. Recarga la página para reconectar.', 'error');
+                return;
+            }
+            
+            const delay = Math.min(1000 * Math.pow(2, state.reconnectAttempts), 30000); // Exponential backoff, max 30s
+            state.reconnectAttempts++;
+            
+            console.log(`Scheduling reconnection attempt ${state.reconnectAttempts} in ${delay}ms`);
+            
+            state.reconnectTimer = setTimeout(() => {
+                if (state.currentRoom && state.currentRoom.id === roomId) {
+                    console.log(`Attempting reconnection ${state.reconnectAttempts}`);
+                    connectToRoom(roomId);
+                }
+            }, delay);
+        }
+
+        function handleWebSocketMessage(message, roomId) {
+            switch (message.type) {
+                case 'connection_ack':
+                    updateConnectionStatus('connected');
+                    subscribeToRoom(roomId);
+                    break;
+                    
+                case 'data':
+                    handleSubscriptionData(message.payload?.data);
+                    break;
+                    
+                case 'error':
+                    console.error('Subscription error:', message.payload);
+                    break;
+            }
+        }
+
+        function subscribeToRoom(roomId) {
+            // Subscribe to vote updates
+            const voteSubscription = {
+                id: 'vote-' + Date.now(),
+                type: 'start',
+                payload: {
+                    data: JSON.stringify({
+                        query: `subscription OnVoteUpdate($roomId: ID!) {
+                            onVoteUpdate(roomId: $roomId) {
+                                id
+                                roomId
+                                userId
+                                mediaId
+                                voteType
+                            }
+                        }`,
+                        variables: { roomId }
+                    }),
+                    extensions: {
+                        authorization: {
+                            Authorization: state.tokens.idToken
+                        }
+                    }
+                }
+            };
+            
+            state.wsConnection.send(JSON.stringify(voteSubscription));
+            
+            // Subscribe to match found
+            const matchSubscription = {
+                id: 'match-' + Date.now(),
+                type: 'start',
+                payload: {
+                    data: JSON.stringify({
+                        query: `subscription OnMatchFound($roomId: ID!) {
+                            onMatchFound(roomId: $roomId) {
+                                id
+                                roomId
+                                matchId
+                                mediaId
+                                mediaTitle
+                            }
+                        }`,
+                        variables: { roomId }
+                    }),
+                    extensions: {
+                        authorization: {
+                            Authorization: state.tokens.idToken
+                        }
+                    }
+                }
+            };
+            
+            state.wsConnection.send(JSON.stringify(matchSubscription));
+            
+            // Subscribe to room member updates
+            const memberSubscription = {
+                id: 'member-' + Date.now(),
+                type: 'start',
+                payload: {
+                    data: JSON.stringify({
+                        query: `subscription OnRoomMemberUpdate($roomId: ID!) {
+                            onRoomMemberUpdate(roomId: $roomId) {
+                                roomId
+                                userId
+                                action
+                                email
+                                displayName
+                                status
+                                isConnected
+                            }
+                        }`,
+                        variables: { roomId }
+                    }),
+                    extensions: {
+                        authorization: {
+                            Authorization: state.tokens.idToken
+                        }
+                    }
+                }
+            };
+            
+            state.wsConnection.send(JSON.stringify(memberSubscription));
+            
+            // Subscribe to room status updates
+            const roomStatusSubscription = {
+                id: 'room-status-' + Date.now(),
+                type: 'start',
+                payload: {
+                    data: JSON.stringify({
+                        query: `subscription OnRoomStatusUpdate($roomId: ID!) {
+                            onRoomStatusUpdate(roomId: $roomId) {
+                                roomId
+                                status
+                                votingStarted
+                                hostAction
+                            }
+                        }`,
+                        variables: { roomId }
+                    }),
+                    extensions: {
+                        authorization: {
+                            Authorization: state.tokens.idToken
+                        }
+                    }
+                }
+            };
+            
+            state.wsConnection.send(JSON.stringify(roomStatusSubscription));
+        }
+
+        function handleSubscriptionData(data) {
+            if (!data) return;
+            
+            if (data.onVoteUpdate) {
+                const vote = data.onVoteUpdate;
+                addChatMessage({
+                    user: 'Sistema',
+                    content: `Nuevo voto: ${vote.voteType}`,
+                    isSystem: true
+                });
+            }
+            
+            if (data.onMatchFound) {
+                const match = data.onMatchFound;
+                showMatchModal(match);
+                addChatMessage({
+                    user: 'Sistema',
+                    content: `🎉 ¡MATCH! ${match.mediaTitle}`,
+                    isSystem: true
+                });
+            }
+            
+            if (data.onRoomMemberUpdate) {
+                const memberUpdate = data.onRoomMemberUpdate;
+                updateMemberInRealTime(memberUpdate);
+            }
+            
+            if (data.onRoomStatusUpdate) {
+                const statusUpdate = data.onRoomStatusUpdate;
+                handleRoomStatusUpdate(statusUpdate);
+            }
+        }
+
+        function updateConnectionStatus(status) {
+            const dot = document.getElementById('connectionDot');
+            const text = document.getElementById('connectionText');
+            
+            dot.className = 'status-dot';
+            
+            switch (status) {
+                case 'connected':
+                    dot.classList.add('status-connected');
+                    text.textContent = 'Conectado';
+                    break;
+                case 'connecting':
+                    dot.classList.add('status-connecting');
+                    text.textContent = 'Conectando...';
+                    break;
+                default:
+                    dot.classList.add('status-disconnected');
+                    text.textContent = 'Desconectado';
+            }
+        }
+
+        // ============ CHAT ============
+        function addChatMessage(msg) {
+            const container = document.getElementById('chatMessages');
+            const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            
+            if (msg.isSystem) {
+                container.innerHTML += `<div class="message-system">${msg.content}</div>`;
+            } else {
+                container.innerHTML += `
+                    <div class="chat-message">
+                        <div class="message-header">
+                            <span class="message-user">${msg.user}</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-content">${msg.content}</div>
+                    </div>
+                `;
+            }
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const content = input.value.trim();
+            
+            if (!content) return;
+            
+            addChatMessage({
+                user: state.user.email.split('@')[0],
+                content: content
+            });
+            
+            input.value = '';
+            
+            // TODO: Send via GraphQL mutation when chat is implemented
+        }
+
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        // ============ MODALS ============
+        function showCreateRoomModal() {
+            document.getElementById('createRoomModal').classList.remove('hidden');
+            document.getElementById('newRoomName').value = '';
+            document.getElementById('newRoomDesc').value = '';
+        }
+
+        function hideCreateRoomModal() {
+            document.getElementById('createRoomModal').classList.add('hidden');
+        }
+
+        function showJoinRoomModal() {
+            document.getElementById('joinRoomModal').classList.remove('hidden');
+            document.getElementById('inviteCode').value = '';
+        }
+
+        function hideJoinRoomModal() {
+            document.getElementById('joinRoomModal').classList.add('hidden');
+        }
+
+        function showMatchModal(match) {
+            document.getElementById('matchMovieTitle').textContent = match.mediaTitle || 'Película';
+            document.getElementById('matchModal').classList.remove('hidden');
+        }
+
+        function hideMatchModal() {
+            document.getElementById('matchModal').classList.add('hidden');
+        }
+
+        // ============ NOTIFICATIONS ============
+        function showNotification(message, type = 'success') {
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+            
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // ============ INIT ============
+        document.addEventListener('DOMContentLoaded', () => {
+            checkStoredAuth();
+            handleJoinFromURL();
+        });
+    </script>
+</body>
+</html>

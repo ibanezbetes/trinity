@@ -1,0 +1,122 @@
+{
+  "summary": {
+    "timestamp": "2026-02-01T01:12:17.876Z",
+    "totalChecks": 13,
+    "passedChecks": 8,
+    "warningChecks": 5,
+    "failedChecks": 0,
+    "overallStatus": "REVIEW_RECOMMENDED"
+  },
+  "details": [
+    {
+      "category": "Encryption",
+      "check": "DynamoDB Encryption at Rest",
+      "status": "WARNING",
+      "details": "0/12 tables have encryption enabled",
+      "recommendation": "Enable encryption at rest for all DynamoDB tables in production"
+    },
+    {
+      "category": "Encryption",
+      "check": "Lambda Environment Variables Encryption",
+      "status": "WARNING",
+      "details": "0/7 Lambda functions use KMS encryption for environment variables",
+      "recommendation": "Enable KMS encryption for Lambda environment variables containing sensitive data"
+    },
+    {
+      "category": "IAM",
+      "check": "Trinity IAM Roles",
+      "status": "PASS",
+      "details": "Found 16 Trinity-related IAM roles: TrinityMatchmakingStack-LogRetentionaae0aa3c5b4d4f8-81c7o5tuR85h, TrinityMatchmakingStack-VoteConsensusFunctionServic-CiArirv4QOXA, TrinityMvpStack-AiHandlerServiceRoleB8E36A16-1lpSlWhaw7ji, TrinityMvpStack-AuthHandlerServiceRoleD970A3A9-ij0t0VVgwJb0, TrinityMvpStack-MovieHandlerServiceRoleC8E15675-6tlajdSsnsWa, TrinityMvpStack-PreSignUpAutoConfirmV2ServiceRole0F-uEP0PX9K9HzT, TrinityMvpStack-RealtimeHandlerServiceRoleCFE7FFEB-fpfI1BV8bsmM, TrinityMvpStack-RoomHandlerServiceRole1ABC2E17-klg4VJvvchK5, TrinityMvpStack-TrinityApiAiDataSourceServiceRole2A-d0caIEqVZZYA, TrinityMvpStack-TrinityApiApiLogsRole7BA43AC0-CtK3voNjuGoJ, TrinityMvpStack-TrinityApiAuthDataSourceServiceRole-J6nE1e8VXE5H, TrinityMvpStack-TrinityApiMovieDataSourceServiceRol-21hOjTKfq7m7, TrinityMvpStack-TrinityApiRealtimeDataSourceService-4krcStPaoP3K, TrinityMvpStack-TrinityApiRoomDataSourceServiceRole-s82EdIRj91gq, TrinityMvpStack-TrinityApiVoteDataSourceServiceRole-N2jjN0CMxJaj, TrinityMvpStack-VoteHandlerServiceRoleD1CC4A35-ynIhz9sAWeWJ"
+    },
+    {
+      "category": "IAM",
+      "check": "Least Privilege Principle",
+      "status": "PASS",
+      "details": "No obvious wildcard permissions detected"
+    },
+    {
+      "category": "Network Security",
+      "check": "AppSync Authentication",
+      "status": "PASS",
+      "details": "AppSync APIs use authentication types: API_KEY, AMAZON_COGNITO_USER_POOLS"
+    },
+    {
+      "category": "Network Security",
+      "check": "Lambda Function URLs",
+      "status": "PASS",
+      "details": "0 Lambda functions have public URLs"
+    },
+    {
+      "category": "Monitoring",
+      "check": "CloudWatch Alarms",
+      "status": "PASS",
+      "details": "Found 2 Trinity-related CloudWatch alarms"
+    },
+    {
+      "category": "Monitoring",
+      "check": "CloudWatch Logs Retention",
+      "status": "PASS",
+      "details": "1/7 log groups have retention policies configured"
+    },
+    {
+      "category": "Data Protection",
+      "check": "DynamoDB Point-in-Time Recovery",
+      "status": "WARNING",
+      "details": "2/4 critical tables have point-in-time recovery enabled",
+      "recommendation": "Enable point-in-time recovery for critical DynamoDB tables"
+    },
+    {
+      "category": "Data Protection",
+      "check": "Sensitive Data in Code",
+      "status": "WARNING",
+      "details": "Could not scan source code for sensitive data patterns",
+      "recommendation": "Manually review source code for hardcoded sensitive information"
+    },
+    {
+      "category": "Access Control",
+      "check": "Cognito Password Policy",
+      "status": "PASS",
+      "details": "Password policy: Min length 8, Uppercase: true, Lowercase: true, Numbers: true"
+    },
+    {
+      "category": "Access Control",
+      "check": "Cognito User Pool Configuration",
+      "status": "PASS",
+      "details": "Found 1 Trinity user pools configured"
+    },
+    {
+      "category": "Audit Logging",
+      "check": "CloudTrail Configuration",
+      "status": "WARNING",
+      "details": "Found 0 multi-region CloudTrail trails",
+      "recommendation": "Enable CloudTrail for audit logging and compliance"
+    }
+  ],
+  "recommendations": [
+    {
+      "category": "Encryption",
+      "check": "DynamoDB Encryption at Rest",
+      "recommendation": "Enable encryption at rest for all DynamoDB tables in production"
+    },
+    {
+      "category": "Encryption",
+      "check": "Lambda Environment Variables Encryption",
+      "recommendation": "Enable KMS encryption for Lambda environment variables containing sensitive data"
+    },
+    {
+      "category": "Data Protection",
+      "check": "DynamoDB Point-in-Time Recovery",
+      "recommendation": "Enable point-in-time recovery for critical DynamoDB tables"
+    },
+    {
+      "category": "Data Protection",
+      "check": "Sensitive Data in Code",
+      "recommendation": "Manually review source code for hardcoded sensitive information"
+    },
+    {
+      "category": "Audit Logging",
+      "check": "CloudTrail Configuration",
+      "recommendation": "Enable CloudTrail for audit logging and compliance"
+    }
+  ]
+}

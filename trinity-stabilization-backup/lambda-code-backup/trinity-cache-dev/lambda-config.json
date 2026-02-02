@@ -1,0 +1,18 @@
+{
+  "FunctionName": "trinity-cache-dev",
+  "Runtime": "nodejs18.x",
+  "Handler": "index.handler",
+  "Timeout": 30,
+  "MemorySize": 512,
+  "Environment": {
+    "Variables": {
+      "AWS_REGION": "eu-west-1",
+      "ROOM_MOVIE_CACHE_TABLE": "trinity-room-movie-cache-dev",
+      "ROOM_CACHE_METADATA_TABLE": "trinity-room-cache-metadata-dev",
+      "TMDB_API_KEY": "${TMDB_API_KEY}",
+      "BATCH_SIZE": "30",
+      "MAX_BATCHES": "10",
+      "CACHE_TTL_DAYS": "7"
+    }
+  }
+}
