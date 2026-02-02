@@ -1,8 +1,8 @@
 import { CognitoUserPool, CognitoUser, AuthenticationDetails, CognitoUserAttribute } from 'amazon-cognito-identity-js';
 
 const poolData = {
-  UserPoolId: 'eu-west-1_6UxioIj4z',
-  ClientId: '2a07bheqdh1mllkd1sn0i3s5m3',
+  UserPoolId: 'eu-west-1_TSlG71OQi',
+  ClientId: '3k120srs09npek1qbfhgip63n',
 };
 
 const userPool = new CognitoUserPool(poolData);
@@ -10,14 +10,14 @@ const userPool = new CognitoUserPool(poolData);
 export const awsConfig = {
   Auth: {
     region: 'eu-west-1',
-    userPoolId: 'eu-west-1_6UxioIj4z',
-    userPoolWebClientId: '2a07bheqdh1mllkd1sn0i3s5m3',
+    userPoolId: 'eu-west-1_TSlG71OQi',
+    userPoolWebClientId: '3k120srs09npek1qbfhgip63n',
     mandatorySignIn: true,
     authenticationFlowType: 'USER_SRP_AUTH',
   },
   API: {
-    graphqlEndpoint: 'https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql',
-    realtimeEndpoint: 'wss://imx6fos5lnd3xkdchl4rqtv4pi.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',
+    graphqlEndpoint: 'https://b7vef3wm6jhfddfazbpru5ngki.appsync-api.eu-west-1.amazonaws.com/graphql',
+    realtimeEndpoint: 'wss://b7vef3wm6jhfddfazbpru5ngki.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',
   },
 };
 

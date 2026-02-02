@@ -1,1 +1,266 @@
-#!/usr/bin/env node\n\n/**\n * Simplified APK Build Script for Trinity\n * Uses standard React Native CLI and Gradle build process\n */\n\nconst { execSync } = require('child_process');\nconst fs = require('fs');\nconst path = require('path');\n\n// Configuration\nconst CONFIG = {\n  production: {\n    NODE_ENV: 'production',\n    __DEV__: false,\n    AWS_REGION: 'eu-west-1',\n    GRAPHQL_ENDPOINT: 'https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql',\n    REALTIME_ENDPOINT: 'wss://imx6fos5lnd3xkdchl4rqtv4pi.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',\n    COGNITO_USER_POOL_ID: 'eu-west-1_6UxioIj4z',\n    COGNITO_CLIENT_ID: '2a07bheqdh1mllkd1sn0i3s5m3',\n  },\n  development: {\n    NODE_ENV: 'development',\n    __DEV__: true,\n    AWS_REGION: 'eu-west-1',\n    GRAPHQL_ENDPOINT: 'https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql',\n    REALTIME_ENDPOINT: 'wss://imx6fos5lnd3xkdchl4rqtv4pi.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',\n    COGNITO_USER_POOL_ID: 'eu-west-1_6UxioIj4z',\n    COGNITO_CLIENT_ID: '2a07bheqdh1mllkd1sn0i3s5m3',\n  }\n};\n\nclass APKBuilder {\n  constructor(buildType = 'production') {\n    this.buildType = buildType;\n    this.config = CONFIG[buildType];\n    this.workingDir = this.findMobileDirectory();\n    \n    if (!this.config) {\n      throw new Error(`Invalid build type: ${buildType}. Use 'production' or 'development'`);\n    }\n    \n    console.log(`🚀 Building Trinity APK (${buildType} mode)...`);\n  }\n\n  findMobileDirectory() {\n    let workingDir = process.cwd();\n    \n    // If we're in the root trinity directory, change to mobile\n    if (!fs.existsSync('package.json') && fs.existsSync('mobile/package.json')) {\n      workingDir = path.join(process.cwd(), 'mobile');\n      process.chdir(workingDir);\n      console.log(`📁 Changed to mobile directory: ${workingDir}`);\n    } else if (!fs.existsSync('package.json')) {\n      throw new Error('❌ package.json not found. Run from trinity/ or trinity/mobile/ directory');\n    }\n    \n    return workingDir;\n  }\n\n  setupEnvironment() {\n    console.log('🔧 Setting up build environment...');\n    \n    // Set environment variables\n    Object.assign(process.env, this.config);\n    \n    // Create assets directory\n    const assetsDir = path.join('android', 'app', 'src', 'main', 'assets');\n    if (!fs.existsSync(assetsDir)) {\n      fs.mkdirSync(assetsDir, { recursive: true });\n      console.log('📁 Assets directory created');\n    }\n    \n    // Write configuration file\n    const configPath = path.join(assetsDir, `${this.buildType}-config.json`);\n    fs.writeFileSync(configPath, JSON.stringify(this.config, null, 2));\n    console.log(`✅ ${this.buildType} configuration written`);\n    \n    // Setup Android SDK paths\n    this.setupAndroidSDK();\n  }\n\n  setupAndroidSDK() {\n    console.log('🤖 Setting up Android SDK paths...');\n    \n    if (process.platform === 'win32') {\n      // Windows SDK locations\n      const androidLocations = [\n        path.join(process.env.LOCALAPPDATA || '', 'Android', 'Sdk'),\n        path.join(process.env.USERPROFILE || '', 'AppData', 'Local', 'Android', 'Sdk'),\n        'C:\\\\Android\\\\Sdk',\n        process.env.ANDROID_HOME\n      ].filter(Boolean);\n      \n      for (const location of androidLocations) {\n        if (fs.existsSync(location)) {\n          process.env.ANDROID_HOME = location;\n          process.env.ANDROID_SDK_ROOT = location;\n          console.log(`🤖 Android SDK found: ${location}`);\n          break;\n        }\n      }\n    } else {\n      // Unix/Linux/macOS\n      const androidHome = process.env.ANDROID_HOME || `${process.env.HOME}/Android/Sdk`;\n      if (fs.existsSync(androidHome)) {\n        process.env.ANDROID_HOME = androidHome;\n        process.env.ANDROID_SDK_ROOT = androidHome;\n        console.log(`🤖 Android SDK: ${androidHome}`);\n      }\n    }\n    \n    // Create local.properties if needed\n    const localPropsPath = path.join('android', 'local.properties');\n    if (!fs.existsSync(localPropsPath) && process.env.ANDROID_HOME) {\n      let sdkDir = process.env.ANDROID_HOME;\n      if (process.platform === 'win32') {\n        sdkDir = sdkDir.replace(/\\\\/g, '/');\n      }\n      fs.writeFileSync(localPropsPath, `sdk.dir=${sdkDir}\\n`);\n      console.log('📝 local.properties created');\n    }\n  }\n\n  installDependencies() {\n    console.log('📦 Checking dependencies...');\n    \n    if (!fs.existsSync('node_modules')) {\n      console.log('📦 Installing dependencies...');\n      execSync('npm install', { stdio: 'inherit' });\n    } else {\n      console.log('✅ Dependencies already installed');\n    }\n  }\n\n  buildBundle() {\n    console.log('🔧 Building JavaScript bundle...');\n    \n    const assetsDir = path.join('android', 'app', 'src', 'main', 'assets');\n    const bundlePath = path.join(assetsDir, 'index.android.bundle');\n    \n    // Use React Native CLI to build bundle\n    const bundleCommand = [\n      'npx react-native bundle',\n      '--platform android',\n      `--dev ${this.buildType === 'development'}`,\n      '--entry-file index.js',\n      `--bundle-output \"${bundlePath}\"`,\n      '--assets-dest android/app/src/main/res',\n      '--reset-cache',\n      `--minify ${this.buildType === 'production'}`\n    ].join(' ');\n    \n    console.log('📝 Running:', bundleCommand);\n    execSync(bundleCommand, { stdio: 'inherit' });\n    \n    // Verify bundle was created\n    if (!fs.existsSync(bundlePath)) {\n      throw new Error('Failed to generate JavaScript bundle');\n    }\n    \n    const bundleSize = fs.statSync(bundlePath).size;\n    console.log(`✅ Bundle created: ${(bundleSize / 1024 / 1024).toFixed(2)} MB`);\n    \n    // Verify no localhost references in production\n    if (this.buildType === 'production') {\n      const bundleContent = fs.readFileSync(bundlePath, 'utf8');\n      if (bundleContent.includes('localhost') || bundleContent.includes('127.0.0.1')) {\n        console.warn('⚠️ Warning: Bundle contains localhost references');\n      } else {\n        console.log('✅ Bundle verified - no localhost references');\n      }\n    }\n  }\n\n  buildAPK() {\n    console.log('🔨 Building APK with Gradle...');\n    \n    process.chdir('android');\n    \n    const gradlewCmd = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';\n    const buildVariant = this.buildType === 'production' ? 'Release' : 'Debug';\n    \n    try {\n      // Clean build (skip on Windows to avoid file lock issues)\n      if (process.platform !== 'win32') {\n        console.log('🧹 Cleaning previous build...');\n        execSync(`${gradlewCmd} clean`, { stdio: 'inherit' });\n      }\n      \n      // Build APK\n      console.log(`🔨 Building ${buildVariant} APK...`);\n      execSync(`${gradlewCmd} assemble${buildVariant}`, { stdio: 'inherit' });\n      \n    } catch (error) {\n      throw new Error(`Gradle build failed: ${error.message}`);\n    } finally {\n      // Return to mobile directory\n      process.chdir('..');\n    }\n  }\n\n  copyAPK() {\n    console.log('📦 Copying APK to output directory...');\n    \n    const buildVariant = this.buildType === 'production' ? 'release' : 'debug';\n    const apkName = `app-${buildVariant}.apk`;\n    const apkPath = path.join('android', 'app', 'build', 'outputs', 'apk', buildVariant, apkName);\n    \n    if (!fs.existsSync(apkPath)) {\n      throw new Error(`APK not found at: ${apkPath}`);\n    }\n    \n    const outputName = `trinity-${this.buildType}.apk`;\n    const outputPath = path.join('.', outputName);\n    \n    fs.copyFileSync(apkPath, outputPath);\n    \n    const apkSize = fs.statSync(outputPath).size;\n    console.log(`✅ APK built successfully!`);\n    console.log(`📍 Location: ${path.resolve(outputPath)}`);\n    console.log(`📦 Size: ${(apkSize / 1024 / 1024).toFixed(2)} MB`);\n    \n    return outputPath;\n  }\n\n  async build() {\n    try {\n      this.setupEnvironment();\n      this.installDependencies();\n      this.buildBundle();\n      this.buildAPK();\n      const apkPath = this.copyAPK();\n      \n      console.log('\\n🎉 Build completed successfully!');\n      console.log(`📱 To install: adb install ${path.basename(apkPath)}`);\n      \n      return apkPath;\n      \n    } catch (error) {\n      console.error('❌ Build failed:', error.message);\n      console.error('\\n💡 Troubleshooting:');\n      console.error('   - Ensure Android SDK is installed and ANDROID_HOME is set');\n      console.error('   - Ensure Java 17 is installed and JAVA_HOME is set');\n      console.error('   - Run \"npm install\" to ensure dependencies are installed');\n      console.error('   - Check that no Metro bundler is running');\n      throw error;\n    }\n  }\n}\n\n// CLI interface\nif (require.main === module) {\n  const buildType = process.argv[2] || 'production';\n  \n  if (!['production', 'development'].includes(buildType)) {\n    console.error('Usage: node build-apk.js [production|development]');\n    process.exit(1);\n  }\n  \n  const builder = new APKBuilder(buildType);\n  builder.build().catch(() => process.exit(1));\n}\n\nmodule.exports = APKBuilder;\n"
+#!/usr/bin/env node
+
+/**
+ * Simplified APK Build Script for Trinity
+ * Uses standard React Native CLI and Gradle build process
+ */
+
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+// Configuration
+const CONFIG = {
+  production: {
+    NODE_ENV: 'production',
+    __DEV__: false,
+    AWS_REGION: 'eu-west-1',
+    GRAPHQL_ENDPOINT: 'https://b7vef3wm6jhfddfazbpru5ngki.appsync-api.eu-west-1.amazonaws.com/graphql',
+    REALTIME_ENDPOINT: 'wss://b7vef3wm6jhfddfazbpru5ngki.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',
+    COGNITO_USER_POOL_ID: 'eu-west-1_TSlG71OQi',
+    COGNITO_CLIENT_ID: '3k120srs09npek1qbfhgip63n',
+  },
+  development: {
+    NODE_ENV: 'development',
+    __DEV__: true,
+    AWS_REGION: 'eu-west-1',
+    GRAPHQL_ENDPOINT: 'https://b7vef3wm6jhfddfazbpru5ngki.appsync-api.eu-west-1.amazonaws.com/graphql',
+    REALTIME_ENDPOINT: 'wss://b7vef3wm6jhfddfazbpru5ngki.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',
+    COGNITO_USER_POOL_ID: 'eu-west-1_TSlG71OQi',
+    COGNITO_CLIENT_ID: '3k120srs09npek1qbfhgip63n',
+  }
+};
+
+class APKBuilder {
+  constructor(buildType = 'production') {
+    this.buildType = buildType;
+    this.config = CONFIG[buildType];
+    this.workingDir = this.findMobileDirectory();
+    
+    if (!this.config) {
+      throw new Error(`Invalid build type: ${buildType}. Use 'production' or 'development'`);
+    }
+    
+    console.log(`🚀 Building Trinity APK (${buildType} mode)...`);
+  }
+
+  findMobileDirectory() {
+    let workingDir = process.cwd();
+    
+    // If we're in the root trinity directory, change to mobile
+    if (!fs.existsSync('package.json') && fs.existsSync('mobile/package.json')) {
+      workingDir = path.join(process.cwd(), 'mobile');
+      process.chdir(workingDir);
+      console.log(`📁 Changed to mobile directory: ${workingDir}`);
+    } else if (!fs.existsSync('package.json')) {
+      throw new Error('❌ package.json not found. Run from trinity/ or trinity/mobile/ directory');
+    }
+    
+    return workingDir;
+  }
+
+  setupEnvironment() {
+    console.log('🔧 Setting up build environment...');
+    
+    // Set environment variables
+    Object.assign(process.env, this.config);
+    
+    // Create assets directory
+    const assetsDir = path.join('android', 'app', 'src', 'main', 'assets');
+    if (!fs.existsSync(assetsDir)) {
+      fs.mkdirSync(assetsDir, { recursive: true });
+      console.log('📁 Assets directory created');
+    }
+    
+    // Write configuration file
+    const configPath = path.join(assetsDir, `${this.buildType}-config.json`);
+    fs.writeFileSync(configPath, JSON.stringify(this.config, null, 2));
+    console.log(`✅ ${this.buildType} configuration written`);
+    
+    // Setup Android SDK paths
+    this.setupAndroidSDK();
+  }
+
+  setupAndroidSDK() {
+    console.log('🤖 Setting up Android SDK paths...');
+    
+    if (process.platform === 'win32') {
+      // Windows SDK locations
+      const androidLocations = [
+        path.join(process.env.LOCALAPPDATA || '', 'Android', 'Sdk'),
+        path.join(process.env.USERPROFILE || '', 'AppData', 'Local', 'Android', 'Sdk'),
+        'C:\\Android\\Sdk',
+        process.env.ANDROID_HOME
+      ].filter(Boolean);
+      
+      for (const location of androidLocations) {
+        if (fs.existsSync(location)) {
+          process.env.ANDROID_HOME = location;
+          process.env.ANDROID_SDK_ROOT = location;
+          console.log(`🤖 Android SDK found: ${location}`);
+          break;
+        }
+      }
+    } else {
+      // Unix/Linux/macOS
+      const androidHome = process.env.ANDROID_HOME || `${process.env.HOME}/Android/Sdk`;
+      if (fs.existsSync(androidHome)) {
+        process.env.ANDROID_HOME = androidHome;
+        process.env.ANDROID_SDK_ROOT = androidHome;
+        console.log(`🤖 Android SDK: ${androidHome}`);
+      }
+    }
+    
+    // Create local.properties if needed
+    const localPropsPath = path.join('android', 'local.properties');
+    if (!fs.existsSync(localPropsPath) && process.env.ANDROID_HOME) {
+      let sdkDir = process.env.ANDROID_HOME;
+      if (process.platform === 'win32') {
+        sdkDir = sdkDir.replace(/\\/g, '/');
+      }
+      fs.writeFileSync(localPropsPath, `sdk.dir=${sdkDir}\n`);
+      console.log('📝 local.properties created');
+    }
+  }
+
+  installDependencies() {
+    console.log('📦 Checking dependencies...');
+    
+    if (!fs.existsSync('node_modules')) {
+      console.log('📦 Installing dependencies...');
+      execSync('npm install', { stdio: 'inherit' });
+    } else {
+      console.log('✅ Dependencies already installed');
+    }
+  }
+
+  buildBundle() {
+    console.log('🔧 Building JavaScript bundle...');
+    
+    const assetsDir = path.join('android', 'app', 'src', 'main', 'assets');
+    const bundlePath = path.join(assetsDir, 'index.android.bundle');
+    
+    // Use React Native CLI to build bundle
+    const bundleCommand = [
+      'npx react-native bundle',
+      '--platform android',
+      `--dev ${this.buildType === 'development'}`,
+      '--entry-file index.js',
+      `--bundle-output "${bundlePath}"`,
+      '--assets-dest android/app/src/main/res',
+      '--reset-cache',
+      `--minify ${this.buildType === 'production'}`
+    ].join(' ');
+    
+    console.log('📝 Running:', bundleCommand);
+    execSync(bundleCommand, { stdio: 'inherit' });
+    
+    // Verify bundle was created
+    if (!fs.existsSync(bundlePath)) {
+      throw new Error('Failed to generate JavaScript bundle');
+    }
+    
+    const bundleSize = fs.statSync(bundlePath).size;
+    console.log(`✅ Bundle created: ${(bundleSize / 1024 / 1024).toFixed(2)} MB`);
+    
+    // Verify no localhost references in production
+    if (this.buildType === 'production') {
+      const bundleContent = fs.readFileSync(bundlePath, 'utf8');
+      if (bundleContent.includes('localhost') || bundleContent.includes('127.0.0.1')) {
+        console.warn('⚠️ Warning: Bundle contains localhost references');
+      } else {
+        console.log('✅ Bundle verified - no localhost references');
+      }
+    }
+  }
+
+  buildAPK() {
+    console.log('🔨 Building APK with Gradle...');
+    
+    process.chdir('android');
+    
+    const gradlewCmd = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
+    const buildVariant = this.buildType === 'production' ? 'Release' : 'Debug';
+    
+    try {
+      // Clean build (skip on Windows to avoid file lock issues)
+      if (process.platform !== 'win32') {
+        console.log('🧹 Cleaning previous build...');
+        execSync(`${gradlewCmd} clean`, { stdio: 'inherit' });
+      }
+      
+      // Build APK
+      console.log(`🔨 Building ${buildVariant} APK...`);
+      execSync(`${gradlewCmd} assemble${buildVariant}`, { stdio: 'inherit' });
+      
+    } catch (error) {
+      throw new Error(`Gradle build failed: ${error.message}`);
+    } finally {
+      // Return to mobile directory
+      process.chdir('..');
+    }
+  }
+
+  copyAPK() {
+    console.log('📦 Copying APK to output directory...');
+    
+    const buildVariant = this.buildType === 'production' ? 'release' : 'debug';
+    const apkName = `app-${buildVariant}.apk`;
+    const apkPath = path.join('android', 'app', 'build', 'outputs', 'apk', buildVariant, apkName);
+    
+    if (!fs.existsSync(apkPath)) {
+      throw new Error(`APK not found at: ${apkPath}`);
+    }
+    
+    const outputName = `trinity-${this.buildType}.apk`;
+    const outputPath = path.join('.', outputName);
+    
+    fs.copyFileSync(apkPath, outputPath);
+    
+    const apkSize = fs.statSync(outputPath).size;
+    console.log(`✅ APK built successfully!`);
+    console.log(`📍 Location: ${path.resolve(outputPath)}`);
+    console.log(`📦 Size: ${(apkSize / 1024 / 1024).toFixed(2)} MB`);
+    
+    return outputPath;
+  }
+
+  async build() {
+    try {
+      this.setupEnvironment();
+      this.installDependencies();
+      this.buildBundle();
+      this.buildAPK();
+      const apkPath = this.copyAPK();
+      
+      console.log('\n🎉 Build completed successfully!');
+      console.log(`📱 To install: adb install ${path.basename(apkPath)}`);
+      
+      return apkPath;
+      
+    } catch (error) {
+      console.error('❌ Build failed:', error.message);
+      console.error('\n💡 Troubleshooting:');
+      console.error('   - Ensure Android SDK is installed and ANDROID_HOME is set');
+      console.error('   - Ensure Java 17 is installed and JAVA_HOME is set');
+      console.error('   - Run "npm install" to ensure dependencies are installed');
+      console.error('   - Check that no Metro bundler is running');
+      throw error;
+    }
+  }
+}
+
+// CLI interface
+if (require.main === module) {
+  const buildType = process.argv[2] || 'production';
+  
+  if (!['production', 'development'].includes(buildType)) {
+    console.error('Usage: node build-apk.js [production|development]');
+    process.exit(1);
+  }
+  
+  const builder = new APKBuilder(buildType);
+  builder.build().catch(() => process.exit(1));
+}
+
+module.exports = APKBuilder;

@@ -26,10 +26,10 @@ export interface AWSConfig {
 // Production AWS Configuration
 export const AWS_CONFIG: AWSConfig = {
   region: 'eu-west-1',
-  graphqlEndpoint: 'https://qdvhkkwneza2pkpaofehnvmubq.appsync-api.eu-west-1.amazonaws.com/graphql',
-  realtimeEndpoint: 'wss://qdvhkkwneza2pkpaofehnvmubq.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',
-  userPoolId: 'eu-west-1_EtOx2swvP',
-  userPoolWebClientId: 'l08ofv6tef7dp8eorn022fqpj', // From CDK deployment
+  graphqlEndpoint: 'https://b7vef3wm6jhfddfazbpru5ngki.appsync-api.eu-west-1.amazonaws.com/graphql',
+  realtimeEndpoint: 'wss://b7vef3wm6jhfddfazbpru5ngki.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',
+  userPoolId: 'eu-west-1_TSlG71OQi',
+  userPoolWebClientId: '3k120srs09npek1qbfhgip63n', // From CDK deployment
   identityPoolId: '', // Will be populated by setup script
   userPoolDomain: 'trinity-auth-dev.auth.eu-west-1.amazoncognito.com',
   // Google Federation Configuration

@@ -1,9 +1,0 @@
-{
-  "NODE_ENV": "production",
-  "__DEV__": false,
-  "AWS_REGION": "eu-west-1",
-  "GRAPHQL_ENDPOINT": "https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql",
-  "REALTIME_ENDPOINT": "wss://imx6fos5lnd3xkdchl4rqtv4pi.appsync-realtime-api.eu-west-1.amazonaws.com/graphql",
-  "COGNITO_USER_POOL_ID": "eu-west-1_6UxioIj4z",
-  "COGNITO_CLIENT_ID": "2a07bheqdh1mllkd1sn0i3s5m3"
-}

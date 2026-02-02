@@ -30,10 +30,10 @@ const productionConfig = {
   NODE_ENV: 'production',
   __DEV__: false,
   AWS_REGION: 'eu-west-1',
-  GRAPHQL_ENDPOINT: 'https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql',
-  REALTIME_ENDPOINT: 'wss://imx6fos5lnd3xkdchl4rqtv4pi.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',
-  COGNITO_USER_POOL_ID: 'eu-west-1_6UxioIj4z',
-  COGNITO_CLIENT_ID: '2a07bheqdh1mllkd1sn0i3s5m3',
+  GRAPHQL_ENDPOINT: 'https://b7vef3wm6jhfddfazbpru5ngki.appsync-api.eu-west-1.amazonaws.com/graphql',
+  REALTIME_ENDPOINT: 'wss://b7vef3wm6jhfddfazbpru5ngki.appsync-realtime-api.eu-west-1.amazonaws.com/graphql',
+  COGNITO_USER_POOL_ID: 'eu-west-1_TSlG71OQi',
+  COGNITO_CLIENT_ID: '3k120srs09npek1qbfhgip63n',
 };
 
 // 3. Escribir configuración de producción

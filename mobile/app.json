@@ -49,15 +49,15 @@
       "expo-web-browser"
     ],
     "extra": {
-      "cognitoUserPoolId": "eu-west-1_6UxioIj4z",
-      "cognitoClientId": "2a07bheqdh1mllkd1sn0i3s5m3",
+      "cognitoUserPoolId": "eu-west-1_TSlG71OQi",
+      "cognitoClientId": "3k120srs09npek1qbfhgip63n",
       "cognitoRegion": "eu-west-1",
       "cognitoUserPoolDomain": "trinity-auth-dev.auth.eu-west-1.amazoncognito.com",
       "googleWebClientId": "230498169556-cqb6dv3o58oeblrfrk49o0a6l7ecjtrn.apps.googleusercontent.com",
-      "googleIosClientId": "320120465080-ios-specific-client-id.apps.googleusercontent.com",
+      "googleIosClientId": "230498169556-ios-specific-client-id.apps.googleusercontent.com",
       "googleAndroidClientId": "230498169556-ipt2iafpd75h17kjcsgmb89oc9u1ciii.apps.googleusercontent.com",
-      "graphqlEndpoint": "https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql",
-      "realtimeEndpoint": "wss://imx6fos5lnd3xkdchl4rqtv4pi.appsync-realtime-api.eu-west-1.amazonaws.com/graphql",
+      "graphqlEndpoint": "https://b7vef3wm6jhfddfazbpru5ngki.appsync-api.eu-west-1.amazonaws.com/graphql",
+      "realtimeEndpoint": "wss://b7vef3wm6jhfddfazbpru5ngki.appsync-realtime-api.eu-west-1.amazonaws.com/graphql",
       "router": {
         "origin": false
       },

@@ -1,1 +1,255 @@
-#!/usr/bin/env node\n\n/**\n * Generate aws-exports.json from CDK outputs\n * This script reads CDK outputs and generates the AWS configuration for the mobile app\n */\n\nconst fs = require('fs');\nconst path = require('path');\n\n/**\n * Default configuration for different environments\n */\nconst DEFAULT_CONFIG = {\n  production: {\n    aws_project_region: 'eu-west-1',\n    aws_cognito_region: 'eu-west-1',\n    aws_user_pools_id: 'eu-west-1_6UxioIj4z',\n    aws_user_pools_web_client_id: '2a07bheqdh1mllkd1sn0i3s5m3',\n    aws_cognito_identity_pool_id: '',\n    aws_cognito_signup_attributes: ['EMAIL'],\n    aws_cognito_mfa_configuration: 'OFF',\n    aws_cognito_mfa_types: ['SMS'],\n    aws_cognito_password_protection_settings: {\n      passwordPolicyMinLength: 8,\n      passwordPolicyCharacters: []\n    },\n    aws_cognito_verification_mechanisms: ['EMAIL'],\n    aws_appsync_graphqlEndpoint: 'https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql',\n    aws_appsync_region: 'eu-west-1',\n    aws_appsync_authenticationType: 'AMAZON_COGNITO_USER_POOLS',\n    aws_appsync_apiKey: '',\n    aws_appsync_additionalAuthenticationTypes: [],\n    oauth: {\n      domain: '',\n      scope: ['phone', 'email', 'openid', 'profile', 'aws.cognito.signin.user.admin'],\n      redirectSignIn: 'trinity://auth/',\n      redirectSignOut: 'trinity://auth/',\n      responseType: 'code'\n    }\n  },\n  development: {\n    aws_project_region: 'eu-west-1',\n    aws_cognito_region: 'eu-west-1',\n    aws_user_pools_id: 'eu-west-1_6UxioIj4z',\n    aws_user_pools_web_client_id: '2a07bheqdh1mllkd1sn0i3s5m3',\n    aws_cognito_identity_pool_id: '',\n    aws_cognito_signup_attributes: ['EMAIL'],\n    aws_cognito_mfa_configuration: 'OFF',\n    aws_cognito_mfa_types: ['SMS'],\n    aws_cognito_password_protection_settings: {\n      passwordPolicyMinLength: 8,\n      passwordPolicyCharacters: []\n    },\n    aws_cognito_verification_mechanisms: ['EMAIL'],\n    aws_appsync_graphqlEndpoint: 'https://imx6fos5lnd3xkdchl4rqtv4pi.appsync-api.eu-west-1.amazonaws.com/graphql',\n    aws_appsync_region: 'eu-west-1',\n    aws_appsync_authenticationType: 'AMAZON_COGNITO_USER_POOLS',\n    aws_appsync_apiKey: '',\n    aws_appsync_additionalAuthenticationTypes: [],\n    oauth: {\n      domain: '',\n      scope: ['phone', 'email', 'openid', 'profile', 'aws.cognito.signin.user.admin'],\n      redirectSignIn: 'trinity://auth/',\n      redirectSignOut: 'trinity://auth/',\n      responseType: 'code'\n    }\n  }\n};\n\nclass AWSExportsGenerator {\n  constructor(environment = 'production') {\n    this.environment = environment;\n    this.config = { ...DEFAULT_CONFIG[environment] };\n    \n    if (!this.config) {\n      throw new Error(`Invalid environment: ${environment}. Use 'production' or 'development'`);\n    }\n    \n    console.log(`🔧 Generating AWS exports for ${environment} environment...`);\n  }\n\n  /**\n   * Load CDK outputs if available\n   */\n  loadCDKOutputs() {\n    const cdkOutputsPath = path.join('..', 'infrastructure', 'clean', 'cdk-outputs.json');\n    \n    if (fs.existsSync(cdkOutputsPath)) {\n      try {\n        const cdkOutputs = JSON.parse(fs.readFileSync(cdkOutputsPath, 'utf8'));\n        console.log('📄 Loading CDK outputs...');\n        \n        // Map CDK outputs to AWS exports configuration\n        this.mapCDKOutputs(cdkOutputs);\n        \n      } catch (error) {\n        console.warn('⚠️ Failed to load CDK outputs, using default configuration');\n        console.warn('Error:', error.message);\n      }\n    } else {\n      console.log('📄 CDK outputs not found, using default configuration');\n    }\n  }\n\n  /**\n   * Map CDK outputs to AWS exports format\n   */\n  mapCDKOutputs(cdkOutputs) {\n    // Look for relevant stack outputs\n    for (const [stackName, outputs] of Object.entries(cdkOutputs)) {\n      console.log(`📋 Processing stack: ${stackName}`);\n      \n      // Map Cognito outputs\n      if (outputs.UserPoolId) {\n        this.config.aws_user_pools_id = outputs.UserPoolId;\n        console.log(`✅ User Pool ID: ${outputs.UserPoolId}`);\n      }\n      \n      if (outputs.UserPoolClientId) {\n        this.config.aws_user_pools_web_client_id = outputs.UserPoolClientId;\n        console.log(`✅ User Pool Client ID: ${outputs.UserPoolClientId}`);\n      }\n      \n      if (outputs.IdentityPoolId) {\n        this.config.aws_cognito_identity_pool_id = outputs.IdentityPoolId;\n        console.log(`✅ Identity Pool ID: ${outputs.IdentityPoolId}`);\n      }\n      \n      // Map AppSync outputs\n      if (outputs.GraphQLAPIEndpoint) {\n        this.config.aws_appsync_graphqlEndpoint = outputs.GraphQLAPIEndpoint;\n        console.log(`✅ GraphQL Endpoint: ${outputs.GraphQLAPIEndpoint}`);\n      }\n      \n      if (outputs.GraphQLAPIKey) {\n        this.config.aws_appsync_apiKey = outputs.GraphQLAPIKey;\n        console.log(`✅ GraphQL API Key: ${outputs.GraphQLAPIKey.substring(0, 10)}...`);\n      }\n      \n      // Map OAuth domain\n      if (outputs.OAuthDomain) {\n        this.config.oauth.domain = outputs.OAuthDomain;\n        console.log(`✅ OAuth Domain: ${outputs.OAuthDomain}`);\n      }\n    }\n  }\n\n  /**\n   * Generate aws-exports.js file\n   */\n  generateExports() {\n    const exportsContent = `// Auto-generated AWS configuration for ${this.environment} environment\n// Generated on: ${new Date().toISOString()}\n\nconst awsconfig = ${JSON.stringify(this.config, null, 2)};\n\nexport default awsconfig;\n`;\n    \n    const outputPath = path.join('src', 'aws-exports.js');\n    \n    // Ensure src directory exists\n    const srcDir = path.dirname(outputPath);\n    if (!fs.existsSync(srcDir)) {\n      fs.mkdirSync(srcDir, { recursive: true });\n    }\n    \n    fs.writeFileSync(outputPath, exportsContent);\n    console.log(`✅ AWS exports generated: ${outputPath}`);\n    \n    return outputPath;\n  }\n\n  /**\n   * Generate aws-exports.json file for React Native\n   */\n  generateJSONExports() {\n    const outputPath = path.join('src', 'aws-exports.json');\n    \n    // Ensure src directory exists\n    const srcDir = path.dirname(outputPath);\n    if (!fs.existsSync(srcDir)) {\n      fs.mkdirSync(srcDir, { recursive: true });\n    }\n    \n    fs.writeFileSync(outputPath, JSON.stringify(this.config, null, 2));\n    console.log(`✅ AWS exports JSON generated: ${outputPath}`);\n    \n    return outputPath;\n  }\n\n  /**\n   * Validate configuration\n   */\n  validateConfig() {\n    const requiredFields = [\n      'aws_user_pools_id',\n      'aws_user_pools_web_client_id',\n      'aws_appsync_graphqlEndpoint'\n    ];\n    \n    const missingFields = requiredFields.filter(field => !this.config[field]);\n    \n    if (missingFields.length > 0) {\n      console.warn('⚠️ Missing required configuration fields:');\n      missingFields.forEach(field => console.warn(`   - ${field}`));\n      return false;\n    }\n    \n    console.log('✅ Configuration validation passed');\n    return true;\n  }\n\n  /**\n   * Generate all export formats\n   */\n  generate() {\n    try {\n      this.loadCDKOutputs();\n      \n      if (!this.validateConfig()) {\n        console.warn('⚠️ Configuration validation failed, but continuing with available values');\n      }\n      \n      const jsPath = this.generateExports();\n      const jsonPath = this.generateJSONExports();\n      \n      console.log('\\n🎉 AWS exports generation completed!');\n      console.log(`📄 JavaScript: ${jsPath}`);\n      console.log(`📄 JSON: ${jsonPath}`);\n      \n      return { jsPath, jsonPath };\n      \n    } catch (error) {\n      console.error('❌ Failed to generate AWS exports:', error.message);\n      throw error;\n    }\n  }\n}\n\n// CLI interface\nif (require.main === module) {\n  const environment = process.argv[2] || 'production';\n  \n  if (!['production', 'development'].includes(environment)) {\n    console.error('Usage: node generate-aws-exports.js [production|development]');\n    process.exit(1);\n  }\n  \n  const generator = new AWSExportsGenerator(environment);\n  generator.generate().catch(() => process.exit(1));\n}\n\nmodule.exports = AWSExportsGenerator;\n"
+#!/usr/bin/env node
+
+/**
+ * Generate aws-exports.json from CDK outputs
+ * This script reads CDK outputs and generates the AWS configuration for the mobile app
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+/**
+ * Default configuration for different environments
+ */
+const DEFAULT_CONFIG = {
+  production: {
+    aws_project_region: 'eu-west-1',
+    aws_cognito_region: 'eu-west-1',
+    aws_user_pools_id: 'eu-west-1_TSlG71OQi',
+    aws_user_pools_web_client_id: '3k120srs09npek1qbfhgip63n',
+    aws_cognito_identity_pool_id: '',
+    aws_cognito_signup_attributes: ['EMAIL'],
+    aws_cognito_mfa_configuration: 'OFF',
+    aws_cognito_mfa_types: ['SMS'],
+    aws_cognito_password_protection_settings: {
+      passwordPolicyMinLength: 8,
+      passwordPolicyCharacters: []
+    },
+    aws_cognito_verification_mechanisms: ['EMAIL'],
+    aws_appsync_graphqlEndpoint: 'https://b7vef3wm6jhfddfazbpru5ngki.appsync-api.eu-west-1.amazonaws.com/graphql',
+    aws_appsync_region: 'eu-west-1',
+    aws_appsync_authenticationType: 'AMAZON_COGNITO_USER_POOLS',
+    aws_appsync_apiKey: '',
+    aws_appsync_additionalAuthenticationTypes: [],
+    oauth: {
+      domain: '',
+      scope: ['phone', 'email', 'openid', 'profile', 'aws.cognito.signin.user.admin'],
+      redirectSignIn: 'trinity://auth/',
+      redirectSignOut: 'trinity://auth/',
+      responseType: 'code'
+    }
+  },
+  development: {
+    aws_project_region: 'eu-west-1',
+    aws_cognito_region: 'eu-west-1',
+    aws_user_pools_id: 'eu-west-1_TSlG71OQi',
+    aws_user_pools_web_client_id: '3k120srs09npek1qbfhgip63n',
+    aws_cognito_identity_pool_id: '',
+    aws_cognito_signup_attributes: ['EMAIL'],
+    aws_cognito_mfa_configuration: 'OFF',
+    aws_cognito_mfa_types: ['SMS'],
+    aws_cognito_password_protection_settings: {
+      passwordPolicyMinLength: 8,
+      passwordPolicyCharacters: []
+    },
+    aws_cognito_verification_mechanisms: ['EMAIL'],
+    aws_appsync_graphqlEndpoint: 'https://b7vef3wm6jhfddfazbpru5ngki.appsync-api.eu-west-1.amazonaws.com/graphql',
+    aws_appsync_region: 'eu-west-1',
+    aws_appsync_authenticationType: 'AMAZON_COGNITO_USER_POOLS',
+    aws_appsync_apiKey: '',
+    aws_appsync_additionalAuthenticationTypes: [],
+    oauth: {
+      domain: '',
+      scope: ['phone', 'email', 'openid', 'profile', 'aws.cognito.signin.user.admin'],
+      redirectSignIn: 'trinity://auth/',
+      redirectSignOut: 'trinity://auth/',
+      responseType: 'code'
+    }
+  }
+};
+
+class AWSExportsGenerator {
+  constructor(environment = 'production') {
+    this.environment = environment;
+    this.config = { ...DEFAULT_CONFIG[environment] };
+    
+    if (!this.config) {
+      throw new Error(`Invalid environment: ${environment}. Use 'production' or 'development'`);
+    }
+    
+    console.log(`🔧 Generating AWS exports for ${environment} environment...`);
+  }
+
+  /**
+   * Load CDK outputs if available
+   */
+  loadCDKOutputs() {
+    const cdkOutputsPath = path.join('..', 'infrastructure', 'clean', 'cdk-outputs.json');
+    
+    if (fs.existsSync(cdkOutputsPath)) {
+      try {
+        const cdkOutputs = JSON.parse(fs.readFileSync(cdkOutputsPath, 'utf8'));
+        console.log('📄 Loading CDK outputs...');
+        
+        // Map CDK outputs to AWS exports configuration
+        this.mapCDKOutputs(cdkOutputs);
+        
+      } catch (error) {
+        console.warn('⚠️ Failed to load CDK outputs, using default configuration');
+        console.warn('Error:', error.message);
+      }
+    } else {
+      console.log('📄 CDK outputs not found, using default configuration');
+    }
+  }
+
+  /**
+   * Map CDK outputs to AWS exports format
+   */
+  mapCDKOutputs(cdkOutputs) {
+    // Look for relevant stack outputs
+    for (const [stackName, outputs] of Object.entries(cdkOutputs)) {
+      console.log(`📋 Processing stack: ${stackName}`);
+      
+      // Map Cognito outputs
+      if (outputs.UserPoolId) {
+        this.config.aws_user_pools_id = outputs.UserPoolId;
+        console.log(`✅ User Pool ID: ${outputs.UserPoolId}`);
+      }
+      
+      if (outputs.UserPoolClientId) {
+        this.config.aws_user_pools_web_client_id = outputs.UserPoolClientId;
+        console.log(`✅ User Pool Client ID: ${outputs.UserPoolClientId}`);
+      }
+      
+      if (outputs.IdentityPoolId) {
+        this.config.aws_cognito_identity_pool_id = outputs.IdentityPoolId;
+        console.log(`✅ Identity Pool ID: ${outputs.IdentityPoolId}`);
+      }
+      
+      // Map AppSync outputs
+      if (outputs.GraphQLAPIEndpoint) {
+        this.config.aws_appsync_graphqlEndpoint = outputs.GraphQLAPIEndpoint;
+        console.log(`✅ GraphQL Endpoint: ${outputs.GraphQLAPIEndpoint}`);
+      }
+      
+      if (outputs.GraphQLAPIKey) {
+        this.config.aws_appsync_apiKey = outputs.GraphQLAPIKey;
+        console.log(`✅ GraphQL API Key: ${outputs.GraphQLAPIKey.substring(0, 10)}...`);
+      }
+      
+      // Map OAuth domain
+      if (outputs.OAuthDomain) {
+        this.config.oauth.domain = outputs.OAuthDomain;
+        console.log(`✅ OAuth Domain: ${outputs.OAuthDomain}`);
+      }
+    }
+  }
+
+  /**
+   * Generate aws-exports.js file
+   */
+  generateExports() {
+    const exportsContent = `// Auto-generated AWS configuration for ${this.environment} environment
+// Generated on: ${new Date().toISOString()}
+
+const awsconfig = ${JSON.stringify(this.config, null, 2)};
+
+export default awsconfig;
+`;
+    
+    const outputPath = path.join('src', 'aws-exports.js');
+    
+    // Ensure src directory exists
+    const srcDir = path.dirname(outputPath);
+    if (!fs.existsSync(srcDir)) {
+      fs.mkdirSync(srcDir, { recursive: true });
+    }
+    
+    fs.writeFileSync(outputPath, exportsContent);
+    console.log(`✅ AWS exports generated: ${outputPath}`);
+    
+    return outputPath;
+  }
+
+  /**
+   * Generate aws-exports.json file for React Native
+   */
+  generateJSONExports() {
+    const outputPath = path.join('src', 'aws-exports.json');
+    
+    // Ensure src directory exists
+    const srcDir = path.dirname(outputPath);
+    if (!fs.existsSync(srcDir)) {
+      fs.mkdirSync(srcDir, { recursive: true });
+    }
+    
+    fs.writeFileSync(outputPath, JSON.stringify(this.config, null, 2));
+    console.log(`✅ AWS exports JSON generated: ${outputPath}`);
+    
+    return outputPath;
+  }
+
+  /**
+   * Validate configuration
+   */
+  validateConfig() {
+    const requiredFields = [
+      'aws_user_pools_id',
+      'aws_user_pools_web_client_id',
+      'aws_appsync_graphqlEndpoint'
+    ];
+    
+    const missingFields = requiredFields.filter(field => !this.config[field]);
+    
+    if (missingFields.length > 0) {
+      console.warn('⚠️ Missing required configuration fields:');
+      missingFields.forEach(field => console.warn(`   - ${field}`));
+      return false;
+    }
+    
+    console.log('✅ Configuration validation passed');
+    return true;
+  }
+
+  /**
+   * Generate all export formats
+   */
+  generate() {
+    try {
+      this.loadCDKOutputs();
+      
+      if (!this.validateConfig()) {
+        console.warn('⚠️ Configuration validation failed, but continuing with available values');
+      }
+      
+      const jsPath = this.generateExports();
+      const jsonPath = this.generateJSONExports();
+      
+      console.log('\n🎉 AWS exports generation completed!');
+      console.log(`📄 JavaScript: ${jsPath}`);
+      console.log(`📄 JSON: ${jsonPath}`);
+      
+      return { jsPath, jsonPath };
+      
+    } catch (error) {
+      console.error('❌ Failed to generate AWS exports:', error.message);
+      throw error;
+    }
+  }
+}
+
+// CLI interface
+if (require.main === module) {
+  const environment = process.argv[2] || 'production';
+  
+  if (!['production', 'development'].includes(environment)) {
+    console.error('Usage: node generate-aws-exports.js [production|development]');
+    process.exit(1);
+  }
+  
+  const generator = new AWSExportsGenerator(environment);
+  generator.generate().catch(() => process.exit(1));
+}
+
+module.exports = AWSExportsGenerator;
